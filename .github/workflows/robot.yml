@@ -1,0 +1,49 @@
+name: Robot vidéo
+
+on:
+  schedule:
+    - cron: "17 4,7,10 * * *"    # vers 5 h-6 h, 8 h-9 h et 11 h-12 h à Paris : le 2e et le 3e réveil rattrapent un réveil sauté ou raté
+  workflow_dispatch:             # bouton « Créer » du site, ou Actions → Robot vidéo → Run workflow
+    inputs:
+      format:
+        description: "auto (selon le planning), courte ou longue"
+        default: "auto"
+      idee:
+        description: "Idée imposée (facultatif)"
+        default: ""
+      remplace:
+        description: "Identifiant de la vidéo à remplacer (bouton Refaire du site)"
+        default: ""
+      simulation:
+        description: "1 = test gratuit (fausse vidéo, aucune IA appelée)"
+        default: "0"
+
+permissions:
+  contents: write                # enregistrer les données et créer les Releases
+
+concurrency:
+  group: fabrication             # une seule vidéo fabriquée à la fois (le budget reste juste)
+  cancel-in-progress: false
+
+jobs:
+  fabriquer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      FORMAT: ${{ inputs.format || 'auto' }}
+      IDEE: ${{ inputs.idee }}
+      REMPLACE: ${{ inputs.remplace }}
+      SIMULATION: ${{ inputs.simulation || '0' }}
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installer ffmpeg
+        run: |
+          which ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          ffmpeg -version | head -1
+      - name: Fabriquer
+        run: python -m robot.principal --format "$FORMAT" --idee "$IDEE" --remplace "$REMPLACE"

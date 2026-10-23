@@ -1,0 +1,41 @@
+{
+ "budget": {
+  "plafond_mensuel_usd": 30
+ },
+ "modeles": {
+  "texte": "grok-4.3",
+  "image": "grok-imagine-image-2.0",
+  "video": "grok-imagine-video-1.5-lite"
+ },
+ "prix": {
+  "video_seconde": 0.02,
+  "image": 0.04,
+  "scenario": 0.01,
+  "_note": "Prix xAI du 23/10/2026 (docs.x.ai/developers/pricing). Le coût réel renvoyé par Grok est utilisé quand il existe."
+ },
+ "formats": {
+  "courte": {
+   "clips": 2,
+   "secondes_par_clip": 10
+  },
+  "longue": {
+   "clips": 6,
+   "secondes_par_clip": 14
+  }
+ },
+ "planning": {
+  "courte_chaque_jour": true,
+  "jours_longue": [
+   "samedi"
+  ],
+  "heures_publication": [
+   12,
+   19
+  ],
+  "pause": false
+ },
+ "montage": {
+  "sous_titres": true,
+  "resolution": "720p"
+ }
+}

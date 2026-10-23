@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Régie Gilbert</title>
+<meta name="theme-color" content="#d23b2d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Concept : une régie de diffusion. Chaque vidéo est une « bande » avec son timecode, un voyant
+   (à publier / publiée / écartée) et l'heure conseillée pour la mettre en ligne. */
+:root {
+  --bg: #eceff3; --surface: #ffffff; --surface-2: #f5f7fa; --line: #d6dce4;
+  --fg: #15202b; --muted: #5a6878; --accent: #d23b2d; --accent-fg: #ffffff;
+  --ok: #23805a; --warn: #b87a0c; --off: #7b8794;
+  --f-display: "Familjen Grotesk", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+  --r: 10px;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e141b; --surface: #17202a; --surface-2: #1d2833; --line: #2a3644;
+  --fg: #e5eaf0; --muted: #93a1b1; --accent: #f0564a; --accent-fg: #ffffff;
+  --ok: #4cc08a; --warn: #e0a83a; --off: #6c7a89; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e141b; --surface: #17202a; --surface-2: #1d2833; --line: #2a3644;
+  --fg: #e5eaf0; --muted: #93a1b1; --accent: #f0564a; --accent-fg: #ffffff;
+  --ok: #4cc08a; --warn: #e0a83a; --off: #6c7a89; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: inherit; }
+
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top .wrap { padding-block: 12px 0; display: grid; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.tally { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); flex: none; }
+.tally.idle { background: var(--off); box-shadow: none; }
+h1 { font: 700 21px/1.1 var(--f-display); margin: 0; letter-spacing: -0.01em; }
+.brand small { color: var(--muted); font-size: 13px; margin-left: auto; text-align: right; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin-inline: -4px; }
+nav.tabs::-webkit-scrollbar { display: none; }
+nav.tabs button { background: none; border: 0; padding: 9px 12px 11px; color: var(--muted); font-weight: 700; font-size: 14px; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; }
+nav.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+nav.tabs .count { font: 500 11px var(--f-mono); background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 1px 6px; margin-left: 4px; }
+
+main { padding-block: 18px 60px; }
+section.view { display: grid; gap: 14px; }
+h2 { font: 700 17px/1.2 var(--f-display); margin: 6px 0 0; text-wrap: balance; }
+.hint { color: var(--muted); font-size: 13.5px; margin: 0; max-width: 62ch; }
+.banner { margin-bottom: 14px; border: 1px dashed var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border-radius: var(--r); padding: 10px 12px; font-size: 13.5px; }
+.steps { margin: 0; padding-left: 20px; font-size: 13.5px; display: grid; gap: 3px; }
+details.aide { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px; }
+details.aide summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+details.aide[open] summary { margin-bottom: 8px; }
+
+/* --- bande vidéo --- */
+.reel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 12px; }
+.thumb { width: 96px; max-width: 100%; aspect-ratio: 9/16; border-radius: 6px; background: var(--surface-2) center/cover; position: relative; overflow: hidden; border: 0; padding: 0; cursor: pointer; }
+.thumb .tc { position: absolute; left: 4px; bottom: 4px; font: 500 10.5px var(--f-mono); background: rgba(0,0,0,.72); color: #fff; padding: 1px 4px; border-radius: 3px; }
+.thumb .play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 22px; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.reel-body { min-width: 0; display: grid; gap: 6px; align-content: start; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.s-a_publier { color: var(--accent); } .s-publiee { color: var(--ok); } .s-ecartee, .s-remplacee { color: var(--off); }
+.fmt { font: 500 11.5px var(--f-mono); color: var(--muted); }
+.reel h3 { font: 700 16px/1.25 var(--f-display); margin: 0; text-wrap: balance; }
+.caption { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.tags { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.slot { font: 500 13px var(--f-mono); }
+.slot.late { color: var(--warn); }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.inline { display: grid; gap: 6px; }
+
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 13.5px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.danger { color: var(--accent); }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; }
+label.f, div.f { display: grid; gap: 5px; font-weight: 700; font-size: 13.5px; }
+.f span.sub { font-weight: 400; color: var(--muted); font-size: 12.5px; }
+input[type=text], input[type=number], input[type=password], input[type=url], select, textarea { width: 100%; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
+textarea { min-height: 78px; resize: vertical; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; font-weight: 400; }
+.seg label { border: 1px solid var(--line); border-radius: 8px; padding: 7px 11px; cursor: pointer; font-size: 13.5px; background: var(--surface-2); display: flex; gap: 6px; align-items: center; }
+.seg input { accent-color: var(--accent); }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.choice label { border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px; cursor: pointer; display: grid; gap: 2px; background: var(--surface-2); position: relative; }
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice label:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.choice b { font: 700 15px var(--f-display); }
+.choice span { color: var(--muted); font-size: 12.5px; font-family: var(--f-mono); }
+
+.gauge { height: 14px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+.gauge i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+.gauge i.hot { background: var(--warn); } .gauge i.full { background: var(--accent); }
+.figs { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-variant-numeric: tabular-nums; }
+.big { font: 700 28px/1 var(--f-display); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+td, th { text-align: left; padding: 7px 4px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+td.n { text-align: right; font-family: var(--f-mono); }
+.scroll { overflow-x: auto; }
+
+.perso { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: start; }
+.perso img { width: 120px; max-width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); }
+@media (max-width: 460px) { .perso { grid-template-columns: 1fr; } .perso img { width: 140px; } }
+
+.log { list-style: none; padding: 0; margin: 0; display: grid; }
+.log li { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.log time { font: 500 11.5px var(--f-mono); color: var(--muted); padding-top: 2px; }
+.log li.alerte span { color: var(--warn); } .log li.erreur span { color: var(--accent); }
+.empty { text-align: center; color: var(--muted); padding: 28px 12px; border: 1px dashed var(--line); border-radius: var(--r); }
+
+dialog { border: 0; padding: 0; background: #000; border-radius: 12px; max-width: min(420px, 92vw); }
+dialog::backdrop { background: rgba(0,0,0,.7); }
+dialog video { display: block; width: 100%; max-height: 82vh; }
+dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background: rgba(0,0,0,.6); color: #fff; border: 0; border-radius: 99px; width: 34px; height: 34px; font-size: 18px; cursor: pointer; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 700; font-size: 14px; z-index: 20; max-width: calc(100vw - 32px); text-align: center; }
+@media (prefers-reduced-motion: no-preference) { .toast { animation: up .2s ease-out; } @keyframes up { from { transform: translate(-50%, 10px); opacity: 0; } } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <span class="tally idle" id="tally" aria-hidden="true"></span>
+      <h1>Régie Gilbert</h1>
+      <small id="sub">Chargement…</small>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" data-v="file" aria-selected="true">À publier<span class="count" id="c-file">0</span></button>
+      <button role="tab" data-v="publiees">Publiées<span class="count" id="c-pub">0</span></button>
+      <button role="tab" data-v="creer">Créer</button>
+      <button role="tab" data-v="perso">Personnage</button>
+      <button role="tab" data-v="budget">Budget</button>
+      <button role="tab" data-v="journal">Journal</button>
+      <button role="tab" data-v="reglages">Réglages</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner" id="demo" hidden>Mode démonstration : ces vidéos sont des exemples. Sur ton site GitHub, tu verras les vraies.</div>
+  <div class="banner" id="nojeton" hidden>Pour que les boutons agissent, ajoute ta clé GitHub dans <a href="#reglages" data-go="reglages">Réglages</a> (une seule fois sur ce téléphone).</div>
+
+  <section class="view" id="v-file">
+    <details class="aide" id="aide">
+      <summary>Comment publier sur TikTok (1 minute)</summary>
+      <ol class="steps">
+        <li><b>Télécharger</b> la vidéo, puis <b>Copier la légende</b>.</li>
+        <li>Dans TikTok : <b>+</b> → Importer → choisis la vidéo → Suivant.</li>
+        <li>Colle la légende. Dans <b>Plus d'options</b>, active <b>« Contenu généré par l'IA »</b> (obligatoire).</li>
+        <li>Publie, puis reviens ici et appuie sur <b>J'ai publié</b>.</li>
+      </ol>
+    </details>
+    <div id="list-file" style="display:grid;gap:12px"></div>
+  </section>
+
+  <section class="view" id="v-publiees" hidden>
+    <div id="list-pub" style="display:grid;gap:12px"></div>
+  </section>
+
+  <section class="view" id="v-creer" hidden>
+    <form class="panel" id="f-creer">
+      <h2>Commander une vidéo maintenant</h2>
+      <div class="choice">
+        <label><input type="radio" name="format" value="courte" checked><b>Courte</b><span id="est-courte">20 s · ~0,49 $</span></label>
+        <label><input type="radio" name="format" value="longue"><b>Longue</b><span id="est-longue">84 s · ~1,93 $</span></label>
+      </div>
+      <label class="f" for="idee">Idée <span class="sub">Facultatif. Laisse vide et le robot invente un épisode.</span>
+        <textarea id="idee" placeholder="Gilbert essaie d'apprendre à Napoléon (le pigeon) à rapporter le journal"></textarea>
+      </label>
+      <div class="seg"><label for="simu"><input type="checkbox" id="simu"> Test gratuit (fausse vidéo, sans appeler Grok)</label></div>
+      <div class="actions"><button class="btn primary" type="submit">Lancer la création</button></div>
+      <p class="hint">Compte 5 à 15 minutes. La vidéo arrive dans « À publier ». Les longues font plus d'une minute : c'est la durée qu'exige TikTok pour la rémunération des créateurs.</p>
+    </form>
+  </section>
+
+  <section class="view" id="v-perso" hidden>
+    <div class="panel">
+      <div class="perso">
+        <img id="portrait" alt="Portrait de référence du personnage">
+        <div style="display:grid;gap:10px;min-width:0">
+          <h2 id="p-nom">Gilbert Mouchon</h2>
+          <p class="hint" id="p-resume"></p>
+          <p class="hint">Ce portrait sert de point de départ à chaque plan : c'est grâce à lui que le personnage garde le même visage d'une vidéo à l'autre.</p>
+          <div class="actions"><button class="btn" id="b-portrait" type="button" data-arm="portrait">Refaire le portrait (0,04 $)</button></div>
+        </div>
+      </div>
+    </div>
+    <form class="panel" id="f-perso">
+      <h2>Fiche du personnage</h2>
+      <div class="row">
+        <label class="f" for="p_nom">Nom<input type="text" id="p_nom"></label>
+        <label class="f" for="p_age">Âge<input type="number" id="p_age" min="18" max="99"></label>
+      </div>
+      <label class="f" for="p_ville">Ville<input type="text" id="p_ville"></label>
+      <label class="f" for="p_apparence">Apparence <span class="sub">En anglais : c'est ce que lit Grok pour filmer. Après un changement, refais le portrait.</span><textarea id="p_apparence"></textarea></label>
+      <label class="f" for="p_voix">Voix <span class="sub">En anglais aussi. Grok s'en sert pour la voix de chaque plan.</span><input type="text" id="p_voix"></label>
+      <label class="f" for="p_personnalite">Personnalité<textarea id="p_personnalite"></textarea></label>
+      <label class="f" for="p_phrase">Phrase fétiche<input type="text" id="p_phrase"></label>
+      <label class="f" for="p_gags">Gags récurrents <span class="sub">Un par ligne.</span><textarea id="p_gags"></textarea></label>
+      <label class="f" for="p_ton">Ton<input type="text" id="p_ton"></label>
+      <div class="actions"><button class="btn primary" type="submit">Enregistrer la fiche</button></div>
+    </form>
+  </section>
+
+  <section class="view" id="v-budget" hidden>
+    <div class="panel">
+      <div class="figs"><div><div class="hint">Dépensé ce mois</div><div class="big" id="b-spent">0,00 $</div></div>
+        <div style="text-align:right"><div class="hint">Plafond</div><div class="big" id="b-cap">30 $</div></div></div>
+      <div class="gauge" role="meter" aria-label="Budget utilisé" aria-valuemin="0" aria-valuemax="100" id="b-gauge"><i style="width:0%"></i></div>
+      <p class="hint" id="b-left"></p>
+      <p class="hint" id="b-prevu"></p>
+    </div>
+    <div class="panel">
+      <h2>Dernières dépenses</h2>
+      <div class="scroll"><table><thead><tr><th>Date</th><th>Poste</th><th style="text-align:right">$</th></tr></thead><tbody id="b-rows"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-journal" hidden>
+    <div class="panel"><h2>Ce que fait le robot</h2><ul class="log" id="log"></ul>
+      <p class="hint">Détail technique de chaque passage : <a id="l-actions" href="#" target="_blank" rel="noopener">onglet Actions de GitHub</a>.</p></div>
+  </section>
+
+  <section class="view" id="v-reglages" hidden>
+    <form class="panel" id="f-conn">
+      <h2>Clé GitHub de ce téléphone</h2>
+      <p class="hint">Le site a besoin d'une clé GitHub pour envoyer tes ordres au robot. Elle reste uniquement dans ce navigateur.
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Créer la clé</a> : dépôt <b>grok-tiktok</b> seulement, droit <b>Actions</b> en « Read and write ».</p>
+      <label class="f" for="c_token">Clé (fine-grained)<input type="password" id="c_token" autocomplete="off"></label>
+      <label class="f" for="c_repo">Dépôt <span class="sub">Rempli tout seul sur ton site GitHub.</span><input type="text" id="c_repo" placeholder="pseudo/grok-tiktok" autocomplete="off"></label>
+      <div class="actions"><button class="btn primary" type="submit">Enregistrer</button><button class="btn" type="button" id="b-forget">Oublier la clé</button></div>
+    </form>
+    <form class="panel" id="f-cfg">
+      <h2>Planning</h2>
+      <label class="f" for="r_cap">Plafond mensuel (dollars) <span class="sub">30 $ ≈ 26 €. Le robot s'arrête de lui-même avant de le dépasser.</span><input type="number" id="r_cap" min="1" max="200" step="1"></label>
+      <div class="f">Vidéo courte
+        <div class="seg"><label for="r_daily"><input type="checkbox" id="r_daily"> Une chaque jour</label></div></div>
+      <div class="f">Jours des vidéos longues
+        <div class="seg" id="r_days"></div></div>
+      <label class="f" for="r_hours">Heures de publication conseillées <span class="sub">Ex. 12, 19. Les longues visent la dernière heure.</span><input type="text" id="r_hours"></label>
+      <div class="f">Montage
+        <div class="seg"><label for="r_subs"><input type="checkbox" id="r_subs"> Sous-titres incrustés</label></div></div>
+      <div class="actions"><button class="btn primary" type="submit">Envoyer au robot</button></div>
+    </form>
+    <div class="panel">
+      <h2 id="pause-titre">Robot actif</h2>
+      <p class="hint" id="pause-texte">Il fabrique les vidéos prévues chaque matin.</p>
+      <div class="actions"><button class="btn" type="button" id="b-pause">Mettre en pause</button></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="player"><button class="close" type="button" aria-label="Fermer">✕</button><video id="pv" controls playsinline></video></dialog>
+
+<script>
+const JOURS = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} }
+};
+function repoDuSite() {   // sur pseudo.github.io/grok-tiktok/ : le dépôt se devine tout seul
+  const m = location.hostname.match(/^([\w-]+)\.github\.io$/), d = location.pathname.split("/").filter(Boolean)[0];
+  return m && d ? `${m[1]}/${d}` : "";
+}
+const conn = () => ({ repo: store.get("gt_repo", "") || repoDuSite(), token: store.get("gt_jeton", ""), branch: "main" });
+const SUR_GITHUB = /\.github\.io$/.test(location.hostname);
+let D = null, DEMO = false;
+
+// ---------------- données d'exemple (mode démo) ----------------
+const h = n => new Date(Date.now() + n * 3600e3).toISOString();
+const DEMO_DATA = {
+  "file.json": { videos: [
+    { id:"20261024-061702-l", format:"longue", titre:"Gilbert ouvre une auto-école pour escargots", legende:"Premier jour de cours. Le moniteur a 54 ans, les élèves avancent à 0,03 km/h 🐌", hashtags:["#gilbert","#escargot","#humour","#absurde","#ia"], duree:84, cout_usd:1.91, publier_le:h(9.2), statut:"a_publier", url:"" },
+    { id:"20261024-061701-c", format:"courte", titre:"Napoléon a volé la télécommande", legende:"Monique dit que c'est de ma faute. Monique a toujours un avis.", hashtags:["#gilbert","#pigeon","#humour","#ia"], duree:20, cout_usd:0.48, publier_le:h(2.5), statut:"a_publier", url:"" },
+    { id:"20261023-061701-c", format:"courte", titre:"Le grille-pain qui chante", legende:"Trois mois de travail au garage. Il fait des tartines ET du karaoké.", hashtags:["#invention","#humour","#ia"], duree:20, cout_usd:0.49, publier_le:h(-20), publiee_le:h(-19.5), statut:"publiee", url:"" },
+    { id:"20261021-061701-l", format:"longue", titre:"Gilbert se présente à Miss France", legende:"Le jury n'était pas prêt.", hashtags:["#humour","#ia"], duree:84, cout_usd:1.95, publier_le:h(-52), statut:"ecartee", url:"" } ] },
+  "budget.json": { mois:"2026-10", depense_usd: 9.37, plafond_usd: 30, lignes: [
+    { date:h(-1), usd:0.28, quoi:"clip 14 s (plan 6)" }, { date:h(-1.1), usd:0.04, quoi:"image du plan 6" },
+    { date:h(-1.3), usd:0.01, quoi:"scénario" }, { date:h(-25), usd:0.2, quoi:"clip 10 s (plan 2)" }, { date:h(-25.1), usd:0.04, quoi:"image du plan 2" } ] },
+  "journal.json": { evenements: [
+    { date:h(-1), niveau:"info", texte:"✅ « Gilbert ouvre une auto-école pour escargots » prête (longue, 84 s, 1.91 $)" },
+    { date:h(-19.5), niveau:"info", texte:"🚀 « Le grille-pain qui chante » marquée publiée sur TikTok." },
+    { date:h(-50), niveau:"info", texte:"🛑 « Gilbert se présente à Miss France » écartée (ne sera pas publiée)." } ] },
+  "reglages.json": {
+    budget:{ plafond_mensuel_usd:30 }, prix:{ video_seconde:.02, image:.04, scenario:.01 },
+    formats:{ courte:{clips:2, secondes_par_clip:10}, longue:{clips:6, secondes_par_clip:14} },
+    planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
+    montage:{ sous_titres:true } },
+  "personnage.json": { nom:"Gilbert Mouchon", age:54, ville:"Saint-Glinglin-sur-Loire (village imaginaire)",
+    apparence:"French man in his mid fifties, round friendly face, thick grey walrus moustache, small rectangular glasses, short grey hair, beige fishing vest over a faded blue checked shirt",
+    voix:"deep, calm, slightly hoarse voice of a French man in his fifties, deadpan delivery",
+    personnalite:"Vlogueur amateur persuadé d'être une star d'Internet. Pince-sans-rire, très sérieux face aux situations les plus absurdes.",
+    phrase_fetiche:"Bon. On va pas se mentir.",
+    gags_recurrents:["Sa voisine Monique, qu'on ne voit jamais mais qui a toujours un avis","Son pigeon apprivoisé Napoléon","Ses inventions inutiles bricolées au garage"],
+    ton:"humour absurde, faux sérieux, chute surprenante" }
+};
+const NOMS = Object.keys(DEMO_DATA);
+
+// ---------------- lecture ----------------
+async function lire(nom) {
+  const c = conn();
+  if (c.repo && c.token) {   // avec la clé : toujours la toute dernière version (le site public a ~1 min de retard)
+    try {
+      const r = await fetch(`https://api.github.com/repos/${c.repo}/contents/docs/donnees/${nom}?ref=${c.branch}&t=${Date.now()}`,
+        { headers: { Authorization: `Bearer ${c.token}`, Accept: "application/vnd.github.raw+json" } });
+      if (r.ok) return r.json();
+    } catch {}
+  }
+  const r = await fetch(`donnees/${nom}?t=${Date.now()}`);
+  if (!r.ok) throw new Error(nom);
+  return r.json();
+}
+
+async function charger() {
+  try {
+    const res = await Promise.all(NOMS.map(n => lire(n).catch(e => { if (n === "file.json") throw e; return null; })));
+    D = Object.fromEntries(NOMS.map((n, i) => [n, res[i] ?? DEMO_DATA[n]]));
+    DEMO = false;
+  } catch { D = structuredClone(DEMO_DATA); DEMO = true; }
+  $("#demo").hidden = !DEMO;
+  $("#nojeton").hidden = DEMO || !!conn().token;
+  rendre();
+  remplirFormulaires();
+}
+
+// ---------------- ordres au robot ----------------
+async function ordre(workflow, inputs, msg) {
+  if (DEMO) { toast("Démo : sur ton site GitHub, ce bouton enverra l'ordre au robot."); return false; }
+  const c = conn();
+  if (!c.repo || !c.token) { montrer("reglages"); toast("Ajoute d'abord ta clé GitHub."); return false; }
+  try {
+    const r = await fetch(`https://api.github.com/repos/${c.repo}/actions/workflows/${workflow}/dispatches`, {
+      method: "POST", headers: { Authorization: `Bearer ${c.token}`, Accept: "application/vnd.github+json" },
+      body: JSON.stringify({ ref: c.branch, inputs }) });
+    if (r.status === 204) { toast(msg); setTimeout(charger, 60e3); return true; }
+    toast(r.status === 401 || r.status === 403 ? "Clé refusée : vérifie qu'elle a le droit Actions en « Read and write »."
+      : r.status === 404 ? "Dépôt introuvable : vérifie son nom dans Réglages." : `GitHub a répondu ${r.status}. Réessaie dans un moment.`);
+  } catch { toast("Pas de connexion à GitHub. Réessaie quand le réseau revient."); }
+  return false;
+}
+const commande = (action, id, texte = "", msg = "Ordre envoyé au robot (1 à 2 min).") =>
+  ordre("commande.yml", { action, id: id || "", texte }, msg);
+
+// ---------------- rendu ----------------
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const tc = s => { s = Math.round(s || 0); return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`; };
+const usd = n => (n ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
+const quand = iso => new Date(iso).toLocaleString("fr-FR", { timeZone:"Europe/Paris", weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+const LIB = { a_publier:"À publier", publiee:"Publiée", ecartee:"Écartée", remplacee:"Remplacée" };
+const legendeComplete = v => `${v.legende} ${(v.hashtags || []).join(" ")}`.trim();
+
+function creneau(v) {
+  const ms = new Date(v.publier_le) - Date.now();
+  if (ms < -3600e3) return `<div class="slot late">Conseillé ${quand(v.publier_le)} : en retard, publie quand tu peux</div>`;
+  if (ms <= 0) return `<div class="slot late">C'est l'heure : à publier maintenant</div>`;
+  const m = Math.round(ms / 60e3), hh = Math.floor(m / 60);
+  return `<div class="slot">À publier ${quand(v.publier_le)} · dans ${hh ? hh + " h " : ""}${String(m % 60).padStart(hh ? 2 : 1, "0")} min</div>`;
+}
+
+function carte(v) {
+  const mini = v.miniature && !DEMO ? `background-image:url('${esc(v.miniature)}')` : "";
+  let act = "";
+  if (v.statut === "a_publier") act = `
+      ${v.url ? `<a class="btn primary" href="${esc(v.url)}" target="_blank" rel="noopener">Télécharger</a>` : `<button class="btn primary" type="button" data-a="demo">Télécharger</button>`}
+      <button class="btn" type="button" data-a="copier" data-id="${v.id}">Copier la légende</button>
+      <button class="btn" type="button" data-a="jai_publie" data-id="${v.id}">J'ai publié</button>
+      <button class="btn" type="button" data-a="legende" data-id="${v.id}">Modifier la légende</button>
+      <button class="btn" type="button" data-a="refaire" data-id="${v.id}">Refaire</button>
+      <button class="btn danger" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>`;
+  else if (v.statut === "ecartee" || v.statut === "remplacee") act = `
+      <button class="btn" type="button" data-a="a_publier" data-id="${v.id}">Remettre dans la file</button>
+      <button class="btn danger" type="button" data-a="supprimer" data-id="${v.id}">Supprimer</button>`;
+  else if (v.statut === "publiee") act = v.lien_tiktok ? `<a class="btn" href="${esc(v.lien_tiktok)}" target="_blank" rel="noopener">Voir sur TikTok</a>` : "";
+  return `<article class="reel">
+    <button class="thumb" type="button" style="${mini}" data-play="${esc(v.url || "")}" aria-label="Lire « ${esc(v.titre)} »">
+      <span class="play" aria-hidden="true">▶</span><span class="tc">${tc(v.duree)}</span></button>
+    <div class="reel-body">
+      <div class="meta"><span class="pill s-${v.statut}">${LIB[v.statut] || esc(v.statut)}</span><span class="fmt">${v.format === "longue" ? "LONGUE" : "COURTE"} · ${usd(v.cout_usd)}${v.simulation ? " · TEST" : ""}</span></div>
+      <h3>${esc(v.titre)}</h3>
+      <p class="caption" id="cap-${v.id}">${esc(v.legende)}</p>
+      <div class="tags">${esc((v.hashtags || []).join(" "))}</div>
+      ${v.statut === "a_publier" ? creneau(v) : ""}
+      ${v.statut === "publiee" ? `<div class="slot">publiée ${quand(v.publiee_le || v.publier_le)}</div>` : ""}
+      <div class="inline" id="zone-${v.id}"></div>
+      ${act ? `<div class="actions">${act}</div>` : ""}
+    </div></article>`;
+}
+
+const R = () => D["reglages.json"];
+function cout(f) { const x = R().formats[f], p = R().prix, s = x.clips * x.secondes_par_clip;
+  return [s, s * p.video_seconde + x.clips * p.image + p.scenario]; }
+
+function rendre() {
+  const vids = D["file.json"].videos || [];
+  const avenir = vids.filter(v => ["a_publier","ecartee","remplacee"].includes(v.statut))
+    .sort((a, b) => (a.statut !== "a_publier") - (b.statut !== "a_publier") || new Date(a.publier_le) - new Date(b.publier_le));
+  const pub = vids.filter(v => v.statut === "publiee").sort((a, b) => new Date(b.publiee_le || 0) - new Date(a.publiee_le || 0));
+  $("#list-file").innerHTML = avenir.length ? avenir.map(carte).join("")
+    : `<div class="empty">Rien à publier. Le robot passe chaque matin, ou commande une vidéo dans « Créer ».</div>`;
+  $("#list-pub").innerHTML = pub.length ? pub.map(carte).join("") : `<div class="empty">Aucune vidéo publiée pour l'instant.</div>`;
+  const nb = avenir.filter(v => v.statut === "a_publier");
+  $("#c-file").textContent = nb.length;
+  $("#c-pub").textContent = pub.length;
+  $("#tally").classList.toggle("idle", !nb.length);
+  $("#sub").textContent = R().planning.pause ? "robot en pause" : nb.length ? `${nb.length} à publier` : "rien à publier";
+
+  for (const f of ["courte","longue"]) { const [s, c] = cout(f); $("#est-" + f).textContent = `${s} s · ~${usd(c)}`; }
+
+  const B = D["budget.json"] || { depense_usd: 0, plafond_usd: R().budget.plafond_mensuel_usd, lignes: [] };
+  const cap = R().budget.plafond_mensuel_usd;
+  const pct = Math.min(100, 100 * B.depense_usd / cap);
+  $("#b-spent").textContent = usd(B.depense_usd);
+  $("#b-cap").textContent = usd(cap);
+  const gi = $("#b-gauge i"); gi.style.width = pct + "%"; gi.className = pct >= 95 ? "full" : pct >= 75 ? "hot" : "";
+  $("#b-gauge").setAttribute("aria-valuenow", Math.round(pct));
+  const reste = Math.max(0, cap - B.depense_usd);
+  $("#b-left").textContent = `Reste ${usd(reste)}, soit environ ${Math.floor(reste / cout("courte")[1])} vidéos courtes ou ${Math.floor(reste / cout("longue")[1])} longues. Au-delà, le robot attend le 1er du mois.`;
+  const pl = R().planning, mois = (pl.courte_chaque_jour ? 30.4 * cout("courte")[1] : 0) + pl.jours_longue.length * 4.35 * cout("longue")[1];
+  $("#b-prevu").textContent = `Avec le planning actuel : environ ${usd(mois)} par mois${mois > cap ? ", au-dessus du plafond : le robot s'arrêtera avant la fin du mois" : ""}.`;
+  $("#b-rows").innerHTML = (B.lignes || []).slice(-30).reverse().map(l =>
+    `<tr><td>${quand(l.date)}</td><td>${esc(l.quoi)}</td><td class="n">${l.usd.toFixed(2)}</td></tr>`).join("") || `<tr><td colspan="3" class="hint">Aucune dépense ce mois.</td></tr>`;
+
+  const J = (D["journal.json"] || { evenements: [] }).evenements;
+  $("#log").innerHTML = J.map(e => `<li class="${esc(e.niveau)}"><time>${new Date(e.date).toLocaleString("fr-FR",{timeZone:"Europe/Paris",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</time><span>${esc(e.texte)}</span></li>`).join("") || `<li><span class="hint">Le robot n'a encore rien fait.</span></li>`;
+  const c = conn(); $("#l-actions").href = c.repo ? `https://github.com/${c.repo}/actions` : "https://github.com";
+
+  const pause = !!pl.pause;
+  $("#pause-titre").textContent = pause ? "Robot en pause" : "Robot actif";
+  $("#pause-texte").textContent = pause ? "Il ne fabrique plus rien tout seul. Tu peux toujours commander une vidéo dans « Créer »." : "Il fabrique les vidéos prévues chaque matin.";
+  $("#b-pause").textContent = pause ? "Relancer le robot" : "Mettre en pause";
+}
+
+function remplirFormulaires() {
+  const P = D["personnage.json"], pl = R().planning;
+  $("#p-nom").textContent = P.nom;
+  $("#p-resume").textContent = `${P.age} ans · ${P.ville}. « ${P.phrase_fetiche} »`;
+  const img = $("#portrait");
+  img.onerror = () => { img.onerror = null; img.src = SILHOUETTE; };
+  img.src = DEMO ? SILHOUETTE : `donnees/portrait.jpg?t=${Date.now()}`;
+  const pf = { p_nom:P.nom, p_age:P.age, p_ville:P.ville, p_apparence:P.apparence, p_voix:P.voix, p_personnalite:P.personnalite,
+    p_phrase:P.phrase_fetiche, p_gags:(P.gags_recurrents||[]).join("\n"), p_ton:P.ton };
+  for (const [k, v] of Object.entries(pf)) { const el = document.getElementById(k); if (document.activeElement !== el) el.value = v ?? ""; }
+  $("#r_cap").value = R().budget.plafond_mensuel_usd; $("#r_daily").checked = !!pl.courte_chaque_jour;
+  $("#r_days").innerHTML = JOURS.map(j => `<label for="j_${j}"><input type="checkbox" id="j_${j}" value="${j}" ${pl.jours_longue.includes(j) ? "checked" : ""}> ${j}</label>`).join("");
+  $("#r_hours").value = pl.heures_publication.join(", "); $("#r_subs").checked = R().montage.sous_titres !== false;
+  const c = conn(); $("#c_repo").value = c.repo; $("#c_token").placeholder = c.token ? "•••••••• enregistrée" : "github_pat_…";
+}
+
+const SILHOUETTE = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 160"><rect width="90" height="160" fill="#8796a6"/><circle cx="45" cy="62" r="22" fill="#c9d2dc"/><path d="M14 160c2-34 14-52 31-52s29 18 31 52z" fill="#c9d2dc"/><path d="M33 70c6 5 18 5 24 0" stroke="#5b6876" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`);
+
+// ---------------- interactions ----------------
+function toast(t) { document.querySelector(".toast")?.remove(); const d = document.createElement("div"); d.className = "toast"; d.setAttribute("role","status"); d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 4500); }
+function montrer(v) {
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v));
+  document.querySelectorAll("section.view").forEach(s => s.hidden = s.id !== "v-" + v);
+  scrollTo({ top: 0 });
+}
+document.querySelector("nav.tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) montrer(b.dataset.v); });
+const VUES = ["file","publiees","creer","perso","budget","journal","reglages"];
+if (VUES.includes(location.hash.slice(1))) montrer(location.hash.slice(1));
+if (store.get("gt_aide_vue", "")) $("#aide").open = false; else { $("#aide").open = true; store.set("gt_aide_vue", "1"); }
+
+const armes = new Set();   // actions sensibles : deux appuis (« Confirmer ? »)
+function arme(b, cle) {
+  if (armes.has(cle)) { armes.delete(cle); return true; }
+  armes.add(cle); const old = b.textContent; b.textContent = "Confirmer ?";
+  setTimeout(() => { armes.delete(cle); b.textContent = old; }, 3500); return false;
+}
+
+document.addEventListener("click", async e => {
+  const go = e.target.closest("[data-go]"); if (go) { e.preventDefault(); return montrer(go.dataset.go); }
+  const play = e.target.closest("[data-play]");
+  if (play) {
+    if (!play.dataset.play) return toast("Aperçu disponible sur ton site GitHub.");
+    $("#pv").src = play.dataset.play; $("#player").showModal(); $("#pv").play().catch(() => {}); return;
+  }
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  const { a, id } = b.dataset, v = id && D["file.json"].videos.find(x => x.id === id);
+  const zone = id && $("#zone-" + id);
+  if (a === "demo") return toast("Démo : sur ton site GitHub, ce bouton télécharge la vidéo.");
+  if (a === "copier") {
+    const t = legendeComplete(v);
+    try { await navigator.clipboard.writeText(t); toast("Légende copiée. Colle-la dans TikTok."); }
+    catch { zone.innerHTML = `<textarea id="cp-${id}" readonly>${esc(t)}</textarea>`; const ta = $("#cp-" + id); ta.focus(); ta.select(); toast("Sélectionnée : copie-la à la main."); }
+    return;
+  }
+  if (a === "legende") {
+    zone.innerHTML = `<label class="f" for="ed-${id}">Nouvelle légende<textarea id="ed-${id}">${esc(v.legende)}</textarea></label>
+      <span class="actions"><button class="btn primary" type="button" data-a="legende-ok" data-id="${id}">Enregistrer la légende</button></span>`;
+    return $("#ed-" + id).focus();
+  }
+  if (a === "legende-ok") {
+    const t = $("#ed-" + id).value.trim();
+    if (await commande("legende", id, t, "Légende envoyée.")) { v.legende = t; rendre(); }
+    return;
+  }
+  if (a === "jai_publie") {
+    zone.innerHTML = `<label class="f" for="lien-${id}">Lien de la vidéo TikTok <span class="sub">Facultatif. Dans TikTok : Partager → Copier le lien.</span><input type="url" id="lien-${id}" placeholder="https://www.tiktok.com/@…"></label>
+      <span class="actions"><button class="btn primary" type="button" data-a="publiee" data-id="${id}">Confirmer : elle est en ligne</button></span>`;
+    return;
+  }
+  if (a === "publiee") {
+    const lien = ($("#lien-" + id)?.value || "").trim();
+    if (await commande("publiee", id, lien, "Bravo ! Vidéo rangée dans « Publiées ».")) { v.statut = "publiee"; v.publiee_le = new Date().toISOString(); if (lien) v.lien_tiktok = lien; rendre(); }
+    return;
+  }
+  if (["ecarter","supprimer","refaire"].includes(a) && !arme(b, a + id)) return;
+  if (a === "refaire") {
+    await ordre("robot.yml", { format: v.format, idee: v.idee || "", remplace: id, simulation: v.simulation ? "1" : "0" },
+      "Nouvelle version commandée : elle remplacera celle-ci dans 5 à 15 min.");
+    return;
+  }
+  if (a === "ecarter" || a === "a_publier" || a === "supprimer") {
+    if (await commande(a, id)) {
+      if (a === "supprimer") D["file.json"].videos = D["file.json"].videos.filter(x => x.id !== id);
+      else v.statut = a === "ecarter" ? "ecartee" : "a_publier";
+      rendre();
+    }
+  }
+});
+$("#player .close").onclick = () => { $("#pv").pause(); $("#player").close(); };
+$("#player").addEventListener("close", () => $("#pv").pause());
+$("#pv").addEventListener("error", () => { if ($("#player").open) { $("#player").close(); toast("Lecture impossible ici : utilise Télécharger."); } });
+
+$("#f-creer").addEventListener("submit", e => { e.preventDefault();
+  const fmt = new FormData(e.target).get("format");
+  ordre("robot.yml", { format: fmt, idee: $("#idee").value.trim(), remplace: "", simulation: $("#simu").checked ? "1" : "0" },
+    `Vidéo ${fmt} commandée : elle arrive dans « À publier » d'ici 5 à 15 min.`).then(ok => { if (ok) $("#idee").value = ""; }); });
+$("#b-portrait").addEventListener("click", e => { if (arme(e.currentTarget, "portrait")) commande("portrait", "", "", "Nouveau portrait commandé (1 à 2 min)."); });
+$("#f-perso").addEventListener("submit", e => { e.preventDefault();
+  const json = JSON.stringify({ nom:$("#p_nom").value, age:+$("#p_age").value, ville:$("#p_ville").value, apparence:$("#p_apparence").value,
+    voix:$("#p_voix").value, personnalite:$("#p_personnalite").value, phrase_fetiche:$("#p_phrase").value,
+    gags_recurrents:$("#p_gags").value.split("\n").map(s => s.trim()).filter(Boolean), ton:$("#p_ton").value });
+  commande("personnage", "", json, "Fiche envoyée au robot."); });
+$("#f-cfg").addEventListener("submit", e => { e.preventDefault();
+  const heures = $("#r_hours").value.split(/[,; h]+/).filter(Boolean).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < 24);
+  if (!heures.length) return toast("Indique au moins une heure, par exemple 12, 19.");
+  const json = JSON.stringify({ plafond_mensuel_usd:+$("#r_cap").value, courte_chaque_jour:$("#r_daily").checked,
+    jours_longue:[...document.querySelectorAll("#r_days input:checked")].map(i => i.value),
+    heures_publication:heures, sous_titres:$("#r_subs").checked });
+  commande("reglages", "", json, "Réglages envoyés au robot."); });
+$("#b-pause").onclick = async () => { const p = !R().planning.pause;
+  if (await commande(p ? "pause" : "reprise", "", "", p ? "Robot mis en pause." : "Robot relancé.")) { R().planning.pause = p; rendre(); } };
+$("#f-conn").addEventListener("submit", e => { e.preventDefault();
+  const repo = $("#c_repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
+  if (repo && !/^[\w.-]+\/[\w.-]+$/.test(repo)) return toast("Le dépôt doit ressembler à pseudo/grok-tiktok.");
+  if (repo && repo !== repoDuSite()) store.set("gt_repo", repo); else store.del("gt_repo");
+  if ($("#c_token").value.trim()) store.set("gt_jeton", $("#c_token").value.trim());
+  $("#c_token").value = ""; toast("Clé enregistrée sur ce téléphone."); charger(); });
+$("#b-forget").onclick = () => { store.del("gt_jeton"); toast("Clé oubliée sur ce téléphone."); charger(); };
+
+charger();
+setInterval(() => { if (D && !document.querySelector(".inline:not(:empty)")) rendre(); }, 60e3);                     // met à jour les heures « dans … min »
+document.addEventListener("visibilitychange", () => { if (!document.hidden && D && !DEMO) charger(); });
+</script>
+</body>
+</html>

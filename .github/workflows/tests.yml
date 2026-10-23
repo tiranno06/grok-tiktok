@@ -1,0 +1,24 @@
+name: Tests
+
+on:
+  push:
+    paths: ["robot/**", "tests/**", "docs/index.html", ".github/workflows/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installer ffmpeg
+        run: which ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+      - name: Tests (sans aucun appel payant)
+        run: python -m unittest discover -s tests -v

@@ -1,0 +1,35 @@
+name: Ordre du site
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "publiee, a_publier, ecarter, supprimer, legende, personnage, reglages, portrait, pause, reprise"
+        required: true
+      id:
+        description: "Identifiant de la vidéo"
+        default: ""
+      texte:
+        description: "Texte, lien ou réglages (JSON)"
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  ordre:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      ACTION: ${{ inputs.action }}
+      ID: ${{ inputs.id }}
+      TEXTE: ${{ inputs.texte }}
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Appliquer l'ordre
+        run: python -m robot.commande

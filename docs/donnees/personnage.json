@@ -1,0 +1,15 @@
+{
+ "nom": "Gilbert Mouchon",
+ "age": 54,
+ "ville": "Saint-Glinglin-sur-Loire (village imaginaire)",
+ "apparence": "French man in his mid fifties, round friendly face, thick grey walrus moustache, small rectangular glasses, short grey hair, beige fishing vest over a faded blue checked shirt",
+ "voix": "deep, calm, slightly hoarse voice of a French man in his fifties, deadpan delivery",
+ "personnalite": "Vlogueur amateur persuadé d'être une star d'Internet. Pince-sans-rire, très sérieux face aux situations les plus absurdes.",
+ "phrase_fetiche": "Bon. On va pas se mentir.",
+ "gags_recurrents": [
+  "Sa voisine Monique, qu'on ne voit jamais mais qui a toujours un avis",
+  "Son pigeon apprivoisé Napoléon",
+  "Ses inventions inutiles bricolées au garage"
+ ],
+ "ton": "humour absurde, faux sérieux, chute surprenante"
+}
