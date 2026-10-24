@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T19:21:54+02:00",
+   "niveau": "info",
+   "texte": "🗑️ « [Test] la machine à arrêter le temps » supprimée."
+  },
+  {
    "date": "2026-10-24T19:18:12+02:00",
    "niveau": "erreur",
    "texte": "❌ Vidéo courte ratée (erreur du robot) : RemoteDisconnected: Remote end closed connection without response"
