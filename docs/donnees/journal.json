@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T19:50:13+02:00",
+   "niveau": "info",
+   "texte": "🗑️ « [Test] le clocher invisible » supprimée."
+  },
+  {
    "date": "2026-10-24T19:47:03+02:00",
    "niveau": "info",
    "texte": "✅ « [Test] le clocher invisible » prête (courte, 24 s, 0.00 $), note du jury 80/100 — test gratuit"
