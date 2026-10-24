@@ -38,42 +38,6 @@
     }
    ],
    "publier_le": "2026-10-24T19:00:00+02:00"
-  },
-  {
-   "id": "20261024-085847-c",
-   "format": "courte",
-   "titre": "[Test] un concours de soupe",
-   "legende": "Vidéo de test : aucune IA n'a été appelée.",
-   "hashtags": [
-    "#test",
-    "#humour",
-    "#ia"
-   ],
-   "duree": 20.0,
-   "cout_usd": 0.0,
-   "cree_le": "2026-10-24T08:58:47+02:00",
-   "statut": "ecartee",
-   "url": "https://github.com/tiranno06/grok-tiktok/releases/download/v-20261024-085847-c/20261024-085847-c.mp4",
-   "tag": "v-20261024-085847-c",
-   "miniature": "miniatures/20261024-085847-c.jpg",
-   "auto": false,
-   "simulation": true,
-   "idee": "",
-   "plans": [
-    {
-     "decor": "village street in France",
-     "action": "Gilbert Mouchon talks to the camera",
-     "camera": "handheld selfie",
-     "dialogue": "Plan 1. Bon. On va pas se mentir."
-    },
-    {
-     "decor": "village street in France",
-     "action": "Gilbert Mouchon talks to the camera",
-     "camera": "handheld selfie",
-     "dialogue": "Plan 2. Bon. On va pas se mentir."
-    }
-   ],
-   "publier_le": "2026-10-24T12:00:00+02:00"
   }
  ]
 }

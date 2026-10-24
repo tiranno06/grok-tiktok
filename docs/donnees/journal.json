@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T09:29:56+02:00",
+   "niveau": "info",
+   "texte": "🗑️ « [Test] un concours de soupe » supprimée."
+  },
+  {
    "date": "2026-10-24T09:29:50+02:00",
    "niveau": "info",
    "texte": "🛑 « [Test] un concours de soupe » écartée (ne sera pas publiée)."
