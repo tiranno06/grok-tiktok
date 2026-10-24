@@ -1,18 +1,30 @@
 {
  "nom": "Gilbert Mouchon",
- "age": 58,
+ "age": 62,
  "ville": "Saint-Glinglin-sur-Loire (village imaginaire)",
- "apparence": "French man in his late fifties, wild untamed white-grey hair sticking up in all directions, thick grey walrus moustache, bushy eyebrows, wide excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly stained white lab coat over a faded blue checked shirt",
- "voix": "excited, slightly hoarse voice of a French man in his late fifties, theatrical, speaks fast when he gets carried away",
- "personnalite": "Inventeur fou autoproclamé génie, exalté, yeux écarquillés, inspiré du savant excentrique des comédies de science-fiction des années 80. Dans son garage transformé en laboratoire, il invente des objets et des technologies complètement ubuesques pour régler de vrais petits problèmes du quotidien (grille-pain à téléportation, parapluie anti-Monique, détecteur de lundi, robot qui plie les chaussettes). Il présente chaque invention avec un sérieux scientifique total et des explications pseudo-techniques… et à chaque fois ça merdouille de façon spectaculaire et drôle : fumée, étincelles, effet inverse, Napoléon s'en mêle. Il ne s'avoue jamais vaincu et trouve toujours une excuse scientifique.",
- "phrase_fetiche": "C'est scientifiquement imparable !",
+ "apparence": "French man in his early sixties, round friendly face, wild untamed shock of white hair sticking up in all directions as if electrified, thick grey walrus moustache, bushy eyebrows, wide wild excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly scorched white lab coat over a faded blue checked shirt, a wristwatch on each wrist, a pocket full of screwdrivers",
+ "voix": "excited, slightly hoarse voice of a French man in his sixties, theatrical and breathless, speeds up and goes high-pitched when he gets carried away, then whispers dramatically",
+ "personnalite": "Hommage assumé à Doc, le savant fou de Retour vers le futur, transposé dans un village français. Génie incompris, persuadé d'avoir 30 ans d'avance sur son époque, que tout le village prend pour un doux dingue. Il vit dans son garage transformé en laboratoire : des dizaines d'horloges qui sonnent toutes en même temps, une machine à petit-déjeuner automatique qui rate tout (elle verse le café à côté et nourrit Napoléon), des câbles partout, un tableau noir couvert d'équations, une maquette du village en carton pour « reconstituer ses expériences ». Il invente des machines et des technologies complètement ubuesques : voyager dans le temps (au moins de cinq minutes), lire dans les pensées de Monique avec un casque à électrodes, une 2CV qui doit atteindre 88 km/h pour… quelque chose, une tondeuse à réaction, un grille-pain qui prédit l'avenir. Il présente chaque invention avec une exaltation et un sérieux scientifique absolus, grands gestes, yeux écarquillés, explications pseudo-techniques à toute vitesse… et presque à chaque fois ça foire : court-circuit, fumée, coupure de courant dans tout le village, effet inverse, Napoléon qui disparaît (puis réapparaît trois secondes plus tard, très calme). Mais il a énormément d'humour : il rebondit toujours, transforme chaque catastrophe en « découverte majeure » et note tout dans son carnet. De temps en temps, une expérience marche… pour de mauvaises raisons.",
+ "phrase_fetiche": "Nom d'une pile atomique !",
  "gags_recurrents": [
-  "Chaque invention merdouille : fumée, étincelles, petite explosion, ou elle fait exactement l'inverse de ce qui était prévu",
-  "Après chaque raté, ses cheveux sont encore plus ébouriffés et il annonce que « c'était prévu »",
-  "Compte à rebours théâtral avant chaque essai : « Dans 3… 2… 1… »",
-  "Napoléon, son pigeon, sert d'assistant de laboratoire (ou de cobaye) et sabote souvent l'expérience",
-  "Monique, la voisine qu'on ne voit jamais, se plaint du bruit et des explosions à travers la haie",
-  "Un tableau noir couvert d'équations absurdes et de schémas griffonnés"
+  "Presque toutes ses expériences foirent de façon spectaculaire : court-circuit, nuage de fumée, cheveux encore plus électrisés",
+  "Compte à rebours très théâtral avant chaque essai, montre en main, et note de la date et de l'heure exactes dans son carnet",
+  "Napoléon, son pigeon, est le cobaye officiel de chaque expérience : il disparaît, réapparaît, ou se retrouve avec des lunettes de soudeur",
+  "Monique, la voisine qu'on ne voit jamais, crie à travers la haie à cause du bruit, des éclairs et des coupures de courant",
+  "Les horloges du garage sonnent toutes en même temps au mauvais moment",
+  "Il enfile une combinaison de protection jaune et des gants de cuisine pour des expériences qui n'en ont pas besoin",
+  "Quand une expérience marche par miracle, il est encore plus surpris que tout le monde"
  ],
- "ton": "comédie de savant fou : exaltation, démonstration très sérieuse, catastrophe qui merdouille, chute absurde"
+ "ton": "comédie de savant fou à la Doc : exaltation, génie incompris, démonstration très sérieuse, catastrophe qui foire, humour et résilience, chute absurde",
+ "repliques": [
+  "Nom d'une pile atomique !",
+  "Si mes calculs sont exacts… et ils le sont toujours… à peu près.",
+  "Il me faut 1,21 gigawatt ! Ou deux piles plates et une rallonge.",
+  "Quand cette machine atteindra 88 km/h, tu vas voir quelque chose de vraiment… bon, tu vas voir.",
+  "Ce n'est pas un échec, c'est un résultat inattendu de toute première importance !",
+  "Note bien la date et l'heure : ceci est un moment historique.",
+  "Napoléon, tu es le premier pigeon de l'histoire à… où est passé Napoléon ?",
+  "Tu ne réfléchis pas en quatre dimensions, Monique !",
+  "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main."
+ ]
 }

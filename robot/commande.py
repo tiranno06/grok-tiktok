@@ -12,7 +12,7 @@ import sys
 from . import budget, depot, planning, principal, publier
 from .commun import DONNEES, JOURS, MINIATURES, SORTIE, ecrire, iso, lire, noter, personnage, reglages
 
-CHAMPS_PERSO = {"nom": 60, "age": 3, "ville": 120, "apparence": 600, "voix": 300, "personnalite": 600,
+CHAMPS_PERSO = {"nom": 60, "age": 3, "ville": 120, "apparence": 700, "voix": 300, "personnalite": 2500,
                 "phrase_fetiche": 120, "ton": 200}
 
 
@@ -73,7 +73,9 @@ def appliquer_personnage(d):
         if k in d and str(d[k]).strip():
             P[k] = int(d[k]) if k == "age" else str(d[k]).strip()[:n]
     if isinstance(d.get("gags_recurrents"), list):
-        P["gags_recurrents"] = [str(g).strip()[:150] for g in d["gags_recurrents"] if str(g).strip()][:8]
+        P["gags_recurrents"] = [str(g).strip()[:200] for g in d["gags_recurrents"] if str(g).strip()][:10]
+    if isinstance(d.get("repliques"), list):
+        P["repliques"] = [str(g).strip()[:200] for g in d["repliques"] if str(g).strip()][:12]
     ecrire("personnage.json", P)
     noter("🎭 Fiche du personnage modifiée. Pense à régénérer le portrait si son apparence a changé.")
 

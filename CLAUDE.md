@@ -53,6 +53,14 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   (`sons_tiktok.PROFILS_CONNUS`) ; liste vide = `connus(file)` (ceux de jt-auto + comptes des vidéos déjà reprises, jamais
   @petitsdramas). Bouton du site « Ajouter les profils déjà connus ».
 
+- **Appli Android** (24/10, comme jt-auto) : `docs/manifest.webmanifest`, `docs/sw.js` (page et données : réseau d'abord,
+  copie si hors ligne ; jamais les .mp4), icônes `docs/logo-*.png` (`outils/icones.py`), bouton « 📲 Installer l'application »
+  (`beforeinstallprompt`). Clé GitHub vers un autre appareil : QR code (Réglages → Connecter un autre appareil), la clé voyage
+  dans le `#cle=…` du lien (jamais envoyé au serveur), lue puis effacée de l'adresse au chargement.
+- **Gilbert = hommage à Doc** (24/10) : fiche complète dans `personnage.json`, champ `repliques` (phrases à la Doc, une ou
+  deux par épisode). Clins d'œil permis ; jamais « Doc », « Marty », « DeLorean », « convecteur temporel », le titre du film,
+  ni ressemblance avec l'acteur (visage de Gilbert : rond, moustache de morse, lunettes).
+
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`
 et l'ouvrir à 400 px de large.

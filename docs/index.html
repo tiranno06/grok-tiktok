@@ -6,6 +6,11 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>Régie Gilbert</title>
 <meta name="theme-color" content="#d23b2d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="logo-192.png">
+<link rel="apple-touch-icon" href="logo-apple.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gilbert">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
@@ -42,6 +47,7 @@ a { color: inherit; }
 
 header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
 .top .wrap { padding-block: 12px 0; display: grid; gap: 10px; }
+#installer { justify-self: start; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .tally { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); flex: none; }
 .tally.idle { background: var(--off); box-shadow: none; }
@@ -141,6 +147,7 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <h1>Régie Gilbert</h1>
       <small id="sub">Chargement…</small>
     </div>
+    <button class="btn primary" type="button" id="installer" hidden>📲 Installer l'application</button>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" data-v="file" aria-selected="true">À publier<span class="count" id="c-file">0</span></button>
       <button role="tab" data-v="publiees">Publiées<span class="count" id="c-pub">0</span></button>
@@ -240,6 +247,7 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <label class="f" for="p_voix">Voix <span class="sub">En anglais aussi. Grok s'en sert pour la voix de chaque plan.</span><input type="text" id="p_voix"></label>
       <label class="f" for="p_personnalite">Personnalité<textarea id="p_personnalite"></textarea></label>
       <label class="f" for="p_phrase">Phrase fétiche<input type="text" id="p_phrase"></label>
+      <label class="f" for="p_repliques">Répliques typiques <span class="sub">Une par ligne. Le robot en glisse une ou deux par épisode, quand elles tombent bien.</span><textarea id="p_repliques" rows="6"></textarea></label>
       <label class="f" for="p_gags">Gags récurrents <span class="sub">Un par ligne.</span><textarea id="p_gags"></textarea></label>
       <label class="f" for="p_ton">Ton<input type="text" id="p_ton"></label>
       <div class="actions"><button class="btn primary" type="submit">Enregistrer la fiche</button></div>
@@ -294,6 +302,18 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <label class="f" for="c_repo">Dépôt <span class="sub">Rempli tout seul sur ton site GitHub.</span><input type="text" id="c_repo" placeholder="pseudo/grok-tiktok" autocomplete="off"></label>
       <div class="actions"><button class="btn primary" type="submit">Enregistrer</button><button class="btn" type="button" id="b-forget">Oublier la clé</button></div>
     </form>
+    <div class="panel" id="p-qr">
+      <h2>Connecter un autre appareil</h2>
+      <p class="hint">Sur l'appareil qui a déjà la clé (ton PC), affiche le code, puis scanne-le avec l'appareil photo du téléphone :
+        le site s'ouvre et la clé est installée toute seule, appli comprise. La clé passe seulement de l'écran à ton téléphone,
+        jamais par Internet. Ne montre ce code à personne d'autre.</p>
+      <div class="actions"><button class="btn" type="button" id="qr_montrer">Afficher le code de connexion</button></div>
+      <div id="qr" hidden style="display:grid;gap:10px;justify-items:center">
+        <div id="qr_img" style="background:#fff;padding:12px;border-radius:12px;max-width:100%"></div>
+        <div class="actions"><button class="btn" type="button" id="qr_copier">Copier le lien de connexion</button>
+          <button class="btn" type="button" id="qr_cacher">Masquer</button></div>
+      </div>
+    </div>
     <form class="panel" id="f-cfg">
       <h2>Planning</h2>
       <p class="hint" id="planning-manuel" hidden>Mode manuel : ce planning ne sert qu'à conseiller les heures de publication. Les vidéos ne se créent que quand tu appuies sur Créer.</p>
@@ -349,7 +369,7 @@ const DEMO_DATA = {
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
     montage:{ sous_titres:true },
     tiktok:{ profils:["yan_animation0","eliotlehanneur","same_same53","charly.bse"], auto:false, jours:["mercredi","dimanche"], duree_max:45 } },
-  "personnage.json": {"nom": "Gilbert Mouchon", "age": 58, "ville": "Saint-Glinglin-sur-Loire (village imaginaire)", "apparence": "French man in his late fifties, wild untamed white-grey hair sticking up in all directions, thick grey walrus moustache, bushy eyebrows, wide excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly stained white lab coat over a faded blue checked shirt", "voix": "excited, slightly hoarse voice of a French man in his late fifties, theatrical, speaks fast when he gets carried away", "personnalite": "Inventeur fou autoproclamé génie, exalté, yeux écarquillés, inspiré du savant excentrique des comédies de science-fiction des années 80. Dans son garage transformé en laboratoire, il invente des objets et des technologies complètement ubuesques pour régler de vrais petits problèmes du quotidien (grille-pain à téléportation, parapluie anti-Monique, détecteur de lundi, robot qui plie les chaussettes). Il présente chaque invention avec un sérieux scientifique total et des explications pseudo-techniques… et à chaque fois ça merdouille de façon spectaculaire et drôle : fumée, étincelles, effet inverse, Napoléon s'en mêle. Il ne s'avoue jamais vaincu et trouve toujours une excuse scientifique.", "phrase_fetiche": "C'est scientifiquement imparable !", "gags_recurrents": ["Chaque invention merdouille : fumée, étincelles, petite explosion, ou elle fait exactement l'inverse de ce qui était prévu", "Après chaque raté, ses cheveux sont encore plus ébouriffés et il annonce que « c'était prévu »", "Compte à rebours théâtral avant chaque essai : « Dans 3… 2… 1… »", "Napoléon, son pigeon, sert d'assistant de laboratoire (ou de cobaye) et sabote souvent l'expérience", "Monique, la voisine qu'on ne voit jamais, se plaint du bruit et des explosions à travers la haie", "Un tableau noir couvert d'équations absurdes et de schémas griffonnés"], "ton": "comédie de savant fou : exaltation, démonstration très sérieuse, catastrophe qui merdouille, chute absurde"}
+  "personnage.json": {"nom": "Gilbert Mouchon", "age": 62, "ville": "Saint-Glinglin-sur-Loire (village imaginaire)", "apparence": "French man in his early sixties, round friendly face, wild untamed shock of white hair sticking up in all directions as if electrified, thick grey walrus moustache, bushy eyebrows, wide wild excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly scorched white lab coat over a faded blue checked shirt, a wristwatch on each wrist, a pocket full of screwdrivers", "voix": "excited, slightly hoarse voice of a French man in his sixties, theatrical and breathless, speeds up and goes high-pitched when he gets carried away, then whispers dramatically", "personnalite": "Hommage assumé à Doc, le savant fou de Retour vers le futur, transposé dans un village français. Génie incompris, persuadé d'avoir 30 ans d'avance sur son époque, que tout le village prend pour un doux dingue. Il vit dans son garage transformé en laboratoire : des dizaines d'horloges qui sonnent toutes en même temps, une machine à petit-déjeuner automatique qui rate tout (elle verse le café à côté et nourrit Napoléon), des câbles partout, un tableau noir couvert d'équations, une maquette du village en carton pour « reconstituer ses expériences ». Il invente des machines et des technologies complètement ubuesques : voyager dans le temps (au moins de cinq minutes), lire dans les pensées de Monique avec un casque à électrodes, une 2CV qui doit atteindre 88 km/h pour… quelque chose, une tondeuse à réaction, un grille-pain qui prédit l'avenir. Il présente chaque invention avec une exaltation et un sérieux scientifique absolus, grands gestes, yeux écarquillés, explications pseudo-techniques à toute vitesse… et presque à chaque fois ça foire : court-circuit, fumée, coupure de courant dans tout le village, effet inverse, Napoléon qui disparaît (puis réapparaît trois secondes plus tard, très calme). Mais il a énormément d'humour : il rebondit toujours, transforme chaque catastrophe en « découverte majeure » et note tout dans son carnet. De temps en temps, une expérience marche… pour de mauvaises raisons.", "phrase_fetiche": "Nom d'une pile atomique !", "gags_recurrents": ["Presque toutes ses expériences foirent de façon spectaculaire : court-circuit, nuage de fumée, cheveux encore plus électrisés", "Compte à rebours très théâtral avant chaque essai, montre en main, et note de la date et de l'heure exactes dans son carnet", "Napoléon, son pigeon, est le cobaye officiel de chaque expérience : il disparaît, réapparaît, ou se retrouve avec des lunettes de soudeur", "Monique, la voisine qu'on ne voit jamais, crie à travers la haie à cause du bruit, des éclairs et des coupures de courant", "Les horloges du garage sonnent toutes en même temps au mauvais moment", "Il enfile une combinaison de protection jaune et des gants de cuisine pour des expériences qui n'en ont pas besoin", "Quand une expérience marche par miracle, il est encore plus surpris que tout le monde"], "ton": "comédie de savant fou à la Doc : exaltation, génie incompris, démonstration très sérieuse, catastrophe qui foire, humour et résilience, chute absurde", "repliques": ["Nom d'une pile atomique !", "Si mes calculs sont exacts… et ils le sont toujours… à peu près.", "Il me faut 1,21 gigawatt ! Ou deux piles plates et une rallonge.", "Quand cette machine atteindra 88 km/h, tu vas voir quelque chose de vraiment… bon, tu vas voir.", "Ce n'est pas un échec, c'est un résultat inattendu de toute première importance !", "Note bien la date et l'heure : ceci est un moment historique.", "Napoléon, tu es le premier pigeon de l'histoire à… où est passé Napoléon ?", "Tu ne réfléchis pas en quatre dimensions, Monique !", "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main."]}
 };
 const NOMS = Object.keys(DEMO_DATA);
 
@@ -511,7 +531,7 @@ function remplirFormulaires() {
   img.onerror = () => { img.onerror = null; img.src = SILHOUETTE; };
   img.src = DEMO ? SILHOUETTE : `donnees/portrait.jpg?t=${Date.now()}`;
   const pf = { p_nom:P.nom, p_age:P.age, p_ville:P.ville, p_apparence:P.apparence, p_voix:P.voix, p_personnalite:P.personnalite,
-    p_phrase:P.phrase_fetiche, p_gags:(P.gags_recurrents||[]).join("\n"), p_ton:P.ton };
+    p_phrase:P.phrase_fetiche, p_gags:(P.gags_recurrents||[]).join("\n"), p_repliques:(P.repliques||[]).join("\n"), p_ton:P.ton };
   for (const [k, v] of Object.entries(pf)) { const el = document.getElementById(k); if (document.activeElement !== el) el.value = v ?? ""; }
   $("#r_cap").value = R().budget.plafond_mensuel_usd; $("#r_daily").checked = !!pl.courte_chaque_jour;
   $("#r_days").innerHTML = JOURS.map(j => `<label for="j_${j}"><input type="checkbox" id="j_${j}" value="${j}" ${pl.jours_longue.includes(j) ? "checked" : ""}> ${j}</label>`).join("");
@@ -533,6 +553,34 @@ function montrer(v) {
   scrollTo({ top: 0 });
 }
 document.querySelector("nav.tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) montrer(b.dataset.v); });
+// ---------------- connexion d'un autre appareil par QR code : la clé voyage dans le « # » du lien (jamais envoyé au serveur)
+(function () {
+  const m = location.hash.match(/^#cle=([^&]+)(?:&depot=(.+))?$/); if (!m) return;
+  try { store.set("gt_jeton", decodeURIComponent(m[1])); if (m[2]) store.set("gt_repo", decodeURIComponent(m[2])); } catch {}
+  history.replaceState(null, "", location.pathname + location.search);
+  setTimeout(() => toast("Clé GitHub installée sur cet appareil ✓"), 400);
+})();
+function lienConnexion() {
+  const c = conn(), autre = store.get("gt_repo", "");
+  return location.origin + location.pathname + "#cle=" + encodeURIComponent(c.token) + (autre ? "&depot=" + encodeURIComponent(autre) : "");
+}
+$("#qr_montrer").onclick = async () => {
+  if (!conn().token) return toast("Cet appareil n'a pas encore de clé : enregistre-la d'abord ci-dessus.");
+  if (typeof qrcode === "undefined") await new Promise(ok => { const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"; sc.onload = sc.onerror = ok; document.head.append(sc); });
+  if (typeof qrcode === "undefined") { $("#qr_img").textContent = "Code indisponible : utilise « Copier le lien »."; }
+  else { const q = qrcode(0, "M"); q.addData(lienConnexion()); q.make();
+    $("#qr_img").innerHTML = q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    const svg = $("#qr_img svg"); svg.style.width = "min(240px, 70vw)"; svg.style.height = "auto"; }
+  $("#qr").hidden = false; $("#qr_montrer").hidden = true;
+  clearTimeout(window._qrT); window._qrT = setTimeout(() => $("#qr_cacher").click(), 120000);    // masqué au bout de 2 min
+};
+$("#qr_cacher").onclick = () => { $("#qr").hidden = true; $("#qr_img").innerHTML = ""; $("#qr_montrer").hidden = false; };
+$("#qr_copier").onclick = async () => {
+  try { await navigator.clipboard.writeText(lienConnexion()); toast("Lien copié : ouvre-le sur le téléphone (envoie-le-toi en privé)."); }
+  catch { toast("Copie impossible ici : scanne plutôt le code."); }
+};
+
 const VUES = ["file","publiees","creer","tiktok","perso","budget","journal","reglages"];
 if (VUES.includes(location.hash.slice(1))) montrer(location.hash.slice(1));
 if (store.get("gt_aide_vue", "")) $("#aide").open = false; else { $("#aide").open = true; store.set("gt_aide_vue", "1"); }
@@ -650,7 +698,8 @@ $("#b-portrait").addEventListener("click", e => { if (arme(e.currentTarget, "por
 $("#f-perso").addEventListener("submit", e => { e.preventDefault();
   const json = JSON.stringify({ nom:$("#p_nom").value, age:+$("#p_age").value, ville:$("#p_ville").value, apparence:$("#p_apparence").value,
     voix:$("#p_voix").value, personnalite:$("#p_personnalite").value, phrase_fetiche:$("#p_phrase").value,
-    gags_recurrents:$("#p_gags").value.split("\n").map(s => s.trim()).filter(Boolean), ton:$("#p_ton").value });
+    gags_recurrents:$("#p_gags").value.split("\n").map(s => s.trim()).filter(Boolean),
+    repliques:$("#p_repliques").value.split("\n").map(s => s.trim()).filter(Boolean), ton:$("#p_ton").value });
   commande("personnage", "", json, "Fiche envoyée au robot."); });
 $("#f-cfg").addEventListener("submit", e => { e.preventDefault();
   const heures = $("#r_hours").value.split(/[,; h]+/).filter(Boolean).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < 24);
@@ -679,6 +728,13 @@ $("#f-conn").addEventListener("submit", e => { e.preventDefault();
   if ($("#c_token").value.trim()) store.set("gt_jeton", $("#c_token").value.trim());
   $("#c_token").value = ""; toast("Clé enregistrée sur ce téléphone."); charger(); });
 $("#b-forget").onclick = () => { store.del("gt_jeton"); toast("Clé oubliée sur ce téléphone."); charger(); };
+
+// ---------------- application installable (Android : comme jt-auto)
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+let invite = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); invite = e; $("#installer").hidden = false; });
+$("#installer").onclick = async () => { if (!invite) return; invite.prompt(); await invite.userChoice.catch(() => {}); invite = null; $("#installer").hidden = true; };
+window.addEventListener("appinstalled", () => { $("#installer").hidden = true; toast("Application installée ✓"); });
 
 charger();
 setInterval(() => { if (D && !document.querySelector(".inline:not(:empty)")) rendre(); }, 60e3);                     // met à jour les heures « dans … min »

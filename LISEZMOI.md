@@ -57,7 +57,8 @@ liste vide = le robot pioche dans les profils déjà connus.
 ### 1. Le site
 Dans le dépôt : **Settings → Pages** → *Source* : **Deploy from a branch** → branche **main**, dossier **/docs** → *Save*.
 Une minute plus tard, le site est en ligne à l'adresse **https://<ton-pseudo>.github.io/grok-tiktok/**.
-Sur Android, ouvre-la dans Chrome, puis menu ⋮ → *Ajouter à l'écran d'accueil*.
+**L'installer comme une application (Android)** : ouvre l'adresse dans **Chrome** et touche **📲 Installer l'application**
+en haut de la page (ou menu ⋮ → *Installer l'application*). L'icône « G » apparaît avec tes autres applis et s'ouvre en plein écran.
 
 ### 2. La clé Grok (xAI)
 1. Va sur **console.x.ai** et crée un compte.
@@ -73,6 +74,9 @@ Sur Android, ouvre-la dans Chrome, puis menu ⋮ → *Ajouter à l'écran d'accu
 3. *Permissions* → **Actions** : *Read and write*. Rien d'autre.
 4. *Generate token*, copie la clé, puis colle-la sur le site dans **Réglages → Clé GitHub de ce téléphone**.
    Elle reste seulement dans ton navigateur.
+5. **Sur ton téléphone, pas besoin de la recopier** : sur le PC, *Réglages → Connecter un autre appareil → Afficher le code
+   de connexion*, puis scanne le code avec l'appareil photo du téléphone. Le site s'ouvre avec la clé déjà installée
+   (l'appli installée l'a aussi). Ne montre ce code à personne.
 
 ### 4. Test gratuit
 Sur le site : **Créer** → coche **Test gratuit** → *Lancer la création*.

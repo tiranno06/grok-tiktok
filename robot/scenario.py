@@ -17,6 +17,7 @@ FICHE DU PERSONNAGE
 - Voix : {voix}
 - Personnalité : {personnalite}
 - Phrase fétiche : « {phrase} » (pas à chaque épisode : seulement quand elle tombe bien)
+- Répliques typiques (une ou deux par épisode au plus, adaptées à la situation, jamais toutes) : {repliques}
 - Gags récurrents : {gags}
 - Ton : {ton}
 
@@ -34,8 +35,10 @@ CE QUI REND UN SKETCH TIKTOK DRÔLE
 
 RÈGLES
 - Personnage fictif. Jamais de vraie personne, de marque, de politique, de violence, d'enfant ni de sujet choquant.
-- Jamais de référence directe à un film, une série ou un personnage existant (ni titre, ni voiture célèbre, ni réplique
-  connue) : on s'inspire seulement de l'énergie du savant fou de comédie. Les ratés restent drôles et sans blessé.
+- Le personnage est un hommage au savant fou de Retour vers le futur : énergie, tics, inventions, ratés et clins d'œil
+  (horloges, éclairs, 88 km/h, gigawatts, voyage dans le temps raté) sont bienvenus. Mais on ne dit jamais « Doc »,
+  « Marty », « DeLorean », « convecteur temporel » ni le titre du film, et il ne ressemble pas à l'acteur du film.
+- Les ratés restent drôles et sans blessé : fumée, étincelles, cheveux électrisés, effet inverse.
 - Monique la voisine n'apparaît JAMAIS à l'image : on l'entend pas, on parle d'elle, on la montre du doigt hors champ.
 - Seul {nom} parle, en français, face caméra ou presque, comme un vlogueur.
 - Chaque plan dure {secondes} secondes : la réplique fait entre {mots_min} et {mots} mots (il parle presque tout le plan,
@@ -63,6 +66,7 @@ def _fiche(p, secondes, nb):
     return CONSIGNES.format(nom=p["nom"], age=p["age"], ville=p["ville"], apparence=p["apparence"],
                             voix=p.get("voix", ""), personnalite=p["personnalite"], phrase=p["phrase_fetiche"],
                             gags="; ".join(p.get("gags_recurrents", [])), ton=p["ton"],
+                            repliques=" / ".join(f"« {r} »" for r in p.get("repliques", [])) or "aucune",
                             secondes=secondes, mots=int(secondes * 2.6), mots_min=int(secondes * 1.8), nb=nb)
 
 
