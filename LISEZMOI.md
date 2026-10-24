@@ -24,6 +24,19 @@ le plafond (réglable dans Réglages) arrête le robot avant de le dépasser, et
 Coûts réels constatés le 24/10/2026 (720p) : vidéo 0,031 $/s, image de départ 0,07 $, scénario ~0,01 $. Le coût réel
 renvoyé par Grok est celui qui est compté.
 
+## Sons TikTok (onglet du site)
+Le robot prend une vidéo TikTok drôle (lien collé, ou au hasard de tes profils, jamais deux fois la même), **garde seulement
+son son**, puis tourne une nouvelle vidéo réaliste autour :
+1. xAI transcrit le son et sépare les voix (qui dit quoi, et quand) ;
+2. Grok regarde quelques images de la vidéo d'origine pour comprendre la situation, puis invente les personnages
+   (fictifs, jamais les vraies personnes de la vidéo ; Gilbert peut jouer le rôle principal), les lieux et les gestes ;
+3. chaque réplique est filmée par Grok Imagine ; on voit aussi celui qui écoute réagir pendant les longues répliques ;
+4. au montage, chaque plan est recalé (et un peu accéléré ou ralenti) pour que la bouche tombe sur la parole d'origine,
+   puis le son d'origine est remis tel quel. C'est un doublage : la synchronisation des lèvres est bonne mais pas parfaite.
+
+Coût : environ 1 $ pour un son de 15 s, 1,80 $ pour 30 s, 2,60 $ pour 45 s. Durée maximale réglable (45 s par défaut).
+Le compte d'origine est cité dans la légende (🎧 Son : @compte).
+
 ---
 
 ## Installation (une seule fois, environ 20 minutes)

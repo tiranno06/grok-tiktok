@@ -15,7 +15,7 @@ os.environ.update(ROBOT_DOCS=os.path.join(TMP, "docs"), ROBOT_SORTIE=os.path.joi
                   GITHUB_ACTIONS="false", XAI_API_KEY="")
 sys.path.insert(0, RACINE)
 
-from robot import budget, commande, grok, planning, principal, scenario  # noqa: E402
+from robot import budget, commande, grok, montage, planning, principal, scenario, sons_tiktok  # noqa: E402
 from robot.commun import lire, ecrire  # noqa: E402
 
 
@@ -35,6 +35,7 @@ class Base(unittest.TestCase):
         R["budget"]["plafond_mensuel_usd"] = 30
         R["planning"].update(courte_chaque_jour=True, jours_longue=["samedi"], heures_publication=[12, 19], pause=False)
         R["montage"]["sous_titres"] = True
+        R["tiktok"] = {"profils": [], "auto": False, "jours": ["mercredi"], "duree_max": 45, "gilbert": True}
         ecrire("reglages.json", R)
         for nom in ("budget.json", "portrait.jpg"):
             if os.path.exists(os.path.join(TMP, "docs", "donnees", nom)):
@@ -196,6 +197,50 @@ class Commandes(Base):
         P = lire("personnage.json")
         self.assertEqual((P["nom"], P["age"], P["gags_recurrents"]), ("Gaston", 61, ["a", "b"]))
         self.assertTrue(P["apparence"])                                  # champ absent = inchangé
+
+
+class SonsTikTok(Base):
+    def test_video_sur_un_son(self):
+        self.assertEqual(principal.main(["--format", "tiktok", "--lien", "https://www.tiktok.com/@drole/video/42"]), 0)
+        v = self.file()[0]
+        self.assertEqual((v["format"], v["source"]), ("tiktok", "https://www.tiktok.com/@drole/video/42"))
+        self.assertAlmostEqual(v["duree"], 24, delta=0.5)               # exactement la durée du son d'origine
+        self.assertIn("🎧", v["legende"])
+        mp4 = v["url"].replace("file://", "")
+        self.assertAlmostEqual(montage.duree(mp4), 24, delta=0.5)
+
+    def test_sans_profil_ni_lien(self):
+        self.assertEqual(principal.main(["--format", "tiktok"]), 1)
+        self.assertIn("aucun profil", lire("journal.json")["evenements"][0]["texte"])
+
+    def test_mauvais_lien(self):
+        self.assertEqual(principal.main(["--format", "tiktok", "--lien", "https://youtube.com/x"]), 1)
+
+    def test_planning_et_reglages(self):
+        commande.appliquer("reglages", "", json.dumps({"tiktok": {"profils": "@aa\nhttps://www.tiktok.com/@b.c?x=1\n@aa",
+                                                                   "auto": True, "jours": ["samedi"], "duree_max": 500}}))
+        T = lire("reglages.json")["tiktok"]
+        self.assertEqual((T["profils"], T["duree_max"]), (["aa", "b.c"], 90))
+        self.assertIn("tiktok", planning.a_faire(lire("reglages.json"), {"videos": []}, {}))
+
+    def test_decoupage(self):
+        mots = [{"w": f"m{k}", "s": k * 0.4, "e": k * 0.4 + 0.3, "voix": 0} for k in range(25)]       # 10 s d'une voix
+        mots += [{"w": "quoi", "s": 11.0, "e": 11.4, "voix": 1}]
+        plans = sons_tiktok.decouper(sons_tiktok.repliques(mots), 12.5, True)
+        self.assertEqual([p["role"] for p in plans], ["parle", "ecoute", "parle"])   # longue réplique : on voit l'autre écouter
+        self.assertEqual(plans[0]["debut"], 0)
+        self.assertEqual(plans[-1]["fin"], 12.5)
+        for a, b in zip(plans, plans[1:]):
+            self.assertEqual(a["fin"], b["debut"])                      # aucun trou, aucun chevauchement
+        self.assertTrue(all(p["fin"] - p["debut"] <= 14 for p in plans))
+
+    def test_calage(self):
+        clip = grok._faux_clip(os.path.join(TMP, "c.mp4"), 6, "x")
+        plan = {"debut": 10.0, "fin": 13.0, "mots": [{"w": "a", "s": 10.5, "e": 11.0}, {"w": "b", "s": 11.2, "e": 12.5}]}
+        mots_clip = [{"w": "a", "s": 1.0, "e": 1.5}, {"w": "b", "s": 1.8, "e": 3.0}]
+        dest, facteur, _ = sons_tiktok.caler(clip, mots_clip, plan, True, os.path.join(TMP, "cale.mp4"))
+        self.assertAlmostEqual(facteur, 1.0, places=1)
+        self.assertAlmostEqual(montage.duree(dest), 3.0, delta=0.1)
 
 
 class Divers(Base):

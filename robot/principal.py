@@ -10,7 +10,7 @@ import shutil
 import sys
 import traceback
 
-from . import budget, depot, grok, montage, planning, scenario
+from . import budget, depot, grok, montage, planning, scenario, sons_tiktok
 from .commun import MINIATURES, SORTIE, DONNEES, ecrire, iso, lire, maintenant, noter, personnage, reglages, simulation
 
 
@@ -28,7 +28,7 @@ def fabriquer_portrait(R, P, caisse, dest):
     return dest
 
 
-def fabriquer(format_, idee="", remplace="", auto=False):
+def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
     """Fabrique une vidéo. Renvoie toujours un « résultat » à enregistrer (même en cas d'échec : les dépenses comptent)."""
     R, P = reglages(), personnage()
     now = maintenant()
@@ -39,13 +39,15 @@ def fabriquer(format_, idee="", remplace="", auto=False):
     res = {"id": vid, "format": format_, "auto": auto, "remplace": remplace, "caisse": caisse,
            "evenements": [], "entree": None, "portrait": None}
     try:
-        prevu = budget.estimation(format_, R)
-        caisse.autoriser(prevu, f"vidéo {format_}")          # on ne commence pas une vidéo qu'on ne pourra pas finir
+        if format_ != "tiktok":                              # (vidéo TikTok : estimée une fois la durée du son connue)
+            caisse.autoriser(budget.estimation(format_, R), f"vidéo {format_}")   # on ne commence pas ce qu'on ne finira pas
         # 1. le portrait de référence
         portrait = os.path.join(DONNEES, "portrait.jpg")
-        if not portrait_present():
+        if not portrait_present() and (format_ != "tiktok" or (R.get("tiktok") or {}).get("gilbert", True)):
             portrait = fabriquer_portrait(R, P, caisse, os.path.join(dossier, "portrait.jpg"))
             res["portrait"] = None if simulation() else portrait    # un faux portrait de test n'est jamais gardé
+        if format_ == "tiktok":
+            return video_tiktok(res, R, P, caisse, dossier, lien, idee, portrait if os.path.exists(portrait) else None)
         # 2. le scénario
         deja = [v.get("titre", "") for v in (lire("file.json") or {}).get("videos", [])]
         caisse.autoriser(R["prix"]["scenario"], "scénario")
@@ -84,6 +86,25 @@ def fabriquer(format_, idee="", remplace="", auto=False):
     except Exception as e:                                   # erreur imprévue : on garde la trace et les dépenses
         traceback.print_exc()
         res["evenements"].append(("erreur", f"❌ Vidéo {format_} ratée (erreur du robot) : {type(e).__name__}: {e}"))
+    return res
+
+
+def video_tiktok(res, R, P, caisse, dossier, lien, idee, portrait):
+    """Filière « Sons TikTok » (voir sons_tiktok.py)."""
+    vid, now = res["id"], maintenant()
+    deja = {sons_tiktok.id_video(v.get("source", "")) for v in (lire("file.json") or {}).get("videos", [])} - {""}
+    t = sons_tiktok.fabriquer(R, P, caisse, dossier, lien, deja, portrait)
+    video = os.path.join(dossier, f"{vid}.mp4")
+    os.replace(t["video"], video)
+    res["miniature"] = montage.miniature(video, os.path.join(dossier, f"{vid}.jpg"), min(1.5, t["duree"] / 2))
+    url = depot.publier_release(f"v-{vid}", t["titre"], [video])
+    res["entree"] = {
+        "id": vid, "format": "tiktok", "titre": t["titre"], "legende": t["legende"], "hashtags": t["hashtags"],
+        "duree": t["duree"], "cout_usd": caisse.depense, "cree_le": iso(now), "statut": "a_publier", "url": url,
+        "tag": f"v-{vid}", "miniature": f"miniatures/{vid}.jpg", "auto": res["auto"], "simulation": simulation(),
+        "idee": lien, "source": t["source"], "auteur": t["auteur"], "plans": t["plans"]}
+    res["evenements"].append(("info", f"✅ « {t['titre']} » prête (son TikTok de @{t['auteur'] or '?'}, {t['duree']:.0f} s, "
+                                      f"{caisse.depense:.2f} $)" + (" — test gratuit" if simulation() else "")))
     return res
 
 
@@ -172,7 +193,8 @@ def ranger(res):
 
 def main(argv=None):
     a = argparse.ArgumentParser()
-    a.add_argument("--format", default="auto", choices=["auto", "courte", "longue"])
+    a.add_argument("--format", default="auto", choices=["auto", "courte", "longue", "tiktok"])
+    a.add_argument("--lien", default="", help="vidéo TikTok (format tiktok) ; vide ou « hasard » = au hasard des profils")
     a.add_argument("--idee", default="")
     a.add_argument("--remplace", default="")
     args = a.parse_args(argv)
@@ -189,7 +211,7 @@ def main(argv=None):
         formats = [args.format]
     echecs = 0
     for f in formats:
-        res = fabriquer(f, args.idee, args.remplace, auto=args.format == "auto")
+        res = fabriquer(f, args.idee, args.remplace, auto=args.format == "auto", lien=args.lien)
         depot.enregistrer(lambda: ranger(res), f"Robot : {res['entree']['titre'] if res['entree'] else 'essai ' + f}")
         echecs += res["entree"] is None
     return 1 if echecs else 0

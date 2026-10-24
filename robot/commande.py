@@ -89,6 +89,19 @@ def appliquer_reglages(d):
         pl["heures_publication"] = h or pl["heures_publication"]
     if "sous_titres" in d:
         R["montage"]["sous_titres"] = bool(d["sous_titres"])
+    if isinstance(d.get("tiktok"), dict):                    # onglet TikTok du site
+        t, T = d["tiktok"], R.setdefault("tiktok", {})
+        if "profils" in t:
+            from .sons_tiktok import lire_profils
+            T["profils"] = lire_profils(t["profils"])
+        if "auto" in t:
+            T["auto"] = bool(t["auto"])
+        if "jours" in t:
+            T["jours"] = [j for j in JOURS if j in t["jours"]]
+        if "duree_max" in t:
+            T["duree_max"] = max(10, min(90, int(t["duree_max"])))
+        if "gilbert" in t:
+            T["gilbert"] = bool(t["gilbert"])
     ecrire("reglages.json", R)
     noter(f"⚙️ Réglages modifiés (plafond {R['budget']['plafond_mensuel_usd']:.0f} $/mois).")
 

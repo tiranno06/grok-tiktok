@@ -30,6 +30,18 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   navigateur (`gt_jeton`, droit Actions). Démo automatique si les données sont introuvables.
 - Simulation (`SIMULATION=1`, case « Test gratuit ») : fausses images et vidéos ffmpeg, aucun appel, faux portrait jamais gardé.
 
+- **Épisodes de Gilbert** (24/10, après la 1re vraie vidéo jugée pas assez drôle et trop figée) : Grok (`grok-4.7`) propose
+  5 idées et garde la plus drôle (consignes d'écriture TikTok dans `scenario.CONSIGNES`) ; jeu naturel (`scenario.JEU`),
+  cadrages variés, `objets` identiques dans tous les plans, plan au même lieu = départ de la dernière image du plan précédent ;
+  chaque clip est transcrit (`grok.transcrire`, POST /v1/stt) : sous-titres mot à mot calés sur la vraie voix, blancs coupés
+  avec un léger zoom un morceau sur deux (`principal.rythmer`, une longue reste ≥ 62 s).
+- **Sons TikTok** (24/10, `robot/sons_tiktok.py`, `--format tiktok --lien …`, onglet « Sons TikTok » du site, réglages
+  `reglages.tiktok` : profils, auto + jours, duree_max, gilbert) : yt-dlp (imitation navigateur) puis tikwm ; transcription
+  avec voix séparées (`diarize`) ; `decouper` (un plan par réplique, plan « écoute » au milieu des longues répliques, ≤ 14 s) ;
+  Grok vision (`modeles.vision`) invente personnages FICTIFS / lieux / cadrages ; un portrait par personnage ; `caler` recale
+  la parole du clip Grok sur la parole d'origine (vitesse ×0,75 à ×1,35) ; `assembler` remet le son d'origine. Pas de vraie
+  synchronisation labiale chez xAI (pas d'entrée audio) : c'est un doublage.
+
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`
 et l'ouvrir à 400 px de large.

@@ -6,8 +6,11 @@ on:
   workflow_dispatch:             # bouton « Créer » du site, ou Actions → Robot vidéo → Run workflow
     inputs:
       format:
-        description: "auto (selon le planning), courte ou longue"
+        description: "auto (selon le planning), courte, longue ou tiktok"
         default: "auto"
+      lien:
+        description: "Format tiktok : lien d'une vidéo TikTok, ou vide = au hasard des profils"
+        default: ""
       idee:
         description: "Idée imposée (facultatif)"
         default: ""
@@ -33,6 +36,7 @@ jobs:
       FORMAT: ${{ inputs.format || 'auto' }}
       IDEE: ${{ inputs.idee }}
       REMPLACE: ${{ inputs.remplace }}
+      LIEN: ${{ inputs.lien }}
       SIMULATION: ${{ inputs.simulation || '0' }}
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
       GH_TOKEN: ${{ github.token }}
@@ -45,5 +49,7 @@ jobs:
         run: |
           which ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
           ffmpeg -version | head -1
+      - name: Installer yt-dlp (vidéos TikTok)
+        run: pip install -q "yt-dlp[default,curl-cffi]" || pip install -q yt-dlp
       - name: Fabriquer
-        run: python -m robot.principal --format "$FORMAT" --idee "$IDEE" --remplace "$REMPLACE"
+        run: python -m robot.principal --format "$FORMAT" --idee "$IDEE" --remplace "$REMPLACE" --lien "$LIEN"

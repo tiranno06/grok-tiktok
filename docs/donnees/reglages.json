@@ -5,7 +5,8 @@
  "modeles": {
   "texte": "grok-4.7",
   "image": "grok-imagine-image-2.0",
-  "video": "grok-imagine-video-1.5-lite"
+  "video": "grok-imagine-video-1.5-lite",
+  "vision": "grok-4.3"
  },
  "prix": {
   "video_seconde": 0.031,
@@ -37,5 +38,16 @@
   "sous_titres": true,
   "resolution": "720p",
   "couper_blancs": true
+ },
+ "tiktok": {
+  "profils": [],
+  "auto": false,
+  "jours": [
+   "mercredi",
+   "dimanche"
+  ],
+  "duree_max": 45,
+  "gilbert": true,
+  "langue": "fr"
  }
 }

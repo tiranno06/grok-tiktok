@@ -145,6 +145,7 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <button role="tab" data-v="file" aria-selected="true">À publier<span class="count" id="c-file">0</span></button>
       <button role="tab" data-v="publiees">Publiées<span class="count" id="c-pub">0</span></button>
       <button role="tab" data-v="creer">Créer</button>
+      <button role="tab" data-v="tiktok">Sons TikTok</button>
       <button role="tab" data-v="perso">Personnage</button>
       <button role="tab" data-v="budget">Budget</button>
       <button role="tab" data-v="journal">Journal</button>
@@ -188,6 +189,34 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <div class="seg"><label for="simu"><input type="checkbox" id="simu"> Test gratuit (fausse vidéo, sans appeler Grok)</label></div>
       <div class="actions"><button class="btn primary" type="submit">Lancer la création</button></div>
       <p class="hint">Compte 5 à 15 minutes. La vidéo arrive dans « À publier ». Les longues font plus d'une minute : c'est la durée qu'exige TikTok pour la rémunération des créateurs.</p>
+    </form>
+  </section>
+
+  <section class="view" id="v-tiktok" hidden>
+    <form class="panel" id="f-tk">
+      <h2>Vidéo sur le son d'une vidéo TikTok</h2>
+      <p class="hint">Le robot garde seulement le son d'une vidéo TikTok drôle et tourne une nouvelle vidéo réaliste autour :
+        personnages inventés (Gilbert peut jouer le rôle principal), décors, gestes. Les bouches sont recalées sur le son, comme un doublage.</p>
+      <label class="f" for="tk_lien">Lien d'une vidéo TikTok <span class="sub">Laisse vide pour piocher au hasard dans tes profils.</span>
+        <input type="url" id="tk_lien" placeholder="https://www.tiktok.com/@compte/video/…" autocomplete="off"></label>
+      <div class="seg"><label for="tk_simu"><input type="checkbox" id="tk_simu"> Test gratuit (fausse vidéo, sans appeler Grok)</label></div>
+      <div class="actions"><button class="btn primary" type="submit" id="tk_go">Créer la vidéo</button></div>
+      <p class="hint" id="tk_cout"></p>
+    </form>
+    <form class="panel" id="f-tkp">
+      <h2>Tes profils TikTok</h2>
+      <label class="f" for="tk_profils">Profils <span class="sub">Un par ligne : @pseudo ou lien du profil. Le robot n'utilise jamais deux fois la même vidéo.</span>
+        <textarea id="tk_profils" placeholder="@compte_drole&#10;https://www.tiktok.com/@autre_compte"></textarea></label>
+      <div class="f">Création automatique
+        <div class="seg"><label for="tk_auto"><input type="checkbox" id="tk_auto"> Oui, les jours cochés (vers 6 h)</label></div>
+        <div class="seg" id="tk_jours"></div></div>
+      <div class="row">
+        <label class="f" for="tk_max">Durée maximale du son (secondes)<input type="number" id="tk_max" min="10" max="90" step="5"></label>
+        <div class="f">Personnage récurrent
+          <div class="seg"><label for="tk_gilbert"><input type="checkbox" id="tk_gilbert"> Gilbert joue le rôle principal</label></div></div>
+      </div>
+      <p class="hint">La création automatique suit aussi le mode choisi dans Réglages : en mode manuel, rien ne se crée tout seul.</p>
+      <div class="actions"><button class="btn primary" type="submit">Enregistrer</button></div>
     </form>
   </section>
 
@@ -309,7 +338,8 @@ const DEMO_DATA = {
     budget:{ plafond_mensuel_usd:30 }, prix:{ video_seconde:.02, image:.04, scenario:.01 },
     formats:{ courte:{clips:2, secondes_par_clip:10}, longue:{clips:6, secondes_par_clip:14} },
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
-    montage:{ sous_titres:true } },
+    montage:{ sous_titres:true },
+    tiktok:{ profils:["compte_drole"], auto:false, jours:["mercredi","dimanche"], duree_max:45, gilbert:true } },
   "personnage.json": { nom:"Gilbert Mouchon", age:54, ville:"Saint-Glinglin-sur-Loire (village imaginaire)",
     apparence:"French man in his mid fifties, round friendly face, thick grey walrus moustache, small rectangular glasses, short grey hair, beige fishing vest over a faded blue checked shirt",
     voix:"deep, calm, slightly hoarse voice of a French man in his fifties, deadpan delivery",
@@ -397,10 +427,11 @@ function carte(v) {
     <button class="thumb" type="button" style="${mini}" data-play="${esc(v.url || "")}" aria-label="Lire « ${esc(v.titre)} »">
       <span class="play" aria-hidden="true">▶</span><span class="tc">${tc(v.duree)}</span></button>
     <div class="reel-body">
-      <div class="meta"><span class="pill s-${v.statut}">${LIB[v.statut] || esc(v.statut)}</span><span class="fmt">${v.format === "longue" ? "LONGUE" : "COURTE"} · ${usd(v.cout_usd)}${v.simulation ? " · TEST" : ""}</span></div>
+      <div class="meta"><span class="pill s-${v.statut}">${LIB[v.statut] || esc(v.statut)}</span><span class="fmt">${{ longue: "LONGUE", tiktok: "SON TIKTOK" }[v.format] || "COURTE"} · ${usd(v.cout_usd)}${v.simulation ? " · TEST" : ""}</span></div>
       <h3>${esc(v.titre)}</h3>
       <p class="caption" id="cap-${v.id}">${esc(v.legende)}</p>
       <div class="tags">${esc((v.hashtags || []).join(" "))}</div>
+      ${v.source ? `<div class="tags"><a href="${esc(v.source)}" target="_blank" rel="noopener">Vidéo d'origine${v.auteur ? " (@" + esc(v.auteur) + ")" : ""}</a></div>` : ""}
       ${v.statut === "a_publier" ? creneau(v) : ""}
       ${v.statut === "publiee" ? `<div class="slot">publiée ${quand(v.publiee_le || v.publier_le)}</div>` : ""}
       <div class="inline" id="zone-${v.id}"></div>
@@ -427,6 +458,8 @@ function rendre() {
   $("#sub").textContent = (nb.length ? `${nb.length} à publier` : "rien à publier") + (R().planning.pause ? " · mode manuel" : "");
 
   for (const f of ["courte","longue"]) { const [s, c] = cout(f); $("#est-" + f).textContent = `${s} s · ~${usd(c)}`; }
+  const coutSon = d => { const p = R().prix, n = Math.ceil(d / 5); return (d + 1.5 * n) * p.video_seconde + n * p.image + 2 * p.image + 3 * p.scenario; };
+  $("#tk_cout").textContent = `Coût : environ ${usd(coutSon(15))} pour un son de 15 s, ${usd(coutSon(30))} pour 30 s, ${usd(coutSon(45))} pour 45 s.`;
 
   const B = D["budget.json"] || { depense_usd: 0, plafond_usd: R().budget.plafond_mensuel_usd, lignes: [] };
   const cap = R().budget.plafond_mensuel_usd;
@@ -464,6 +497,10 @@ function remplirFormulaires() {
   $("#r_cap").value = R().budget.plafond_mensuel_usd; $("#r_daily").checked = !!pl.courte_chaque_jour;
   $("#r_days").innerHTML = JOURS.map(j => `<label for="j_${j}"><input type="checkbox" id="j_${j}" value="${j}" ${pl.jours_longue.includes(j) ? "checked" : ""}> ${j}</label>`).join("");
   $("#r_hours").value = pl.heures_publication.join(", "); $("#r_subs").checked = R().montage.sous_titres !== false;
+  const T = R().tiktok || { profils: [], auto: false, jours: [], duree_max: 45, gilbert: true };
+  if (document.activeElement !== $("#tk_profils")) $("#tk_profils").value = (T.profils || []).map(p => "@" + p).join("\n");
+  $("#tk_auto").checked = !!T.auto; $("#tk_max").value = T.duree_max || 45; $("#tk_gilbert").checked = T.gilbert !== false;
+  $("#tk_jours").innerHTML = JOURS.map(j => `<label for="tk_${j}"><input type="checkbox" id="tk_${j}" value="${j}" ${(T.jours || []).includes(j) ? "checked" : ""}> ${j}</label>`).join("");
   const c = conn(); $("#c_repo").value = c.repo; $("#c_token").placeholder = c.token ? "•••••••• enregistrée" : "github_pat_…";
 }
 
@@ -477,7 +514,7 @@ function montrer(v) {
   scrollTo({ top: 0 });
 }
 document.querySelector("nav.tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) montrer(b.dataset.v); });
-const VUES = ["file","publiees","creer","perso","budget","journal","reglages"];
+const VUES = ["file","publiees","creer","tiktok","perso","budget","journal","reglages"];
 if (VUES.includes(location.hash.slice(1))) montrer(location.hash.slice(1));
 if (store.get("gt_aide_vue", "")) $("#aide").open = false; else { $("#aide").open = true; store.set("gt_aide_vue", "1"); }
 
@@ -534,7 +571,8 @@ document.addEventListener("click", async e => {
   }
   if (["ecarter","supprimer","refaire"].includes(a) && !arme(b, a + id)) return;
   if (a === "refaire") {
-    await ordre("robot.yml", { format: v.format, idee: v.idee || "", remplace: id, simulation: v.simulation ? "1" : "0" },
+    await ordre("robot.yml", { format: v.format, idee: v.format === "tiktok" ? "" : (v.idee || ""), lien: v.format === "tiktok" ? (v.source || "") : "",
+      remplace: id, simulation: v.simulation ? "1" : "0" },
       "Nouvelle version commandée : elle remplacera celle-ci dans 5 à 15 min.");
     return;
   }
@@ -554,6 +592,16 @@ $("#f-creer").addEventListener("submit", e => { e.preventDefault();
   const fmt = new FormData(e.target).get("format");
   ordre("robot.yml", { format: fmt, idee: $("#idee").value.trim(), remplace: "", simulation: $("#simu").checked ? "1" : "0" },
     `Vidéo ${fmt} commandée : elle arrive dans « À publier » d'ici 5 à 15 min.`).then(ok => { if (ok) $("#idee").value = ""; }); });
+$("#f-tk").addEventListener("submit", e => { e.preventDefault();
+  const lien = $("#tk_lien").value.trim();
+  if (lien && !/^https?:\/\/([a-z0-9-]+\.)*tiktok\.com\/\S+$/i.test(lien)) return toast("Ce n'est pas un lien TikTok. Exemple : https://www.tiktok.com/@compte/video/123…");
+  if (!lien && !(R().tiktok?.profils || []).length && !$("#tk_simu").checked) return toast("Colle un lien, ou ajoute d'abord des profils plus bas.");
+  ordre("robot.yml", { format: "tiktok", lien, idee: "", remplace: "", simulation: $("#tk_simu").checked ? "1" : "0" },
+    "Vidéo TikTok commandée : elle arrive dans « À publier » d'ici 10 à 25 min.").then(ok => { if (ok) $("#tk_lien").value = ""; }); });
+$("#f-tkp").addEventListener("submit", e => { e.preventDefault();
+  const tiktok = { profils: $("#tk_profils").value, auto: $("#tk_auto").checked, duree_max: +$("#tk_max").value || 45,
+    jours: [...document.querySelectorAll("#tk_jours input:checked")].map(i => i.value), gilbert: $("#tk_gilbert").checked };
+  commande("reglages", "", JSON.stringify({ tiktok }), "Profils TikTok envoyés au robot."); });
 $("#b-portrait").addEventListener("click", e => { if (arme(e.currentTarget, "portrait")) commande("portrait", "", "", "Nouveau portrait commandé (1 à 2 min)."); });
 $("#f-perso").addEventListener("submit", e => { e.preventDefault();
   const json = JSON.stringify({ nom:$("#p_nom").value, age:+$("#p_age").value, ville:$("#p_ville").value, apparence:$("#p_apparence").value,

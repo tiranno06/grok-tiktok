@@ -15,6 +15,9 @@ def a_faire(R, file, etat):
         voulu.append("courte")
     if JOURS[now.weekday()] in pl.get("jours_longue", []):
         voulu.append("longue")
+    T = R.get("tiktok") or {}
+    if T.get("auto") and JOURS[now.weekday()] in T.get("jours", []) and T.get("profils"):
+        voulu.append("tiktok")
     faits = {v["format"] for v in file.get("videos", []) if v.get("auto") and v.get("cree_le", "")[:10] == jour}
     essais = (etat.get("essais") or {}).get(jour, {})
     return [f for f in voulu if f not in faits and essais.get(f, 0) < ESSAIS_MAX]
