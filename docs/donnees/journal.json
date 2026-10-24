@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T15:06:25+02:00",
+   "niveau": "info",
+   "texte": "🛑 « [Test] le clocher invisible » écartée (ne sera pas publiée)."
+  },
+  {
    "date": "2026-10-24T15:02:57+02:00",
    "niveau": "info",
    "texte": "⚙️ Réglages modifiés (plafond 10 $/mois)."
