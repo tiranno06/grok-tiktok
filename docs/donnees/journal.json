@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T14:00:55+02:00",
+   "niveau": "info",
+   "texte": "🛑 « [Test] la 2CV téléportée sur la mairie » écartée (ne sera pas publiée)."
+  },
+  {
    "date": "2026-10-24T14:00:48+02:00",
    "niveau": "info",
    "texte": "⚙️ Réglages modifiés (plafond 5 $/mois)."
