@@ -7,7 +7,8 @@
   "image": "grok-imagine-image-2.0",
   "video": "grok-imagine-video-1.5-lite",
   "vision": "grok-4.3",
-  "producteur": "grok-4.3"
+  "producteur": "grok-4.3",
+  "video_complet": "grok-imagine-video-1.5"
  },
  "prix": {
   "video_seconde": 0.031,
@@ -15,12 +16,13 @@
   "scenario": 0.02,
   "_note": "Coûts réels constatés le 24/10/2026 (1re vraie vidéo, 720p) : clip de 10 s = 0,31 $, image de départ = 0,07 $. Le coût réel renvoyé par Grok est toujours celui qui est compté.",
   "transcription_heure": 0.1,
-  "verification": 0.01
+  "verification": 0.01,
+  "video_seconde_complet": 0.125
  },
  "formats": {
   "courte": {
    "plans_min": 3,
-   "plans_max": 5,
+   "plans_max": 4,
    "duree_min": 24,
    "duree_max": 40
   },
@@ -74,6 +76,11 @@
   "scripte": true,
   "reprises_max": 1,
   "jury": true,
-  "note_min": 75
+  "note_min": 75,
+  "storyboard": true
+ },
+ "video": {
+  "modele": "lite",
+  "style": "vlog"
  }
 }

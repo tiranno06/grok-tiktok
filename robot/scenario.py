@@ -55,6 +55,7 @@ CONTINUITÉ (le plus important : la vidéo doit être une scène continue, sans 
   continue) ; false pour un changement de cadrage sur d'autres personnes (champ / contrechamp) ou de lieu.
 - Tout ce qui est dit est vu ou entendu : si un personnage est nommé comme présent, il est à l'image ou on l'entend.
 
+{style}
 DURÉE (elle dépend de l'idée)
 - Choisis le nombre de plans ({plans_min} à {plans_max}) et la durée de chaque plan ("duree", de 5 à 12 secondes) pour que
   toute l'histoire tienne SANS TROU. Durée totale entre {duree_min} et {duree_max} secondes.
@@ -89,7 +90,22 @@ DEMANDE = """Écris l'épisode {genre}.
 Ne refais pas ces épisodes déjà diffusés : {deja}."""
 
 
-def fiche(p, f, memoire=""):
+STYLES = {
+    "vlog": """STYLE : PLAN-SÉQUENCE FAÇON VLOG (obligatoire)
+- Gilbert se filme lui-même : téléphone tenu à bout de bras (selfie) ou posé sur un trépied qu'il vient ajuster. C'est un
+  vrai vlog TikTok, filmé en continu, dans UN SEUL lieu du début à la fin.
+- Les plans s'enchaînent comme une seule prise : "enchaine": true dès le 2e plan. Pas de champ / contrechamp, pas de saut.
+- Le personnage secondaire (s'il y en a un) est là dès le premier plan, ou entre dans le champ au début d'un plan
+  (on le voit arriver). Il reste à la même place ensuite, sauf si on le voit bouger.
+- Peu d'objets : la machine de l'expérience, l'objet ou la cible de l'expérience, au plus un ou deux accessoires.
+""",
+    "film": """STYLE : PETIT FILM
+- Plusieurs angles possibles (plans larges et serrés, champ / contrechamp), dans un ou deux lieux voisins.
+""",
+}
+
+
+def fiche(p, f, memoire="", style="vlog"):
     return CONSIGNES.format(nom=p["nom"], age=p["age"], ville=p["ville"], apparence=p["apparence"],
                             voix=p.get("voix", ""), personnalite=p["personnalite"], phrase=p["phrase_fetiche"],
                             gags="; ".join(p.get("gags_recurrents", [])), ton=p["ton"],
@@ -101,7 +117,7 @@ def fiche(p, f, memoire=""):
                                 f"Répliques typiques : " + " / ".join(f"« {r} »" for r in c.get("repliques", []))
                                 for c in p.get("secondaires", [])) or "aucun",
                             plans_min=f["plans_min"], plans_max=f["plans_max"], duree_min=f["duree_min"],
-                            duree_max=f["duree_max"], memoire=memoire)
+                            duree_max=f["duree_max"], memoire=memoire, style=STYLES.get(style, ""))
 
 
 def ecrire(format_, perso, reglages, idee="", deja=(), memoire=""):
@@ -114,7 +130,7 @@ def ecrire(format_, perso, reglages, idee="", deja=(), memoire=""):
     if os.environ.get("SIMULATION") == "1":
         ep, cout = _episode_simulation(perso, f, idee), 0.0
     else:
-        ep, cout = grok.ecrire_json(reglages["modeles"]["texte"], fiche(perso, f, memoire), demande,
+        ep, cout = grok.ecrire_json(reglages["modeles"]["texte"], fiche(perso, f, memoire, (reglages.get("video") or {}).get("style", "vlog")), demande,
                                     reglages["prix"]["scenario"])
     return nettoyer(ep, f, perso), cout
 

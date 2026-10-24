@@ -120,9 +120,15 @@ def appliquer_reglages(d):
         pl["heures_publication"] = h or pl["heures_publication"]
     if "sous_titres" in d:
         R["montage"]["sous_titres"] = bool(d["sous_titres"])
+    if isinstance(d.get("video"), dict):                     # Réglages → Tournage : modèle vidéo et style
+        V, v = R.setdefault("video", {"modele": "lite", "style": "vlog"}), d["video"]
+        if v.get("modele") in ("lite", "complet"):
+            V["modele"] = v["modele"]
+        if v.get("style") in ("vlog", "film"):
+            V["style"] = v["style"]
     if isinstance(d.get("qualite"), dict):                   # Réglages → Contrôle qualité
         Q, q = R.setdefault("qualite", {}), d["qualite"]
-        for cle in ("producteur", "scripte", "jury"):
+        for cle in ("producteur", "storyboard", "scripte", "jury"):
             if cle in q:
                 Q[cle] = bool(q[cle])
         if "note_min" in q:

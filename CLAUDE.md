@@ -95,6 +95,13 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   scripte juge sur les fiches et ne fait refaire que les défauts GRAVES, et seulement si le budget permet encore de finir
   l'épisode (`reserve`). Durées d'écriture et de relecture affichées dans le journal du robot.
 
+- **Choix du 24/10 (soir)** : style **plan-séquence vlog** par défaut (`reglages.video.style` = vlog | film, consignes
+  `scenario.STYLES` : Gilbert se filme, un seul lieu, plans enchaînés, peu d'objets ; courte = 3 à 4 plans) ; **storyboard**
+  avant tournage (`principal.faire_storyboard` : 1re image de chaque plan, chacune faite depuis la précédente + portraits ;
+  `production.verifier_storyboard` ; images signalées refaites une fois ; le plan 1 démarre sur l'image du storyboard) ;
+  modèle vidéo **Lite par défaut**, « complet » en option (`reglages.video.modele`, `budget.video(R)`, prix estimé 0,125 $/s).
+  Un seul personnage secondaire par épisode. Objectif : jury ≥ 75/100.
+
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`
 et l'ouvrir à 400 px de large.

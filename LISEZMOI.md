@@ -42,9 +42,12 @@ renvoyé par Grok est celui qui est compté.
    pour chaque plan, ce qu'on voit au début, ce qui se passe seconde par seconde et ce qu'on voit à la fin.
    La durée s'adapte à l'idée (courte : 24 à 40 s ; longue : 66 à 95 s).
 2. **Le producteur** relit tout avant le tournage et fait corriger les incohérences (c'est gratuit ou presque).
-3. **Le tournage** : un plan qui continue le précédent démarre exactement sur sa dernière image, pour une scène continue.
-4. **Le scripte** vérifie chaque plan juste après le tournage ; s'il ne colle pas, le plan est refait une fois.
-5. **Le jury** note la vidéo finie (humour, continuité, image, son). Sous la note minimale : « À revoir », jamais publiée
+3. **Le storyboard** : la première image de chaque plan est faite à l'avance et vérifiée par le producteur ; les images
+   incohérentes sont refaites avant de payer la vidéo.
+4. **Le tournage**, en plan-séquence façon vlog (Gilbert se filme, un seul lieu) : chaque plan démarre exactement sur la
+   dernière image du précédent. Réglages → Tournage : modèle Lite (par défaut) ou complet (plus fidèle, environ 4 fois plus cher).
+5. **Le scripte** vérifie chaque plan juste après le tournage ; s'il ne colle pas, le plan est refait une fois.
+6. **Le jury** note la vidéo finie (humour, continuité, image, son). Sous la note minimale : « À revoir », jamais publiée
    toute seule. Ses remarques et les tiennes (👍 / 👎 / Ma remarque sur chaque vidéo) sont gardées en mémoire pour les
    épisodes suivants.
 Réglages → Contrôle qualité : tout s'active ou se coupe, et tu choisis la note minimale et le nombre de reprises.

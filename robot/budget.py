@@ -2,13 +2,21 @@
 from .commun import lire, ecrire, maintenant, simulation
 
 
+def video(R):
+    """Modèle vidéo choisi dans Réglages : (nom du modèle, prix par seconde). Lite par défaut, complet en option."""
+    if (R.get("video") or {}).get("modele") == "complet":
+        return R["modeles"].get("video_complet", "grok-imagine-video-1.5"), R["prix"].get("video_seconde_complet", 0.125)
+    return R["modeles"]["video"], R["prix"]["video_seconde"]
+
+
 def estimation(format_, R):
     """Coût prévu d'une vidéo, en dollars, au plus long : secondes de vidéo, images de départ (environ un plan sur deux
     change de personne), scénario + relecture du producteur, contrôle du scripte à chaque plan et jury. Sans les reprises."""
     f, p = R["formats"][format_], R["prix"]
     plans = f["plans_max"]
-    return round(f["duree_max"] * p["video_seconde"] + (plans + 1) // 2 * p["image"] + 2 * p["scenario"]
-                 + (plans + 2) * p.get("verification", 0.01), 2)
+    images = plans if (R.get("qualite") or {}).get("storyboard", True) else (plans + 1) // 2   # storyboard : une par plan
+    return round(f["duree_max"] * video(R)[1] + images * p["image"] + 2 * p["scenario"]
+                 + (plans + 3) * p.get("verification", 0.01), 2)
 
 
 def charger(R):

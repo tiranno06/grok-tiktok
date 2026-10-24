@@ -120,12 +120,17 @@ class AvecFauxGrok(Base):
         os.environ["SIMULATION"] = "0"
         self.appels = []
 
-        self.scripte_ok, self.note_jury, self.departs, self.prompts = [True], 80, [], []
+        self.scripte_ok, self.note_jury, self.departs, self.prompts, self.modeles = [True], 80, [], [], []
+        self.storyboard_problemes = []
 
         def texte(modele, consignes, demande, prix, images=()):
             if "producteur exigeant" in consignes:
                 self.appels.append("producteur")
                 return {"note": 70, "problemes": ["La fin du plan 1 ne colle pas au début du plan 2."], "scenario": None}, 0.01
+            if "STORYBOARD" in consignes:
+                self.appels.append("storyboard")
+                pb, self.storyboard_problemes = self.storyboard_problemes, []
+                return {"ok": not pb, "problemes": pb}, 0.02
             if "scripte d'un tournage" in consignes:
                 self.appels.append("scripte")
                 ok = self.scripte_ok.pop(0) if len(self.scripte_ok) > 1 else self.scripte_ok[0]
@@ -153,6 +158,7 @@ class AvecFauxGrok(Base):
                 suivi(40)
             self.appels.append("video")
             self.departs.append(image)
+            self.modeles.append(modele)
             self.prompts.append(prompt)
             return grok._faux_clip(dest, duree, prompt), round(duree * prix, 4)
 
@@ -171,7 +177,8 @@ class AvecFauxGrok(Base):
 class FauxGrok(AvecFauxGrok):
     # courte : 7 plans de 10 s proposés → 5 plans ramenés à 40 s au plus. Coût : portrait 0,04 + scénario 0,01
     # + producteur 0,01 + 1 image de départ 0,04 (les autres plans s'enchaînent) + 40 s × 0,02 + scripte 5 × 0,01 + jury 0,02
-    COURTE = 0.04 + 0.01 + 0.01 + 0.04 + 0.8 + 0.05 + 0.02
+    # + storyboard : 5 images × 0,04 et sa vérification 0,02 (le plan 1 démarre sur l'image du storyboard)
+    COURTE = 0.04 + 0.01 + 0.01 + 0.2 + 0.02 + 0.8 + 0.05 + 0.02
 
     def test_couts_continuite_et_portrait(self):
         self.assertEqual(principal.main(["--format", "courte"]), 0)
@@ -181,6 +188,7 @@ class FauxGrok(AvecFauxGrok):
         self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portrait.jpg")))
         self.assertEqual((len(v["plans"]), sum(p["duree"] for p in v["plans"])), (5, 40))
         self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 21)          # 8 s × 2,5 mots
+        self.assertTrue(self.departs[0].endswith("storyboard_1.jpg"), self.departs[0])
         for k in range(1, 5):                                                     # chaque plan démarre sur la fin du précédent
             self.assertTrue(self.departs[k].endswith(f"fin_{k}.jpg"), self.departs[k])
         self.assertIn("START OF THE SHOT", self.prompts[1])
@@ -193,7 +201,7 @@ class FauxGrok(AvecFauxGrok):
         # deuxième vidéo : le portrait existe déjà ; le scénariste reçoit les leçons du jury
         self.appels.clear()
         principal.main(["--format", "courte"])
-        self.assertEqual(self.appels.count("image"), 1)
+        self.assertEqual(self.appels.count("image"), 5)                          # le storyboard seulement
 
     def test_scripte_fait_refaire_un_plan(self):
         self.scripte_ok = [False, True]
@@ -203,6 +211,21 @@ class FauxGrok(AvecFauxGrok):
         self.assertIn("FIX THESE PROBLEMS", self.prompts[1])
         self.assertTrue(v["qualite"]["scripte"][0]["reprise"])
         self.assertAlmostEqual(v["cout_usd"], self.COURTE + 0.16, places=4)     # reprise du plan 1 (8 s × 0,02)
+
+    def test_storyboard_corrige(self):
+        self.storyboard_problemes = [{"plan": 2, "probleme": "la machine est déjà cassée", "correction": "machine intact"}]
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual(self.appels.count("image"), 1 + 5 + 1)                # portrait + storyboard + image 2 refaite
+        self.assertEqual(v["qualite"]["storyboard"]["problemes"][0]["plan"], 2)
+
+    def test_modele_complet(self):
+        commande.appliquer("reglages", "", json.dumps({"video": {"modele": "complet", "style": "film"}}))
+        R = lire("reglages.json")
+        self.assertEqual((R["video"]["modele"], R["video"]["style"]), ("complet", "film"))
+        self.assertEqual(budget.video(R)[0], "grok-imagine-video-1.5")
+        principal.main(["--format", "courte"])
+        self.assertEqual(set(self.modeles), {"grok-imagine-video-1.5"})
 
     def test_jury_a_revoir(self):
         self.note_jury = 40
@@ -249,7 +272,7 @@ class FauxGrok(AvecFauxGrok):
         self.assertEqual([p["personnage"] for p in v["plans"]], ["gilbert", "mat", "gilbert", "gilbert", "gilbert"])
         self.assertEqual([p["enchaine"] for p in v["plans"]], [False, False, False, True, True])
         self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portraits", "mat.jpg")))
-        self.assertEqual(self.appels.count("image"), 5)                 # 2 portraits + 3 images de départ
+        self.assertEqual(self.appels.count("image"), 7)                 # 2 portraits + 5 images du storyboard
         self.assertIs(grok.ecrire_json, vrai)
 
     def test_plafond_respecte(self):
@@ -424,9 +447,9 @@ class SonsTikTok(Base):
 class Divers(Base):
     def test_estimations(self):
         R = lire("reglages.json")
-        # courte : 40 s × 0,02 + 3 images × 0,04 + scénario et producteur 2 × 0,01 + 7 contrôles × 0,01
-        self.assertAlmostEqual(budget.estimation("courte", R), 1.01, places=2)
-        self.assertAlmostEqual(budget.estimation("longue", R), 2.24, places=2)
+        # courte : 40 s × 0,02 + 5 images du storyboard × 0,04 + scénario et producteur 2 × 0,01 + 8 contrôles × 0,01
+        self.assertAlmostEqual(budget.estimation("courte", R), 1.10, places=2)
+        self.assertAlmostEqual(budget.estimation("longue", R), 2.45, places=2)
 
     def test_creneaux(self):
         R = lire("reglages.json")

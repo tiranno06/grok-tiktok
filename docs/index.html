@@ -355,12 +355,23 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
         marquée « À revoir » et n'est jamais publiée automatiquement.</p>
       <div class="seg">
         <label for="q_prod"><input type="checkbox" id="q_prod"> Producteur</label>
+        <label for="q_sb"><input type="checkbox" id="q_sb"> Storyboard</label>
         <label for="q_scripte"><input type="checkbox" id="q_scripte"> Scripte</label>
         <label for="q_jury"><input type="checkbox" id="q_jury"> Jury</label></div>
       <div class="row">
         <label class="f" for="q_reprises">Plans refaits au plus <span class="sub">Par plan. Chaque reprise coûte le prix du plan.</span>
           <select id="q_reprises"><option value="0">Aucun</option><option value="1">1 fois</option><option value="2">2 fois</option></select></label>
         <label class="f" for="q_note">Note minimale du jury<input type="number" id="q_note" min="0" max="100" step="5"></label>
+      </div>
+      <div class="actions"><button class="btn primary" type="submit">Enregistrer</button></div>
+    </form>
+    <form class="panel" id="f-video">
+      <h2>Tournage</h2>
+      <div class="row">
+        <label class="f" for="v_modele">Modèle vidéo <span class="sub">Le complet est plus fidèle (visages, objets), environ 4 fois plus cher.</span>
+          <select id="v_modele"><option value="lite">Lite (≈ 0,03 $ par seconde)</option><option value="complet">Complet (≈ 0,12 $ par seconde)</option></select></label>
+        <label class="f" for="v_style">Style des épisodes
+          <select id="v_style"><option value="vlog">Plan-séquence vlog (un lieu, une prise continue)</option><option value="film">Petit film (plusieurs angles)</option></select></label>
       </div>
       <div class="actions"><button class="btn primary" type="submit">Enregistrer</button></div>
     </form>
@@ -418,8 +429,9 @@ const DEMO_DATA = {
     { date:h(-50), niveau:"info", texte:"🛑 « Gilbert se présente à Miss France » écartée (ne sera pas publiée)." } ] },
   "reglages.json": {
     budget:{ plafond_mensuel_usd:30 }, prix:{ video_seconde:.02, image:.04, scenario:.01 },
-    formats:{ courte:{plans_min:3, plans_max:5, duree_min:24, duree_max:40}, longue:{plans_min:7, plans_max:10, duree_min:66, duree_max:95} },
-    qualite:{ producteur:true, scripte:true, reprises_max:1, jury:true, note_min:65 },
+    formats:{ courte:{plans_min:3, plans_max:4, duree_min:24, duree_max:40}, longue:{plans_min:7, plans_max:10, duree_min:66, duree_max:95} },
+    qualite:{ producteur:true, storyboard:true, scripte:true, reprises_max:1, jury:true, note_min:65 },
+    video:{ modele:"lite", style:"vlog" },
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
     montage:{ sous_titres:true },
     tiktok:{ profils:["yan_animation0","eliotlehanneur","same_same53","charly.bse"], auto:false, jours:["mercredi","dimanche"], duree_max:45 } },
@@ -499,7 +511,7 @@ function jugement(v) {                                        // note du jury, e
 }
 function qualite(v) {                                         // le contrôle qualité, replié
   const q = v.qualite; if (!q) return "";
-  const j = q.jury || {}, pr = q.producteur || {}, sc = (q.scripte || []);
+  const j = q.jury || {}, pr = q.producteur || {}, sc = (q.scripte || []), sb = q.storyboard || {};
   const notes = j.notes ? Object.entries({ humour: "humour", continuite: "continuité", image: "image", son: "son" })
     .filter(([k]) => j.notes[k] != null).map(([k, l]) => `${l} ${j.notes[k]}`).join(" · ") : "";
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join("");
@@ -509,6 +521,7 @@ function qualite(v) {                                         // le contrôle qu
     ${(j.points_forts || []).length ? `<p class="hint"><b>Points forts</b></p><ul class="hint">${li(j.points_forts)}</ul>` : ""}
     ${(j.remarques || []).length ? `<p class="hint"><b>Remarques du jury</b></p><ul class="hint">${li(j.remarques)}</ul>` : ""}
     ${(pr.problemes || []).length ? `<p class="hint"><b>Corrigé par le producteur avant le tournage</b></p><ul class="hint">${li(pr.problemes)}</ul>` : ""}
+    ${(sb.problemes || []).length ? `<p class="hint"><b>Storyboard corrigé avant le tournage</b></p><ul class="hint">${li(sb.problemes.map(x => `plan ${x.plan} : ${x.probleme}`))}</ul>` : ""}
     ${sc.length ? `<p class="hint"><b>Scripte</b> : ${sc.length} plan(s) vérifié(s), ${reprises} refait(s).</p>${ecarts.length ? `<ul class="hint">${li(ecarts)}</ul>` : ""}` : ""}
   </details>`;
 }
@@ -555,7 +568,9 @@ const R = () => D["reglages.json"];
 function cout(f) {                                             // même calcul que robot/budget.py (au plus long, sans reprise)
   const x = R().formats[f], p = R().prix, v = p.verification ?? 0.01;
   if (x.duree_max === undefined) { const s = x.clips * x.secondes_par_clip; return [s, s * p.video_seconde + x.clips * p.image + p.scenario]; }
-  return [x.duree_max, x.duree_max * p.video_seconde + Math.ceil(x.plans_max / 2) * p.image + 2 * p.scenario + (x.plans_max + 2) * v, x.duree_min];
+  const ps = (R().video || {}).modele === "complet" ? (p.video_seconde_complet ?? 0.125) : p.video_seconde;
+  const images = (R().qualite || {}).storyboard !== false ? x.plans_max : Math.ceil(x.plans_max / 2);
+  return [x.duree_max, x.duree_max * ps + images * p.image + 2 * p.scenario + (x.plans_max + 3) * v, x.duree_min];
 }
 
 function rendre() {
@@ -620,7 +635,8 @@ function remplirFormulaires() {
   $("#r_days").innerHTML = JOURS.map(j => `<label for="j_${j}"><input type="checkbox" id="j_${j}" value="${j}" ${pl.jours_longue.includes(j) ? "checked" : ""}> ${j}</label>`).join("");
   $("#r_hours").value = pl.heures_publication.join(", "); $("#r_subs").checked = R().montage.sous_titres !== false;
   const Q = R().qualite || { producteur: true, scripte: true, jury: true, reprises_max: 1, note_min: 65 };
-  $("#q_prod").checked = Q.producteur !== false; $("#q_scripte").checked = Q.scripte !== false; $("#q_jury").checked = Q.jury !== false;
+  $("#q_prod").checked = Q.producteur !== false; $("#q_sb").checked = Q.storyboard !== false;
+  const V = R().video || { modele: "lite", style: "vlog" }; $("#v_modele").value = V.modele || "lite"; $("#v_style").value = V.style || "vlog"; $("#q_scripte").checked = Q.scripte !== false; $("#q_jury").checked = Q.jury !== false;
   $("#q_reprises").value = String(Q.reprises_max ?? 1); $("#q_note").value = Q.note_min ?? 65;
   const T = R().tiktok || { profils: [], auto: false, jours: [], duree_max: 45 };
   if (document.activeElement !== $("#tk_profils")) $("#tk_profils").value = (T.profils || []).map(p => "@" + p).join("\n");
@@ -856,9 +872,13 @@ $("#f-perso").addEventListener("submit", e => { e.preventDefault();
     repliques:$("#p_repliques").value.split("\n").map(s => s.trim()).filter(Boolean), ton:$("#p_ton").value });
   commande("personnage", "", json, "Fiche envoyée au robot."); });
 $("#f-qual").addEventListener("submit", e => { e.preventDefault();
-  const qualite = { producteur: $("#q_prod").checked, scripte: $("#q_scripte").checked, jury: $("#q_jury").checked,
+  const qualite = { producteur: $("#q_prod").checked, storyboard: $("#q_sb").checked, scripte: $("#q_scripte").checked, jury: $("#q_jury").checked,
     reprises_max: +$("#q_reprises").value, note_min: +$("#q_note").value || 0 };
   commande("reglages", "", JSON.stringify({ qualite }), "Contrôle qualité envoyé au robot."); });
+$("#f-video").addEventListener("submit", e => { e.preventDefault();
+  const video = { modele: $("#v_modele").value, style: $("#v_style").value };
+  commande("reglages", "", JSON.stringify({ video }), video.modele === "complet" ? "Modèle complet choisi : vidéos plus fidèles, environ 4 fois plus chères."
+    : "Réglages de tournage envoyés au robot."); });
 $("#f-cfg").addEventListener("submit", e => { e.preventDefault();
   const heures = $("#r_hours").value.split(/[,; h]+/).filter(Boolean).map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < 24);
   if (!heures.length) return toast("Indique au moins une heure, par exemple 12, 19.");

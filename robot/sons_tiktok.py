@@ -19,7 +19,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-from . import avancement, grok, montage
+from . import avancement, budget, grok, montage
 from .commun import simulation
 
 DUREE_MIN, DUREE_PLAN_MAX = 5, 14            # secondes ; Grok Imagine filme au plus 15 s par plan
@@ -377,7 +377,7 @@ def estimation(duree_son, R, nb_voix=2):
     """Coût prévu : environ un plan toutes les 5 s, chaque plan filmé 1,5 s plus long que nécessaire."""
     p = R["prix"]
     nb_plans = max(1, math.ceil(duree_son / 5))
-    return round((duree_son + 1.5 * nb_plans) * p["video_seconde"] + nb_plans * p["image"] + nb_voix * p["image"]
+    return round((duree_son + 1.5 * nb_plans) * budget.video(R)[1] + nb_plans * p["image"] + nb_voix * p["image"]
                  + 3 * p["scenario"], 2)
 
 
@@ -386,10 +386,10 @@ def filmer(R, prompt, image, secondes, dest, caisse, quoi, sobre, suivi=None):
     """Un clip Grok Imagine ; refus de la modération : un seul nouvel essai avec un prompt plus sobre."""
     m, prix = R["modeles"], R["prix"]
     for essai in (1, 2):
-        caisse.autoriser(secondes * prix["video_seconde"], quoi)
+        caisse.autoriser(secondes * budget.video(R)[1], quoi)
         try:
-            _, cout = grok.creer_video(m["video"], prompt if essai == 1 else sobre, image, secondes, dest,
-                                       prix["video_seconde"], R["montage"].get("resolution", "720p"), suivi=suivi)
+            _, cout = grok.creer_video(budget.video(R)[0], prompt if essai == 1 else sobre, image, secondes, dest,
+                                       budget.video(R)[1], R["montage"].get("resolution", "720p"), suivi=suivi)
             caisse.payer(cout, f"{quoi} ({secondes} s)")
             return dest
         except grok.RefusModeration as e:

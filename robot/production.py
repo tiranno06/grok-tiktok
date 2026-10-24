@@ -127,6 +127,38 @@ def verifier_plan(R, clip, plan, gens, bible, dossier, i):
             "correction": str(rep.get("correction") or "")[:600]}, cout
 
 
+# ---------------------------------------------------------------- 1 bis. le storyboard, vérifié avant de filmer
+STORYBOARD = """Tu es le producteur. Avant de payer le tournage, tu regardes le STORYBOARD : une image par plan (la première image
+de chaque plan, dans l'ordre), avec le découpage et les fiches des personnages. Un spectateur doit voir UNE scène continue.
+Vérifie d'une image à l'autre : mêmes visages et mêmes tenues que les fiches, même lieu, mêmes objets (même aspect), l'état
+de chaque objet colle au moment de l'histoire (rien n'est déjà cassé ou disparu avant l'action qui le cause), chacun à sa
+place, pas de personne en trop, pas de texte. Ignore les petits détails (pose des mains, regard).
+Réponds uniquement en JSON : {"ok": true ou false, "problemes": [{"plan": numéro du plan (1 = premier), "probleme": "en
+français", "correction": "instructions précises en ANGLAIS pour refaire cette image"}]}"""
+
+
+def verifier_storyboard(R, images_plans, ep, perso):
+    """Avis du producteur sur le storyboard : (avis, coût). avis["problemes"] = [{plan, probleme, correction}]."""
+    if simulation():
+        return {"ok": True, "problemes": []}, 0.0
+    fiches = " ; ".join(f"{c['nom']} : {c['apparence']}" for c in [perso] + perso.get("secondaires", [])
+                        if c is perso or any(c.get("id") in p["visibles"] for p in ep["plans"]))
+    demande = (f"Fiches : {fiches}\nLieu : {ep['bible']['lieu']}\nObjets : {json.dumps(ep['bible']['objets'], ensure_ascii=False)}\n"
+               + "\n".join(f"Plan {k + 1} (image {k + 1}) — début : {p['debut']}" for k, p in enumerate(ep["plans"])))
+    rep, cout = grok.ecrire_json(R["modeles"].get("vision", R["modeles"]["texte"]), STORYBOARD, demande,
+                                 R["prix"].get("verification", 0.01) * 2, images=images_plans)
+    problemes = []
+    for x in rep.get("problemes") or []:
+        try:
+            k = int(x.get("plan"))
+        except (TypeError, ValueError, AttributeError):
+            continue
+        if 1 <= k <= len(ep["plans"]):
+            problemes.append({"plan": k, "probleme": str(x.get("probleme") or "")[:250],
+                              "correction": str(x.get("correction") or "")[:500]})
+    return {"ok": bool(rep.get("ok", not problemes)) and not problemes, "problemes": problemes[:6]}, cout
+
+
 # ---------------------------------------------------------------- 3. le jury
 JURY = """Tu es le jury de critiques d'une mini-série TikTok réaliste (un humoriste, un réalisateur, un scripte et un
 spectateur de TikTok). Tu reçois des images de la vidéo finie, dans l'ordre, et le texte réellement prononcé. Juge sans
