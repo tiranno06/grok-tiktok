@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T10:23:37+02:00",
+   "niveau": "info",
+   "texte": "🛑 « [Test] Son TikTok » écartée (ne sera pas publiée)."
+  },
+  {
    "date": "2026-10-24T09:55:08+02:00",
    "niveau": "info",
    "texte": "✅ « [Test] Son TikTok » prête (son TikTok de @compte_de_test, 24 s, 0.00 $) — test gratuit"
