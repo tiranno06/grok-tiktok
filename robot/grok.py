@@ -175,11 +175,17 @@ def creer_image(modele, prompt, dest, prix):
 
 
 def modifier_image(modele, prompt, image, dest, prix):
-    """Nouvelle image à partir du portrait de référence : même visage, autre décor. Renvoie (chemin, coût)."""
+    """Nouvelle image à partir d'images de référence (portraits, scène) : mêmes visages, autre moment. `image` est un
+    chemin, ou une liste de chemins (jusqu'à 5) que la consigne désigne par <IMAGE_0>, <IMAGE_1>… Renvoie (chemin, coût)."""
     if os.environ.get("SIMULATION") == "1":
         return _fausse_image(dest, os.path.basename(dest)), 0.0
-    rep = _appel("POST", "/images/edits", {"model": modele, "prompt": prompt, "n": 1, "response_format": "b64_json",
-                                           "image": {"url": image_en_data_url(image), "type": "image_url"}})
+    corps = {"model": modele, "prompt": prompt, "n": 1, "response_format": "b64_json"}
+    if isinstance(image, (list, tuple)) and len(image) > 1:
+        corps.update(images=[{"url": image_en_data_url(i)} for i in image[:5]], aspect_ratio="9:16")
+    else:
+        i = image[0] if isinstance(image, (list, tuple)) else image
+        corps["image"] = {"url": image_en_data_url(i), "type": "image_url"}
+    rep = _appel("POST", "/images/edits", corps)
     return _image_reponse(rep, dest, prix)
 
 

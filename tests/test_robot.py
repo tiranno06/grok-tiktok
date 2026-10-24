@@ -43,7 +43,8 @@ class Base(unittest.TestCase):
         R["tiktok"] = {"profils": [], "auto": False, "jours": ["mercredi"], "duree_max": 45, "gilbert": True}
         R["publication"] = {"mode": "manuel", "compte": ""}
         ecrire("reglages.json", R)
-        for nom in ("budget.json", "portrait.jpg"):
+        shutil.rmtree(os.path.join(TMP, "docs", "donnees", "portraits"), ignore_errors=True)
+        for nom in ("budget.json", "portrait.jpg", "memoire.json"):
             if os.path.exists(os.path.join(TMP, "docs", "donnees", nom)):
                 os.remove(os.path.join(TMP, "docs", "donnees", nom))
         os.environ["SIMULATION"] = "1"

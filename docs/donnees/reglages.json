@@ -6,7 +6,8 @@
   "texte": "grok-4.7",
   "image": "grok-imagine-image-2.0",
   "video": "grok-imagine-video-1.5-lite",
-  "vision": "grok-4.3"
+  "vision": "grok-4.3",
+  "producteur": "grok-4.3"
  },
  "prix": {
   "video_seconde": 0.031,

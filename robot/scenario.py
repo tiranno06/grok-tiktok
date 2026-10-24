@@ -51,8 +51,8 @@ CONTINUITÉ (le plus important : la vidéo doit être une scène continue, sans 
   "deroule" = ce qui se passe seconde par seconde ("0-3s: …", "3-6s: …"), "fin" = ce qu'on voit à la dernière image.
 - La "fin" d'un plan est EXACTEMENT le "debut" du plan suivant. Un objet garde son état d'un plan à l'autre tant que le
   "deroule" ne le change pas à l'écran.
-- "enchaine" : true si le plan continue directement le plan précédent (même personne à l'image, même lieu, la caméra
-  continue) ; false pour un changement de personne à l'image (champ / contrechamp) ou de lieu.
+- "enchaine" : true si le plan continue directement le plan précédent (mêmes personnes à l'image, même lieu, la caméra
+  continue) ; false pour un changement de cadrage sur d'autres personnes (champ / contrechamp) ou de lieu.
 - Tout ce qui est dit est vu ou entendu : si un personnage est nommé comme présent, il est à l'image ou on l'entend.
 
 DURÉE (elle dépend de l'idée)
@@ -68,16 +68,19 @@ RÈGLES
   acteurs du film.
 - Seuls {nom} et les personnages secondaires existent. 0, 1 ou 2 secondaires selon l'idée. Chacun garde ses phrases
   fétiches, sa gestuelle, ses mimiques et sa personnalité.
-- Chaque plan montre UNE personne qui parle ("personnage" = son id : "gilbert" ou un id secondaire). Les autres peuvent
-  être hors champ : on les entend (écris leur réplique en français entre guillemets dans "deroule").
-- Un personnage qui ne parle pas (Newton le chien) peut être à l'image, réagissant.
+- "visibles" = les ids des personnes à l'image dans ce plan (1 à 3, le chien compris). "personnage" = l'id de celle qui dit
+  "dialogue" (elle est dans "visibles"). Une seule réplique par plan. Les autres peuvent être hors champ : on les entend
+  (écris leur réplique en français entre guillemets dans "deroule").
+- N'écris JAMAIS l'apparence des personnages (âge, visage, cheveux, habits) dans "debut", "deroule" ou "fin" : seulement
+  leur NOM et leur position (« Gilbert au centre, Mat à gauche »). Leur apparence vient toujours de leur fiche.
+- Positions stables : chacun garde sa place d'un plan à l'autre, sauf si on le voit se déplacer.
 {memoire}
 Réponds uniquement en JSON :
 {{"idees": ["5 idées d'expérience en une phrase chacune"], "choix": "l'idée retenue (la plus drôle et spectaculaire) et pourquoi",
  "titre": "...", "legende": "légende TikTok drôle, 1 ou 2 phrases, sans hashtag", "hashtags": ["#...", "..."],
  "bible": {{"lieu": "...", "lumiere": "...", "objets": [{{"nom": "...", "description": "...", "etat_initial": "..."}}]}},
  "plans": [{{"personnage": "gilbert", "duree": 8, "enchaine": false, "cadrage": "...", "emotion": "...",
-            "debut": "...", "deroule": ["0-3s: ...", "3-8s: ..."], "fin": "...", "dialogue": "..."}}]}}
+            "visibles": ["gilbert"], "debut": "...", "deroule": ["0-3s: ...", "3-8s: ..."], "fin": "...", "dialogue": "..."}}]}}
 4 à 6 hashtags en français, dont #humour."""
 
 DEMANDE = """Écris l'épisode {genre}.
@@ -144,10 +147,14 @@ def nettoyer(ep, f, perso):
         der = p.get("deroule")
         p["deroule"] = [_texte(x) for x in (der if isinstance(der, list) else [der]) if _texte(x)] or ["the action continues"]
         p["personnage"] = qui(p, perso)["id"]
-        p["enchaine"] = bool(p.get("enchaine")) and k > 0 and p["personnage"] == avant   # on n'enchaîne que sur la même personne
+        connus_ = {"gilbert"} | {c["id"] for c in perso.get("secondaires", [])}
+        vis = [v for v in (p.get("visibles") if isinstance(p.get("visibles"), list) else []) if v in connus_]
+        p["visibles"] = list(dict.fromkeys([p["personnage"]] + vis))[:3]
+        # on n'enchaîne que si ce sont les mêmes personnes à l'image (la caméra continue)
+        p["enchaine"] = bool(p.get("enchaine")) and k > 0 and set(p["visibles"]) == set(avant or [])
         if k > 0 and not p["debut"]:
             p["debut"] = plans[k - 1]["fin"]
-        avant = p["personnage"]
+        avant = p["visibles"]
         for vieux in ("decor", "action", "meme_lieu", "camera"):
             p.pop(vieux, None)
     total = sum(p["duree"] for p in plans)                   # durée totale dans la fourchette du format
@@ -190,6 +197,7 @@ def _episode_simulation(perso, f, idee):
             "bible": {"lieu": "garage laboratory", "lumiere": "warm light",
                       "objets": [{"nom": "machine", "description": "big copper machine with a red lever", "etat_initial": "intact"}]},
             "plans": [{"personnage": "gilbert" if i % 2 == 0 else sec, "duree": 8, "enchaine": i > 1,
+                       "visibles": ["gilbert", sec],
                        "cadrage": "medium shot", "emotion": "excited", "debut": f"state {i}",
                        "deroule": ["0-4s: he explains", "4-8s: he pulls the lever"], "fin": f"state {i + 1}",
                        "dialogue": f"Plan {i + 1}. {perso['phrase_fetiche']} Ça, c'est la vérité vraie."}
@@ -209,25 +217,35 @@ def _objets(bible):
         f"- {o['nom']}: {o['description']}." for o in bible["objets"]) + " "
 
 
-def prompt_image(plan, c, bible, depuis_derniere_image=False):
-    """Image de départ d'un plan qui ne prolonge pas directement le précédent (autre personne à l'image, autre lieu)."""
-    if depuis_derniere_image:
-        debut = (f"Same person, same place, same props and same lighting as in this image. Only change what is needed so "
-                 f"that the image shows exactly: {plan['debut']}. ")
+def fiches_visibles(plan, perso):
+    return [qui({"personnage": v}, perso) for v in plan["visibles"]]
+
+
+def prompt_image(plan, gens, bible, scene_ref=False):
+    """Image de départ d'un plan qui ne prolonge pas directement le précédent. Les images de référence sont, dans l'ordre :
+    la dernière image de la scène (si scene_ref), puis le portrait de chaque personne à l'image."""
+    k0 = 1 if scene_ref else 0
+    t = []
+    if scene_ref:
+        t.append(f"<IMAGE_0> is the scene a moment ago: keep exactly this place, these props, this lighting.")
     else:
-        debut = (f"The same person as in the reference photo: keep exactly the same face, hair, facial hair, glasses and "
-                 f"clothes ({c['apparence']}). Place them here: {bible['lieu']}. Lighting: {bible['lumiere']}. "
-                 f"The image shows exactly: {plan['debut']}. ")
-    return (debut + f"Framing: {plan['cadrage']}. Expression: {plan.get('emotion') or 'natural'}. " + _objets(bible)
-            + "Vertical 9:16 photorealistic smartphone photo, natural light, realistic skin, no text, no logo.")
+        t.append(f"Place: {bible['lieu']}. Lighting: {bible['lumiere']}.")
+    for j, c in enumerate(gens):
+        t.append(f"The person from <IMAGE_{k0 + j}> is {c['nom']}: keep exactly the same face, hair, facial hair, glasses "
+                 f"and clothes ({c['apparence']}).")
+    t.append(f"New image showing exactly: {plan['debut']}. Framing: {plan['cadrage']}. Expression: "
+             f"{plan.get('emotion') or 'natural'}. Only these people are visible: {', '.join(c['nom'] for c in gens)}.")
+    return " ".join(t) + " " + _objets(bible) + ("Vertical 9:16 photorealistic smartphone photo, natural light, realistic "
+                                                  "skin, no text, no logo.")
 
 
-def prompt_video(plan, c, bible, correction=""):
+def prompt_video(plan, gens, parleur, bible, correction=""):
     """Consigne de tournage complète d'un plan : une prise continue, sans coupe, de l'état de départ à l'état de fin."""
     t = [f"Photorealistic vertical 9:16 smartphone video: ONE continuous shot of {plan['duree']} seconds, no cuts, filmed "
          f"like a real TikTok sketch.",
-         f"CHARACTER ON SCREEN: {c['apparence']}."
-         + (f" Typical mannerisms: {c['gestuelle']}." if c.get("gestuelle") else ""),
+         "PEOPLE ON SCREEN (exactly as in the input image, same faces and clothes the whole time): " + " ".join(
+             f"- {c['nom']}: {c['apparence']}." + (f" Mannerisms: {c['gestuelle']}." if c.get("gestuelle") else "")
+             for c in gens),
          f"LOCATION (identical in every shot): {bible['lieu']}. LIGHTING: {bible['lumiere']}.",
          _objets(bible).strip(),
          f"START OF THE SHOT (first frame, as in the input image): {plan['debut']}",
@@ -236,13 +254,13 @@ def prompt_video(plan, c, bible, correction=""):
          f"CAMERA: {plan['cadrage']}, handheld phone with slight natural movement.",
          f"EMOTION: {plan.get('emotion') or 'natural'}. {JEU}"]
     if plan["dialogue"]:
-        t.append(f'DIALOGUE: the person on screen speaks French at a lively natural pace and says exactly: '
-                 f'"{plan["dialogue"]}". Voice: {c.get("voix") or "natural French voice"}. Accurate lip sync.')
+        t.append(f'DIALOGUE: only {parleur["nom"]} speaks, in French, at a lively natural pace, and says exactly: '
+                 f'"{plan["dialogue"]}". Voice: {parleur.get("voix") or "natural French voice"}. Accurate lip sync.')
     else:
-        t.append("The person on screen does not speak.")
-    t.append("RULES: everything not mentioned stays exactly as in the input image (same face, clothes, place, props); "
-             "props only change state when the timeline says so; no new person appears; no on-screen text, no subtitles, "
-             "no music; realistic physics; the special effect is clearly visible.")
+        t.append("Nobody on screen speaks.")
+    t.append("RULES: everything not mentioned stays exactly as in the input image (same faces, clothes, positions, place, "
+             "props); props only change state when the timeline says so; no new person appears; no on-screen text, no "
+             "subtitles, no music; realistic physics; the special effect is clearly visible.")
     if correction:
         t.append(f"IMPORTANT, FIX THESE PROBLEMS FROM THE PREVIOUS TAKE: {correction}")
     return " ".join(x for x in t if x)

@@ -51,8 +51,14 @@ Vérifie un par un :
 4. "deroule" est assez précis pour être filmé (gestes, effet, réactions) et tient dans la durée du plan.
 5. La réplique tient dans le plan (au plus 2,5 mots par seconde) et sonne naturelle et drôle. La chute est vraiment drôle.
 6. "enchaine" n'est vrai que si le plan prolonge le précédent avec la même personne à l'image.
-7. Règles : pas de « Doc », « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel », pas de titre de film,
+7. Personnages : leur apparence vient UNIQUEMENT de leurs fiches ci-dessous. Ne la réécris jamais dans les plans (seulement
+   leur nom et leur position) et n'invente jamais une autre apparence. "visibles" liste les ids des personnes à l'image ;
+   chacun garde sa place d'un plan à l'autre sauf si on le voit bouger. Une seule réplique par plan.
+8. Règles : pas de « Doc », « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel », pas de titre de film,
    pas de vraie personne, pas d'enfant.
+
+FICHES DES PERSONNAGES (id : nom, apparence)
+{fiches}
 {memoire}
 Réponds uniquement en JSON :
 {{"note": 0-100, "problemes": ["chaque problème trouvé, en français"], "scenario": {{le scénario complet corrigé, même format}}}}
@@ -64,8 +70,10 @@ def relire(R, ep, format_, perso, nettoyer):
     if simulation():
         return ep, {"note": 90, "problemes": []}, 0.0
     demande = "SCÉNARIO À RELIRE :\n" + json.dumps(ep, ensure_ascii=False)
-    rep, cout = grok.ecrire_json(R["modeles"]["texte"], PRODUCTEUR.format(memoire=memoire_texte()), demande,
-                                 R["prix"]["scenario"])
+    fiches = "\n".join(f"- {c.get('id', 'gilbert')} : {c['nom']}, {c.get('age', '?')} ans, {c['apparence']}"
+                       for c in [dict(perso, id="gilbert")] + perso.get("secondaires", []))
+    rep, cout = grok.ecrire_json(R["modeles"].get("producteur", R["modeles"]["texte"]),
+                                 PRODUCTEUR.format(memoire=memoire_texte(), fiches=fiches), demande, R["prix"]["scenario"])
     avis = {"note": rep.get("note"), "problemes": [str(p)[:300] for p in rep.get("problemes") or []][:12]}
     corrige = rep.get("scenario")
     if isinstance(corrige, dict) and corrige.get("plans"):
@@ -79,12 +87,14 @@ def relire(R, ep, format_, perso, nettoyer):
 
 
 # ---------------------------------------------------------------- 2. le scripte
-SCRIPTE = """Tu es le scripte d'un tournage. Tu reçois 3 images d'un plan qui vient d'être filmé (première, milieu, dernière)
-et ce que le plan devait montrer. Vérifie : la dernière image correspond à la fin prévue (état des objets, personnes,
-lieu) ; la bonne personne est à l'image, avec la même apparence ; l'action prévue a bien eu lieu ; pas de personne en trop,
-pas de texte à l'écran, pas d'objet qui change d'aspect. Sois exigeant sur la continuité, indulgent sur les détails.
-Réponds uniquement en JSON : {"ok": true ou false, "ecarts": ["problèmes en français"],
-"correction": "instructions précises en ANGLAIS pour refaire le plan, vide si ok"}"""
+SCRIPTE = """Tu es le scripte d'un tournage. Tu reçois 3 images d'un plan qui vient d'être filmé (première, milieu, dernière),
+la fiche des personnes qui doivent être à l'image (leur apparence officielle fait foi) et ce que le plan devait montrer.
+Un défaut est GRAVE seulement s'il casse l'histoire ou la continuité pour un spectateur : mauvaise personne ou visage /
+tenue différents de la fiche, personne en trop ou manquante, action ou effet spécial prévu absent, objet important dans le
+mauvais état (déjà cassé, disparu), texte incrusté. Une pose de main, un regard, un détail de cadrage ou un petit objet
+secondaire sont des défauts MINEURS : on garde le plan.
+Réponds uniquement en JSON : {"ok": true ou false, "grave": true ou false, "ecarts": ["problèmes en français"],
+"correction": "instructions précises en ANGLAIS pour refaire le plan (seulement les défauts graves), vide si ok"}"""
 
 
 def images(video, dossier, nom, instants):
@@ -98,18 +108,21 @@ def images(video, dossier, nom, instants):
     return out
 
 
-def verifier_plan(R, clip, plan, c, bible, dossier, i):
+def verifier_plan(R, clip, plan, gens, bible, dossier, i):
     """Avis du scripte sur un plan filmé : (avis, coût)."""
     if simulation():
-        return {"ok": True, "ecarts": [], "correction": ""}, 0.0
+        return {"ok": True, "grave": False, "ecarts": [], "correction": ""}, 0.0
     d = montage.duree(clip)
     vues = images(clip, dossier, f"scripte_{i}", [0.1, d / 2, d - 0.15])
-    demande = (f"Personne à l'image : {c['nom']} ({c['apparence']}).\nLieu : {bible['lieu']}.\n"
+    demande = ("Personnes à l'image (fiches officielles) : " + " ; ".join(f"{c['nom']} : {c['apparence']}" for c in gens)
+               + f".\nLieu : {bible['lieu']}.\n"
                f"Objets : {json.dumps(bible['objets'], ensure_ascii=False)}\nDébut prévu : {plan['debut']}\n"
                f"Déroulé prévu : {' '.join(plan['deroule'])}\nFin prévue : {plan['fin']}")
     rep, cout = grok.ecrire_json(R["modeles"].get("vision", R["modeles"]["texte"]), SCRIPTE, demande,
                                  R["prix"].get("verification", 0.01), images=vues)
-    return {"ok": bool(rep.get("ok", True)), "ecarts": [str(e)[:200] for e in rep.get("ecarts") or []][:6],
+    ok = bool(rep.get("ok", True))
+    return {"ok": ok, "grave": (not ok) and bool(rep.get("grave", True)),
+            "ecarts": [str(e)[:200] for e in rep.get("ecarts") or []][:6],
             "correction": str(rep.get("correction") or "")[:600]}, cout
 
 

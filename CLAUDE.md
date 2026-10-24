@@ -87,6 +87,14 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   8 s avec la clé GitHub (60 s sans clé), temps restant décompté chaque seconde, « commande envoyée » tant que le robot
   n'a pas démarré. Gilbert : scénario 4 %, producteur 9 %, tournage 15-88 % au prorata des secondes, montage, jury, rangement.
 
+- **Leçons du « Fromage orbital »** (24/10, 1re vraie vidéo avec toute l'équipe : 3,21 $, 30 min, jury 56/100) : le producteur,
+  sans les fiches, avait inventé d'autres apparences (Mat 35 ans veste olive…) et le scripte faisait refaire TOUS les plans
+  pour des détails. Corrigé : les plans ne décrivent jamais l'apparence (noms + positions seulement), le producteur reçoit
+  les fiches (`modeles.producteur` = grok-4.3, plus rapide), `plan.visibles` (1 à 3 ids à l'image) et image de départ
+  multi-références (`/v1/images/edits` champ `images`, `<IMAGE_0>` = scène précédente, puis un portrait par personne), le
+  scripte juge sur les fiches et ne fait refaire que les défauts GRAVES, et seulement si le budget permet encore de finir
+  l'épisode (`reserve`). Durées d'écriture et de relecture affichées dans le journal du robot.
+
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`
 et l'ouvrir à 400 px de large.
