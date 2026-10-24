@@ -27,6 +27,15 @@ class RefusModeration(ErreurGrok):
         self.cout = cout
 
 
+CLE_REFUSEE = ("clé xAI refusée (ancienne ou mal copiée) : sur console.x.ai → API Keys, copie ta clé actuelle, puis dans "
+               "GitHub → dépôt grok-tiktok → Settings → Secrets and variables → Actions → XAI_API_KEY → Update secret, "
+               "colle-la et enregistre. (La clé du site, elle, est la clé GitHub : rien à voir.)")
+
+
+def _refus_de_cle(code, texte):
+    return code in (401, 403) or (code == 400 and "api key" in texte.lower())
+
+
 def _cle():
     cle = os.environ.get("XAI_API_KEY", "").strip()
     if not cle:
@@ -48,8 +57,8 @@ def _appel(methode, chemin, corps=None, essais=4, delai=600):
             if e.code in (429, 500, 502, 503, 504) and n < essais - 1:
                 time.sleep(10 * (n + 1))
                 continue
-            if e.code in (401, 403):
-                raise ErreurGrok(f"clé refusée par xAI ({e.code}) : vérifie le secret XAI_API_KEY et ton crédit. {texte}")
+            if _refus_de_cle(e.code, texte):
+                raise ErreurGrok(CLE_REFUSEE)
             raise ErreurGrok(f"xAI a répondu {e.code} : {texte}")
         except (urllib.error.URLError, TimeoutError) as e:
             if n < essais - 1:
@@ -119,7 +128,8 @@ def transcrire(chemin, prix_heure, langue="fr", voix_separees=False):
             if e.code in (429, 500, 502, 503, 504) and n < 2:
                 time.sleep(10 * (n + 1))
                 continue
-            raise ErreurGrok(f"transcription refusée par xAI ({e.code}) : {e.read().decode(errors='replace')[:300]}")
+            texte = e.read().decode(errors='replace')[:300]
+            raise ErreurGrok(CLE_REFUSEE if _refus_de_cle(e.code, texte) else f"transcription refusée par xAI ({e.code}) : {texte}")
         except (urllib.error.URLError, TimeoutError) as e:
             if n < 2:
                 time.sleep(10)
