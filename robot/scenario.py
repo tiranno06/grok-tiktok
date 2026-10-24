@@ -1,23 +1,24 @@
-"""Écriture d'un épisode par Grok : titre, légende TikTok, hashtags et découpage en plans.
+"""Le scénariste : écrit un épisode de Gilbert sous forme de découpage précis, prêt à filmer.
 
-Chaque plan donne à Grok Imagine le décor et l'action (en anglais, c'est ce qu'il comprend le mieux)
-et la réplique que le personnage dit face caméra (en français).
+Chaque épisode a une « bible » (lieu, lumière, objets avec leur état) et des plans qui s'enchaînent sans trou :
+pour chaque plan, l'état de départ, ce qui se passe seconde par seconde, l'état de fin (qui est le départ du plan suivant)
+et la réplique en français. La durée totale dépend de l'idée (assez longue pour tout montrer, jamais de trou).
 """
 import os
 import random
 
 from . import grok
 
-CONSIGNES = """Tu es un auteur de sketchs TikTok qui cartonnent en France. Mini-série filmée comme un vrai vlog au téléphone,
-images totalement réalistes. Le personnage principal revient dans chaque épisode.
+CONSIGNES = """Tu es le scénariste d'une mini-série TikTok qui cartonne en France, filmée en images totalement réalistes,
+comme de vraies vidéos tournées au téléphone. Le héros revient dans chaque épisode.
 
-FICHE DU PERSONNAGE
+FICHE DU HÉROS
 - Nom : {nom}, {age} ans, {ville}
 - Apparence (pour la caméra) : {apparence}
 - Voix : {voix}
 - Personnalité : {personnalite}
-- Phrase fétiche : « {phrase} » (pas à chaque épisode : seulement quand elle tombe bien)
-- Répliques typiques (une ou deux par épisode au plus, adaptées à la situation, jamais toutes) : {repliques}
+- Phrase fétiche : « {phrase} » (seulement quand elle tombe bien)
+- Répliques typiques (une ou deux par épisode au plus, adaptées à la situation) : {repliques}
 - Gestes et mimiques : {gestuelle}
 - Gags récurrents : {gags}
 - Ton : {ton}
@@ -25,60 +26,66 @@ FICHE DU PERSONNAGE
 PERSONNAGES SECONDAIRES (ils reviennent d'un épisode à l'autre ; "id" entre crochets)
 {secondaires}
 
-CE QUI REND UN SKETCH TIKTOK DRÔLE
-- Accroche dans les 2 premières secondes : la première phrase pose une situation absurde avec un sérieux total
-  (« Aujourd'hui, j'ai inventé le grille-pain qui répond au téléphone. »). Jamais de « Bonjour tout le monde ».
-- La personnalité du personnage guide chaque épisode : respecte-la à la lettre (ses inventions, ses ratés, ses gags).
-- Partir d'un vrai petit problème du quotidien français (voisins, bricolage, supermarché, météo, administration,
-  vacances, technologie) et le pousser jusqu'à l'absurde.
-- Escalade : chaque plan est pire que le précédent. La règle de trois marche bien (deux choses normales, la troisième folle).
-- Décalage image / parole : ce qu'on voit contredit ce qu'il affirme (il dit « tout est sous contrôle », derrière ça brûle).
-- Chute vraiment inattendue dans le dernier plan, et si possible une dernière petite réplique ou un regard gêné à la caméra.
-- Langue parlée naturelle, phrases courtes : « bon », « bah », « attends », « non mais », « voilà ». Jamais de phrase écrite,
-  jamais de morale, jamais expliquer la blague.
+L'EXPÉRIENCE DE L'ÉPISODE (le cœur de chaque vidéo)
+- Une GRANDE expérience par épisode, spectaculaire et complètement débile, avec un vrai effet « waouh » visible à l'écran
+  et des conséquences pour le village : téléporter la 2CV de Mat sur le toit de la mairie, rendre le clocher invisible
+  sauf ses cloches, arrêter le temps pour tout le monde sauf Le Bouc, faire pleuvoir des grenouilles en chocolat sur la
+  fête du village, agrandir Newton à la taille d'un cheval, inverser la gravité dans la cuisine de Laurence… Jamais une
+  petite expérience banale (pas de baguette, pas de grille-pain qui grille).
+- L'expérience se voit EN ENTIER, dans l'ordre : 1) l'enjeu et la machine, 2) le lancement (compte à rebours, manette,
+  bouton, éclairs), 3) l'effet spectaculaire pendant qu'il se produit, 4) ce qui foire (visible), 5) la chute. On ne saute
+  jamais une étape : le spectateur voit chaque chose arriver, aucun résultat n'apparaît avant l'action qui le cause.
+- Ça foire presque toujours, de façon drôle et sans blessé : fumée, étincelles, cheveux électrisés, effet inverse,
+  conséquence absurde. Parfois ça marche… pour de mauvaises raisons.
+
+CE QUI REND LE SKETCH DRÔLE
+- Accroche dans les 2 premières secondes : la première phrase pose l'enjeu avec un sérieux total. Jamais « Bonjour ».
+- Escalade, décalage image / parole (il dit « tout est sous contrôle », derrière ça explose), chute vraiment inattendue.
+- Langue parlée naturelle, phrases courtes. Jamais de morale, jamais expliquer la blague.
+
+CONTINUITÉ (le plus important : la vidéo doit être une scène continue, sans trou ni incohérence)
+- "bible" : le lieu exact, la lumière, et chaque objet important décrit précisément en ANGLAIS (couleur, matière, forme)
+  avec son état au début de l'épisode. Le lieu et les objets ne changent JAMAIS d'apparence, seulement d'état quand
+  l'histoire le dit (entier → cassé).
+- Chaque plan dit en ANGLAIS : "debut" = ce qu'on voit à la première image (position des personnes, état de chaque objet),
+  "deroule" = ce qui se passe seconde par seconde ("0-3s: …", "3-6s: …"), "fin" = ce qu'on voit à la dernière image.
+- La "fin" d'un plan est EXACTEMENT le "debut" du plan suivant. Un objet garde son état d'un plan à l'autre tant que le
+  "deroule" ne le change pas à l'écran.
+- "enchaine" : true si le plan continue directement le plan précédent (même personne à l'image, même lieu, la caméra
+  continue) ; false pour un changement de personne à l'image (champ / contrechamp) ou de lieu.
+- Tout ce qui est dit est vu ou entendu : si un personnage est nommé comme présent, il est à l'image ou on l'entend.
+
+DURÉE (elle dépend de l'idée)
+- Choisis le nombre de plans ({plans_min} à {plans_max}) et la durée de chaque plan ("duree", de 5 à 12 secondes) pour que
+  toute l'histoire tienne SANS TROU. Durée totale entre {duree_min} et {duree_max} secondes.
+- La réplique d'un plan fait au plus 2,5 mots par seconde de plan. Les moments d'action peuvent être sans parole.
 
 RÈGLES
-- Personnage fictif. Jamais de vraie personne, de marque, de politique, de violence, d'enfant ni de sujet choquant.
-- Le personnage et ses proches sont un hommage à Retour vers le futur (le savant fou, son jeune acolyte, la brute, le
-  voisin timide, la copine, le proviseur devenu maire) : énergie, tics, relations, inventions, ratés et clins d'œil
-  (horloges, éclairs, 88 km/h, gigawatts, voyage dans le temps raté, la brute qui finit dans le fumier) sont bienvenus.
-  Mais on ne dit jamais « Doc », « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel » ni le titre du film,
-  et personne ne ressemble aux acteurs du film.
-- Les ratés restent drôles et sans blessé : fumée, étincelles, cheveux électrisés, effet inverse.
-- Seuls Gilbert et les personnages secondaires ci-dessus existent (aucun autre personnage récurrent). Selon le gag, un
-  personnage secondaire est à l'image, ou reste hors champ : on l'entend (écris sa réplique en français entre guillemets
-  dans "action", ex. Mat yells from off-screen: « Gilbert, ça fume ! »), on le montre du doigt, on parle de lui.
-- Un personnage qui ne parle pas (Newton le chien) peut être à l'image : "dialogue" vide, il réagit.
-- {nom} est le héros de chaque épisode. Selon l'idée, 0, 1 ou 2 personnages secondaires peuvent venir (pas toujours les
-  mêmes, et environ un épisode sur deux en solo). Tout le monde parle français.
-- C'est une vraie adaptation du film : chacun garde ses phrases fétiches (adaptées à la situation), sa gestuelle, ses
-  mimiques, sa personnalité et ses relations (l'acolyte qui panique, la brute qui finit dans le fumier, le voisin timide qui
-  trouve enfin du courage…). Mets ses gestes typiques dans "action".
-- Chaque plan montre UNE personne (champ / contrechamp) : "personnage" = l'id de celle qu'on voit et qui dit "dialogue"
-  ("gilbert" ou un id secondaire). Les autres peuvent être hors champ (voir plus haut).
-- Chaque plan dure {secondes} secondes : la réplique fait entre {mots_min} et {mots} mots (il parle presque tout le plan,
-  pas de long blanc).
-- "objets" : les accessoires importants (en ANGLAIS, décrits précisément : couleur, matière, forme). Ils doivent rester
-  identiques dans tous les plans.
-- "decor", "action" et "cadrage" sont en ANGLAIS, courts et très visuels. "action" décrit aussi les gestes naturels et
-  l'expression du visage pendant que la personne parle. Varie les cadrages : selfie close-up, medium shot, wide shot, phone propped
-  on a table, walking selfie, insert shot on an object.
-- "meme_lieu" : true si le plan se passe exactement au même endroit que le plan précédent (sinon false).
-
+- Personnages fictifs. Jamais de vraie personne, de marque, de politique, de violence, d'enfant ni de sujet choquant.
+- Hommage à Retour vers le futur : énergie, tics, relations, inventions et clins d'œil (horloges, éclairs, 88 km/h,
+  gigawatts, voyage dans le temps raté, la brute qui finit dans le fumier) sont bienvenus. Mais on ne dit jamais « Doc »,
+  « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel » ni le titre du film, et personne ne ressemble aux
+  acteurs du film.
+- Seuls {nom} et les personnages secondaires existent. 0, 1 ou 2 secondaires selon l'idée. Chacun garde ses phrases
+  fétiches, sa gestuelle, ses mimiques et sa personnalité.
+- Chaque plan montre UNE personne qui parle ("personnage" = son id : "gilbert" ou un id secondaire). Les autres peuvent
+  être hors champ : on les entend (écris leur réplique en français entre guillemets dans "deroule").
+- Un personnage qui ne parle pas (Newton le chien) peut être à l'image, réagissant.
+{memoire}
 Réponds uniquement en JSON :
-{{"idees": ["5 idées d'épisode en une phrase chacune"], "choix": "l'idée retenue (la plus drôle) et pourquoi",
- "titre": "...", "legende": "légende TikTok drôle, 1 ou 2 phrases, sans hashtag",
- "hashtags": ["#...", "..."], "objets": ["..."],
- "plans": [{{"personnage": "gilbert", "decor": "...", "cadrage": "...", "action": "...", "emotion": "...", "meme_lieu": false,
-            "dialogue": "..."}}]}}
-Exactement {nb} plans. 4 à 6 hashtags en français, dont #humour."""
+{{"idees": ["5 idées d'expérience en une phrase chacune"], "choix": "l'idée retenue (la plus drôle et spectaculaire) et pourquoi",
+ "titre": "...", "legende": "légende TikTok drôle, 1 ou 2 phrases, sans hashtag", "hashtags": ["#...", "..."],
+ "bible": {{"lieu": "...", "lumiere": "...", "objets": [{{"nom": "...", "description": "...", "etat_initial": "..."}}]}},
+ "plans": [{{"personnage": "gilbert", "duree": 8, "enchaine": false, "cadrage": "...", "emotion": "...",
+            "debut": "...", "deroule": ["0-3s: ...", "3-8s: ..."], "fin": "...", "dialogue": "..."}}]}}
+4 à 6 hashtags en français, dont #humour."""
 
 DEMANDE = """Écris l'épisode {genre}.
 {idee}
 Ne refais pas ces épisodes déjà diffusés : {deja}."""
 
 
-def _fiche(p, secondes, nb):
+def fiche(p, f, memoire=""):
     return CONSIGNES.format(nom=p["nom"], age=p["age"], ville=p["ville"], apparence=p["apparence"],
                             voix=p.get("voix", ""), personnalite=p["personnalite"], phrase=p["phrase_fetiche"],
                             gags="; ".join(p.get("gags_recurrents", [])), ton=p["ton"],
@@ -89,23 +96,23 @@ def _fiche(p, secondes, nb):
                                 f"Gestes et mimiques : {c.get('gestuelle', '')}. "
                                 f"Répliques typiques : " + " / ".join(f"« {r} »" for r in c.get("repliques", []))
                                 for c in p.get("secondaires", [])) or "aucun",
-                            secondes=secondes, mots=int(secondes * 2.6), mots_min=int(secondes * 1.8), nb=nb)
+                            plans_min=f["plans_min"], plans_max=f["plans_max"], duree_min=f["duree_min"],
+                            duree_max=f["duree_max"], memoire=memoire)
 
 
-def ecrire(format_, perso, reglages, idee="", deja=()):
-    """Renvoie (episode, coût). L'épisode a toujours le bon nombre de plans."""
+def ecrire(format_, perso, reglages, idee="", deja=(), memoire=""):
+    """Renvoie (episode, coût)."""
     f = reglages["formats"][format_]
-    nb, secondes = f["clips"], f["secondes_par_clip"]
-    genre = ("COURT (gag éclair : mise en place, chute)" if format_ == "courte"
-             else "LONG (une vraie petite histoire avec un début, des rebondissements et une chute)")
+    genre = ("COURT (une grande expérience, montrée en entier, et sa chute)" if format_ == "courte"
+             else "LONG (une vraie petite histoire avec une grande expérience, des rebondissements et une chute)")
     demande = DEMANDE.format(genre=genre, idee=f"Idée imposée : {idee}" if idee else "Invente une idée originale.",
                              deja="; ".join(list(deja)[-30:]) or "aucun")
     if os.environ.get("SIMULATION") == "1":
-        ep, cout = _episode_simulation(perso, nb, idee), 0.0
+        ep, cout = _episode_simulation(perso, f, idee), 0.0
     else:
-        m = reglages["modeles"]
-        ep, cout = grok.ecrire_json(m["texte"], _fiche(perso, secondes, nb), demande, reglages["prix"]["scenario"])
-    return nettoyer(ep, nb, secondes, perso), cout
+        ep, cout = grok.ecrire_json(reglages["modeles"]["texte"], fiche(perso, f, memoire), demande,
+                                    reglages["prix"]["scenario"])
+    return nettoyer(ep, f, perso), cout
 
 
 def qui(plan, perso):
@@ -116,78 +123,126 @@ def qui(plan, perso):
     return dict(perso, id="gilbert")
 
 
-def nettoyer(ep, nb, secondes, perso):
-    """Remet l'épisode d'aplomb quoi que Grok ait répondu (plans en trop ou manquants, répliques trop longues)."""
-    plans = [p for p in (ep.get("plans") or []) if isinstance(p, dict)][:nb]
+def _texte(x):
+    return str(x or "").strip()
+
+
+def nettoyer(ep, f, perso):
+    """Remet l'épisode d'aplomb quoi que Grok ait répondu : nombre de plans, durées, répliques, champs manquants."""
+    plans = [p for p in (ep.get("plans") or []) if isinstance(p, dict)][:f["plans_max"]]
     if not plans:
         raise grok.ErreurGrok("scénario sans aucun plan")
-    while len(plans) < nb:                                  # plan manquant : on prolonge le dernier lieu
-        plans.append(dict(plans[-1], dialogue="", action="reacts silently to the camera, deadpan", meme_lieu=True))
-    mots_max = int(secondes * 2.8)
-    for k_, p in enumerate(plans):
-        p["cadrage"] = p.get("cadrage") or p.get("camera") or "handheld selfie, medium close-up"
-        for k in ("decor", "action", "cadrage", "emotion", "dialogue"):
-            p[k] = str(p.get(k) or "").strip()
-        p.pop("camera", None)
+    avant = None
+    for k, p in enumerate(plans):
+        try:
+            p["duree"] = max(5, min(12, int(round(float(p.get("duree") or 8)))))
+        except (TypeError, ValueError):
+            p["duree"] = 8
+        for cle in ("cadrage", "emotion", "debut", "fin", "dialogue"):
+            p[cle] = _texte(p.get(cle))
+        p["cadrage"] = p["cadrage"] or "medium shot, handheld phone"
+        der = p.get("deroule")
+        p["deroule"] = [_texte(x) for x in (der if isinstance(der, list) else [der]) if _texte(x)] or ["the action continues"]
         p["personnage"] = qui(p, perso)["id"]
-        p["meme_lieu"] = bool(p.get("meme_lieu")) and k_ > 0
+        p["enchaine"] = bool(p.get("enchaine")) and k > 0 and p["personnage"] == avant   # on n'enchaîne que sur la même personne
+        if k > 0 and not p["debut"]:
+            p["debut"] = plans[k - 1]["fin"]
+        avant = p["personnage"]
+        for vieux in ("decor", "action", "meme_lieu", "camera"):
+            p.pop(vieux, None)
+    total = sum(p["duree"] for p in plans)                   # durée totale dans la fourchette du format
+    k = 0
+    while total < f["duree_min"] and any(p["duree"] < 12 for p in plans):
+        if plans[k % len(plans)]["duree"] < 12:
+            plans[k % len(plans)]["duree"] += 1
+            total += 1
+        k += 1
+    while total > f["duree_max"] and any(p["duree"] > 5 for p in plans):
+        if plans[k % len(plans)]["duree"] > 5:
+            plans[k % len(plans)]["duree"] -= 1
+            total -= 1
+        k += 1
+    for p in plans:                                         # la réplique tient dans le plan (2,5 mots par seconde)
         mots = p["dialogue"].split()
-        if len(mots) > mots_max:
-            p["dialogue"] = " ".join(mots[:mots_max]).rstrip(",;:") + "…"
-    tags = [t if t.startswith("#") else "#" + t for t in (ep.get("hashtags") or []) if str(t).strip()]
+        if len(mots) > int(p["duree"] * 2.5):
+            p["dialogue"] = " ".join(mots[:int(p["duree"] * 2.5)]).rstrip(",;:") + "…"
+    b = ep.get("bible") if isinstance(ep.get("bible"), dict) else {}
+    objets = [o for o in (b.get("objets") or []) if isinstance(o, dict) and _texte(o.get("nom"))][:6]
+    bible = {"lieu": _texte(b.get("lieu")) or "Gilbert's cluttered garage laboratory full of clocks and cables",
+             "lumiere": _texte(b.get("lumiere")) or "warm late-afternoon light through dusty windows",
+             "objets": [{"nom": _texte(o["nom"]), "description": _texte(o.get("description")),
+                         "etat_initial": _texte(o.get("etat_initial"))} for o in objets]}
+    tags = [t if t.startswith("#") else "#" + t for t in (str(x).strip() for x in ep.get("hashtags") or []) if t]
     tags = [t.replace(" ", "") for t in tags][:6]
     if "#ia" not in [t.lower() for t in tags]:
         tags.append("#ia")
-    return {"titre": str(ep.get("titre") or "Épisode sans titre").strip()[:90],
-            "legende": str(ep.get("legende") or "").strip()[:300],
-            "hashtags": tags, "plans": plans,
-            "objets": [str(o).strip()[:200] for o in (ep.get("objets") or []) if str(o).strip()][:4]}
+    return {"titre": _texte(ep.get("titre"))[:90] or "Épisode sans titre", "legende": _texte(ep.get("legende"))[:300],
+            "hashtags": tags, "bible": bible, "plans": plans, "choix": _texte(ep.get("choix"))[:400]}
 
 
-def _episode_simulation(perso, nb, idee):
-    sujets = ["le grille-pain à téléportation", "le détecteur de lundi", "le robot qui plie les chaussettes"]
+def _episode_simulation(perso, f, idee):
+    sujets = ["la 2CV téléportée sur la mairie", "le clocher invisible", "la machine à arrêter le temps"]
     sujet = idee or random.choice(sujets)
+    sec = perso["secondaires"][0]["id"] if perso.get("secondaires") else "gilbert"
+    n = f["plans_min"]
     return {"titre": f"[Test] {sujet[:60]}", "legende": "Vidéo de test : aucune IA n'a été appelée.",
             "hashtags": ["#test", "#humour"],
-            "objets": ["a rusty red wheelbarrow"],
-            "plans": [{"personnage": "gilbert" if i % 2 == 0 or not perso.get("secondaires") else perso["secondaires"][0]["id"],
-                       "decor": "village street in France", "action": "talks to the camera",
-                       "cadrage": "handheld selfie", "meme_lieu": i > 0,
+            "bible": {"lieu": "garage laboratory", "lumiere": "warm light",
+                      "objets": [{"nom": "machine", "description": "big copper machine with a red lever", "etat_initial": "intact"}]},
+            "plans": [{"personnage": "gilbert" if i % 2 == 0 else sec, "duree": 8, "enchaine": i > 1,
+                       "cadrage": "medium shot", "emotion": "excited", "debut": f"state {i}",
+                       "deroule": ["0-4s: he explains", "4-8s: he pulls the lever"], "fin": f"state {i + 1}",
                        "dialogue": f"Plan {i + 1}. {perso['phrase_fetiche']} Ça, c'est la vérité vraie."}
-                      for i in range(nb)]}
+                      for i in range(n)]}
 
 
+# ---------------------------------------------------------------- consignes de tournage pour Grok Imagine
 JEU = ("Natural, spontaneous acting like a real person: expressive face, micro-expressions, raised eyebrows, quick "
-       "glances away then back, natural hand gestures that follow the words, small head movements, shifts weight, blinks. "
-       "Never stiff, never robotic, never frozen.")
+       "glances, natural hand gestures that follow the words, small head movements, shifts weight, blinks. Never stiff, "
+       "never robotic, never frozen.")
 
 
-def _objets(objets):
-    return f" Props that must look exactly the same in every shot: {'; '.join(objets)}." if objets else ""
+def _objets(bible):
+    if not bible.get("objets"):
+        return ""
+    return "PROPS (they must look exactly like this in every shot): " + " ".join(
+        f"- {o['nom']}: {o['description']}." for o in bible["objets"]) + " "
 
 
-def prompt_image(plan, c, objets=(), depuis_plan_precedent=False):
-    """Image de départ du plan : à partir du portrait (même visage), ou de la dernière image du plan précédent
-    quand on reste au même endroit (mêmes objets, même lumière)."""
-    if depuis_plan_precedent:
-        debut = ("Same person, same place, same props, same lighting and clothes as in this image; change only the framing "
-                 "and the pose for the next shot. ")
+def prompt_image(plan, c, bible, depuis_derniere_image=False):
+    """Image de départ d'un plan qui ne prolonge pas directement le précédent (autre personne à l'image, autre lieu)."""
+    if depuis_derniere_image:
+        debut = (f"Same person, same place, same props and same lighting as in this image. Only change what is needed so "
+                 f"that the image shows exactly: {plan['debut']}. ")
     else:
-        debut = (f"The same person as in the reference photo, keep exactly the same face, hair, facial hair, glasses and "
-                 f"clothes ({c['apparence']}). New scene: {plan['decor']}. ")
-    return (debut + f"Framing: {plan['cadrage']}. Action: {plan['action']}. Expression: {plan.get('emotion') or 'deadpan'}."
-            + _objets(objets) + " Vertical 9:16 photorealistic smartphone photo, natural light, realistic skin, no text.")
+        debut = (f"The same person as in the reference photo: keep exactly the same face, hair, facial hair, glasses and "
+                 f"clothes ({c['apparence']}). Place them here: {bible['lieu']}. Lighting: {bible['lumiere']}. "
+                 f"The image shows exactly: {plan['debut']}. ")
+    return (debut + f"Framing: {plan['cadrage']}. Expression: {plan.get('emotion') or 'natural'}. " + _objets(bible)
+            + "Vertical 9:16 photorealistic smartphone photo, natural light, realistic skin, no text, no logo.")
 
 
-def prompt_video(plan, c, objets=()):
-    texte = (f"Photorealistic vertical smartphone video, filmed like a real TikTok sketch. "
-             f"The person ({c['apparence']}). Setting: {plan['decor']}. Framing: {plan['cadrage']}, handheld phone with "
-             f"slight natural movement. Action: {plan['action']}. Emotion: {plan.get('emotion') or 'deadpan'}. "
-             + (f"Typical mannerisms of this character: {c['gestuelle']}. " if c.get("gestuelle") else "") + f"{JEU}"
-             + _objets(objets) + " ")
+def prompt_video(plan, c, bible, correction=""):
+    """Consigne de tournage complète d'un plan : une prise continue, sans coupe, de l'état de départ à l'état de fin."""
+    t = [f"Photorealistic vertical 9:16 smartphone video: ONE continuous shot of {plan['duree']} seconds, no cuts, filmed "
+         f"like a real TikTok sketch.",
+         f"CHARACTER ON SCREEN: {c['apparence']}."
+         + (f" Typical mannerisms: {c['gestuelle']}." if c.get("gestuelle") else ""),
+         f"LOCATION (identical in every shot): {bible['lieu']}. LIGHTING: {bible['lumiere']}.",
+         _objets(bible).strip(),
+         f"START OF THE SHOT (first frame, as in the input image): {plan['debut']}",
+         "WHAT HAPPENS, IN THIS EXACT ORDER: " + " ".join(f"[{x}]" for x in plan["deroule"]),
+         f"END OF THE SHOT (last frame): {plan['fin']}",
+         f"CAMERA: {plan['cadrage']}, handheld phone with slight natural movement.",
+         f"EMOTION: {plan.get('emotion') or 'natural'}. {JEU}"]
     if plan["dialogue"]:
-        texte += (f'The person speaks French, at a lively natural pace, and says exactly: "{plan["dialogue"]}". '
-                  f"Voice: {c.get('voix') or 'natural French voice'}. Accurate lip sync. ")
+        t.append(f'DIALOGUE: the person on screen speaks French at a lively natural pace and says exactly: '
+                 f'"{plan["dialogue"]}". Voice: {c.get("voix") or "natural French voice"}. Accurate lip sync.')
     else:
-        texte += "The person does not speak; reacts silently. "
-    return texte + "Ambient sound only, no music, no on-screen text, no subtitles, nobody else speaks."
+        t.append("The person on screen does not speak.")
+    t.append("RULES: everything not mentioned stays exactly as in the input image (same face, clothes, place, props); "
+             "props only change state when the timeline says so; no new person appears; no on-screen text, no subtitles, "
+             "no music; realistic physics; the special effect is clearly visible.")
+    if correction:
+        t.append(f"IMPORTANT, FIX THESE PROBLEMS FROM THE PREVIOUS TAKE: {correction}")
+    return " ".join(x for x in t if x)

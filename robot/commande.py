@@ -26,7 +26,7 @@ def _video(file, vid):
 
 def appliquer(action, vid, texte):
     file = publier.mettre_a_jour(lire("file.json") or {"videos": []})
-    if action in ("publiee", "a_publier", "ecarter", "legende", "supprimer"):
+    if action in ("publiee", "a_publier", "ecarter", "legende", "supprimer", "avis"):
         v = _video(file, vid)
         if v.get("statut") == "programmee" and action in ("a_publier", "ecarter", "supprimer"):
             v.pop("buffer", None)                             # (la programmation Buffer a été annulée juste avant)
@@ -44,6 +44,17 @@ def appliquer(action, vid, texte):
         elif action == "legende":
             v["legende"] = texte.strip()[:300]
             noter(f"✏️ Légende de « {v['titre']} » modifiée.")
+        elif action == "avis":                                # ton avis : gardé en mémoire pour les prochains épisodes
+            d = json.loads(texte or "{}")
+            pouce = max(-1, min(1, int(d.get("pouce") or 0)))
+            remarque = str(d.get("remarque") or "").strip()[:300]
+            v["avis_auteur"] = {"pouce": pouce, "remarque": remarque, "date": iso()}
+            if remarque:
+                from . import production
+                production.ajouter_lecons([f"{'Aimé' if pouce > 0 else 'Pas aimé' if pouce < 0 else 'Remarque'} sur "
+                                           f"« {v['titre']} » : {remarque}"], "auteur")
+            noter(f"{'👍' if pouce > 0 else '👎' if pouce < 0 else '💬'} Ton avis sur « {v['titre']} » est noté"
+                  + (" : le scénariste et le producteur s'en serviront." if remarque else "."))
         elif action == "supprimer":
             depot.supprimer_release(v.get("tag"))
             mini = os.path.join(MINIATURES, f"{v['id']}.jpg")
@@ -109,6 +120,15 @@ def appliquer_reglages(d):
         pl["heures_publication"] = h or pl["heures_publication"]
     if "sous_titres" in d:
         R["montage"]["sous_titres"] = bool(d["sous_titres"])
+    if isinstance(d.get("qualite"), dict):                   # Réglages → Contrôle qualité
+        Q, q = R.setdefault("qualite", {}), d["qualite"]
+        for cle in ("producteur", "scripte", "jury"):
+            if cle in q:
+                Q[cle] = bool(q[cle])
+        if "note_min" in q:
+            Q["note_min"] = max(0, min(100, int(q["note_min"])))
+        if "reprises_max" in q:
+            Q["reprises_max"] = max(0, min(2, int(q["reprises_max"])))
     if isinstance(d.get("publication"), dict):              # Réglages → Publication sur TikTok
         P_, pub = d["publication"], R.setdefault("publication", {"mode": "manuel", "compte": ""})
         if P_.get("mode") in ("manuel", "auto"):

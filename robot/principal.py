@@ -10,7 +10,7 @@ import shutil
 import sys
 import traceback
 
-from . import budget, depot, grok, montage, planning, publier, scenario, sons_tiktok
+from . import budget, depot, grok, montage, planning, production, publier, scenario, sons_tiktok
 from .commun import MINIATURES, SORTIE, DONNEES, ecrire, iso, lire, maintenant, noter, personnage, reglages, simulation
 
 
@@ -54,15 +54,21 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
                 res["portraits"]["gilbert"] = portrait
         if format_ == "tiktok":
             return video_tiktok(res, R, caisse, dossier, lien)
-        # 2. le scénario
+        # 2. le scénariste écrit, le producteur relit et fait corriger AVANT de payer le tournage
         deja = [v.get("titre", "") for v in (lire("file.json") or {}).get("videos", [])]
+        Q = R.get("qualite") or {}
         caisse.autoriser(R["prix"]["scenario"], "scénario")
-        ep, cout = scenario.ecrire(format_, P, R, idee, deja)
+        ep, cout = scenario.ecrire(format_, P, R, idee, deja, production.memoire_texte())
         caisse.payer(cout, "scénario")
-        print(f"Épisode : {ep['titre']}", flush=True)
-        # 3. chaque plan : une image de départ (le personnage dans le décor) puis le clip filmé.
-        #    Même lieu que le plan d'avant : on repart de sa dernière image (mêmes objets, même lumière).
-        secondes = R["formats"][format_]["secondes_par_clip"]
+        avis_prod = None
+        if Q.get("producteur", True):
+            caisse.autoriser(R["prix"]["scenario"], "relecture du producteur")
+            ep, avis_prod, cout = production.relire(R, ep, format_, P, scenario.nettoyer)
+            caisse.payer(cout, "relecture du producteur")
+            print(f"  producteur : {avis_prod.get('note')}/100, {len(avis_prod['problemes'])} correction(s)", flush=True)
+        print(f"Épisode : {ep['titre']} ({len(ep['plans'])} plans, {sum(p['duree'] for p in ep['plans'])} s)", flush=True)
+        # 3. le tournage, plan par plan. Un plan qui prolonge le précédent démarre sur SA dernière image (scène continue) ;
+        #    sinon il démarre sur une image faite à partir du portrait (ou de la dernière image de cette personne).
         portraits = {"gilbert": portrait}
         for ident in sorted({p["personnage"] for p in ep["plans"]} - {"gilbert"}):     # personnages secondaires du jour
             c = scenario.qui({"personnage": ident}, P)
@@ -71,29 +77,51 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
                 portraits[ident] = fabriquer_portrait(R, c, caisse, os.path.join(dossier, f"portrait_{ident}.jpg"))
                 if not simulation():
                     res["portraits"][ident] = portraits[ident]
-        clips, derniere, avant = [], None, None
+        clips, derniere, controles = [], {}, []
         for i, plan in enumerate(ep["plans"], 1):
-            suite = bool(plan.get("meme_lieu") and derniere and plan["personnage"] == avant)    # même lieu, même personne
-            depart = derniere if suite else portraits[plan["personnage"]]
-            clip = filmer_plan(R, scenario.qui(plan, P), plan, i, secondes, depart, dossier, caisse, ep.get("objets", []), suite)
-            avant = plan["personnage"]
+            c, qui_ = scenario.qui(plan, P), plan["personnage"]
+            if plan["enchaine"] and qui_ in derniere:
+                depart = derniere[qui_]                              # la scène continue exactement
+            else:
+                depart = os.path.join(dossier, f"depart_{i}.jpg")
+                deja_vu = qui_ in derniere
+                caisse.autoriser(R["prix"]["image"], f"image du plan {i}")
+                _, cout = grok.modifier_image(R["modeles"]["image"], scenario.prompt_image(plan, c, ep["bible"], deja_vu),
+                                              derniere[qui_] if deja_vu else portraits[qui_], depart, R["prix"]["image"])
+                caisse.payer(cout, f"image du plan {i}")
+            clip, controle = tourner(R, Q, plan, c, ep["bible"], depart, i, dossier, caisse)
             clips.append(clip)
-            derniere = montage.derniere_image(clip, os.path.join(dossier, f"fin_{i}.jpg"))
+            controles.append(controle)
+            derniere[qui_] = montage.derniere_image(clip, os.path.join(dossier, f"fin_{i}.jpg"))
             print(f"  plan {i}/{len(ep['plans'])} filmé ({caisse.depense:.2f} $ jusqu'ici)", flush=True)
-        # 4. ce qui est vraiment dit dans chaque clip (sous-titres exacts), et coupe des blancs façon vlog
+        # 4. sous-titres calés sur la vraie voix (plus de coupe dans les blancs : l'action continue pendant les silences)
         clips, mots = rythmer(R, format_, clips, dossier, caisse)
         video = os.path.join(dossier, f"{vid}.mp4")
         duree = montage.monter(clips, ep["plans"], video, R["montage"].get("sous_titres", True), mots)
+        # 5. le jury regarde la vidéo finie
+        jury = None
+        if Q.get("jury", True):
+            dit = " ".join(m["w"] for m_ in (mots or []) for m in m_)
+            caisse.autoriser(R["prix"].get("verification", 0.01) * 2, "jury")
+            jury, cout = production.juger(R, video, ep, dit, dossier)
+            caisse.payer(cout, "avis du jury")
+            print(f"  jury : {jury['note']}/100", flush=True)
+        a_revoir = bool(jury and jury["note"] < int(Q.get("note_min", 65)))
         mini = montage.miniature(video, os.path.join(dossier, f"{vid}.jpg"))
         url = depot.publier_release(f"v-{vid}", ep["titre"], [video])
         res["miniature"] = mini
+        res["lecons"] = (jury or {}).get("lecons", [])
         res["entree"] = {
             "id": vid, "format": format_, "titre": ep["titre"], "legende": ep["legende"], "hashtags": ep["hashtags"],
             "duree": duree, "cout_usd": caisse.depense, "cree_le": iso(now), "statut": "a_publier",
             "url": url, "tag": f"v-{vid}", "miniature": f"miniatures/{vid}.jpg", "auto": auto,
-            "simulation": simulation(), "idee": idee, "plans": ep["plans"]}
-        res["evenements"].append(("info", f"✅ « {ep['titre']} » prête ({format_}, {duree:.0f} s, {caisse.depense:.2f} $)"
-                                          + (" — test gratuit" if simulation() else "")))
+            "simulation": simulation(), "idee": idee, "plans": ep["plans"], "bible": ep["bible"],
+            "qualite": {"producteur": avis_prod, "scripte": controles, "jury": jury}, "a_revoir": a_revoir}
+        res["evenements"].append(("alerte" if a_revoir else "info",
+                                  f"{'🔎' if a_revoir else '✅'} « {ep['titre']} » prête ({format_}, {duree:.0f} s, "
+                                  f"{caisse.depense:.2f} $)" + (f", note du jury {jury['note']}/100" if jury else "")
+                                  + (" : à revoir avant de publier" if a_revoir else "")
+                                  + (" — test gratuit" if simulation() else "")))
     except budget.PlafondAtteint as e:
         res["evenements"].append(("alerte", f"⏸️ Vidéo {format_} pas fabriquée : {e}. Reprise le 1er du mois "
                                             f"(ou monte le plafond dans Réglages)."))
@@ -125,27 +153,45 @@ def video_tiktok(res, R, caisse, dossier, lien):
     return res
 
 
-def filmer_plan(R, c, plan, i, secondes, depart, dossier, caisse, objets=(), suite=False):
+def tourner(R, Q, plan, c, bible, depart, i, dossier, caisse):
+    """Filme un plan, le fait vérifier par le scripte et le refait (une fois) s'il ne correspond pas au découpage.
+    Refus de la modération : un nouvel essai plus sobre. Renvoie (clip, contrôle)."""
     m, prix = R["modeles"], R["prix"]
-    image = os.path.join(dossier, f"depart_{i}.jpg")
-    caisse.autoriser(prix["image"], f"image du plan {i}")
-    _, cout = grok.modifier_image(m["image"], scenario.prompt_image(plan, c, objets, suite), depart, image, prix["image"])
-    caisse.payer(cout, f"image du plan {i}")
-    dest = os.path.join(dossier, f"clip_{i}.mp4")
-    for essai in (1, 2):
-        caisse.autoriser(secondes * prix["video_seconde"], f"clip du plan {i}")
+    correction, controle, reprises = "", {"ok": None, "ecarts": [], "reprise": False}, int(Q.get("reprises_max", 1))
+    for essai in range(1, 3 + reprises):
+        dest = os.path.join(dossier, f"clip_{i}_{essai}.mp4")
+        caisse.autoriser(plan["duree"] * prix["video_seconde"], f"clip du plan {i}")
         try:
-            _, cout = grok.creer_video(m["video"], scenario.prompt_video(plan, c, objets), image, secondes, dest,
-                                       prix["video_seconde"], R["montage"].get("resolution", "720p"))
-            caisse.payer(cout, f"clip {secondes} s (plan {i})")
-            return dest
+            _, cout = grok.creer_video(m["video"], scenario.prompt_video(plan, c, bible, correction), depart, plan["duree"],
+                                       dest, prix["video_seconde"], R["montage"].get("resolution", "720p"))
+            caisse.payer(cout, f"clip {plan['duree']} s (plan {i}{', reprise' if controle['reprise'] else ''})")
         except grok.RefusModeration as e:
             caisse.payer(e.cout, f"clip refusé par la modération (plan {i})")
-            if essai == 2:
+            if essai >= 2:
                 raise
-            plan = dict(plan, action="looks at the camera and talks calmly, deadpan expression",
-                        cadrage="selfie, medium close-up")
+            correction = "Keep it gentle and cartoonish-safe: no danger, nobody hurt, softer special effect."
             print(f"  plan {i} refusé par la modération : nouvel essai plus sobre", flush=True)
+            continue
+        if not Q.get("scripte", True) or controle["reprise"]:
+            return dest, controle
+        try:
+            caisse.autoriser(prix.get("verification", 0.01), f"scripte du plan {i}")
+            avis, cout = production.verifier_plan(R, dest, plan, c, bible, dossier, i)
+            caisse.payer(cout, f"scripte du plan {i}")
+        except grok.ErreurGrok as e:
+            print(f"  scripte indisponible ({e}) : plan gardé", flush=True)
+            return dest, controle
+        controle.update(ok=avis["ok"], ecarts=avis["ecarts"])
+        if avis["ok"] or reprises <= 0:
+            return dest, controle
+        try:                                                     # le plan est refait, si le budget le permet
+            caisse.autoriser(plan["duree"] * prix["video_seconde"], f"reprise du plan {i}")
+        except budget.PlafondAtteint:
+            print(f"  plan {i} imparfait, pas de reprise (budget)", flush=True)
+            return dest, controle
+        print(f"  plan {i} refait (scripte : {'; '.join(avis['ecarts'])[:200]})", flush=True)
+        correction, controle["reprise"] = avis["correction"] or "; ".join(avis["ecarts"]), True
+    return dest, controle
 
 
 DUREE_MIN_LONGUE = 62          # TikTok ne rémunère que les vidéos de plus d'une minute : on garde de la marge
@@ -154,7 +200,7 @@ DUREE_MIN_LONGUE = 62          # TikTok ne rémunère que les vidéos de plus d'
 def rythmer(R, format_, clips, dossier, caisse):
     """Transcrit chaque clip (les sous-titres suivent alors la vraie voix) et coupe les blancs, comme un vlogueur qui
     monte sa vidéo. Une longue reste au-dessus d'une minute : on coupe moins si besoin. Renvoie (clips, mots par clip)."""
-    if not R["montage"].get("couper_blancs", True) and not R["montage"].get("sous_titres", True):
+    if not R["montage"].get("couper_blancs", False) and not R["montage"].get("sous_titres", True):
         return clips, None
     mots, durees = [], [montage.duree(c) for c in clips]
     for i, c in enumerate(clips, 1):
@@ -166,7 +212,7 @@ def rythmer(R, format_, clips, dossier, caisse):
             print(f"  transcription impossible ({e}) : sous-titres estimés", flush=True)
             return clips, None
         mots.append(m_)
-    if not R["montage"].get("couper_blancs", True):
+    if not R["montage"].get("couper_blancs", False):
         return clips, mots
     for blanc_max in (0.45, 0.8, 1.5, None):
         if blanc_max is None:
@@ -188,6 +234,8 @@ def ranger(res):
     for ident, chemin in (res.get("portraits") or {}).items():
         os.makedirs(os.path.dirname(chemin_portrait(ident)), exist_ok=True)
         shutil.copy(chemin, chemin_portrait(ident))
+    if res.get("lecons"):
+        production.ajouter_lecons(res["lecons"], "jury")
     file = publier.mettre_a_jour(lire("file.json") or {"videos": []})
     if res["entree"]:
         e = res["entree"]
@@ -213,6 +261,9 @@ def programmer(res, R):
     """Publication automatique (Réglages) : la vidéo est programmée sur Buffer à l'heure conseillée."""
     e = res["entree"]
     if not e or simulation() or (R.get("publication") or {}).get("mode") != "auto":
+        return
+    if e.get("a_revoir"):
+        res["evenements"].append(("alerte", f"🔎 « {e['titre']} » pas programmée sur TikTok : le jury la juge à revoir."))
         return
     quand = planning.creneau(R, lire("file.json") or {"videos": []}, e["format"])
     try:

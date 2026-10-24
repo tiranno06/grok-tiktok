@@ -3,9 +3,12 @@ from .commun import lire, ecrire, maintenant, simulation
 
 
 def estimation(format_, R):
-    """Coût prévu d'une vidéo, en dollars : secondes de vidéo + une image par plan + le scénario."""
+    """Coût prévu d'une vidéo, en dollars, au plus long : secondes de vidéo, images de départ (environ un plan sur deux
+    change de personne), scénario + relecture du producteur, contrôle du scripte à chaque plan et jury. Sans les reprises."""
     f, p = R["formats"][format_], R["prix"]
-    return round(f["clips"] * f["secondes_par_clip"] * p["video_seconde"] + f["clips"] * p["image"] + p["scenario"], 2)
+    plans = f["plans_max"]
+    return round(f["duree_max"] * p["video_seconde"] + (plans + 1) // 2 * p["image"] + 2 * p["scenario"]
+                 + (plans + 2) * p.get("verification", 0.01), 2)
 
 
 def charger(R):

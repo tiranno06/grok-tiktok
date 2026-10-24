@@ -28,13 +28,26 @@ les comptes trouvés.
 
 | Vidéo | Durée | Coût prévu |
 |---|---|---|
-| Courte, chaque jour | 20 s (2 plans de 10 s) | ~0,77 $ |
-| Longue, le samedi | 84 s (6 plans de 14 s), plus d'une minute pour la rémunération TikTok | ~3,03 $ |
+| Courte | 24 à 40 s selon l'idée (3 à 5 plans) | 1 à 1,60 $ |
+| Longue | 66 à 95 s (7 à 10 plans), plus d'une minute pour la rémunération TikTok | 2,50 à 3,50 $ |
 
 En automatique complet (courte chaque jour + longue le samedi), il faudrait **environ 37 $ par mois**, plus que 30 € :
 le plafond (réglable dans Réglages) arrête le robot avant de le dépasser, et il reprend le 1er du mois.
 Coûts réels constatés le 24/10/2026 (720p) : vidéo 0,031 $/s, image de départ 0,07 $, scénario ~0,01 $. Le coût réel
 renvoyé par Grok est celui qui est compté.
+
+## Contrôle qualité (comme une vraie équipe de tournage)
+1. **Le scénariste** écrit l'épisode autour d'une grande expérience spectaculaire, montrée en entier (l'enjeu, le
+   lancement, l'effet, ce qui foire, la chute), avec une fiche de continuité (lieu, lumière, objets et leur état) et,
+   pour chaque plan, ce qu'on voit au début, ce qui se passe seconde par seconde et ce qu'on voit à la fin.
+   La durée s'adapte à l'idée (courte : 24 à 40 s ; longue : 66 à 95 s).
+2. **Le producteur** relit tout avant le tournage et fait corriger les incohérences (c'est gratuit ou presque).
+3. **Le tournage** : un plan qui continue le précédent démarre exactement sur sa dernière image, pour une scène continue.
+4. **Le scripte** vérifie chaque plan juste après le tournage ; s'il ne colle pas, le plan est refait une fois.
+5. **Le jury** note la vidéo finie (humour, continuité, image, son). Sous la note minimale : « À revoir », jamais publiée
+   toute seule. Ses remarques et les tiennes (👍 / 👎 / Ma remarque sur chaque vidéo) sont gardées en mémoire pour les
+   épisodes suivants.
+Réglages → Contrôle qualité : tout s'active ou se coupe, et tu choisis la note minimale et le nombre de reprises.
 
 ## Sons TikTok (onglet du site)
 Le robot prend une vidéo TikTok drôle (lien collé, ou au hasard de tes profils, jamais deux fois la même), **garde seulement

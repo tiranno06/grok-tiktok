@@ -35,6 +35,11 @@ class Base(unittest.TestCase):
         R["budget"]["plafond_mensuel_usd"] = 30
         R["planning"].update(courte_chaque_jour=True, jours_longue=["samedi"], heures_publication=[12, 19], pause=False)
         R["montage"]["sous_titres"] = True
+        R["montage"]["couper_blancs"] = False
+        R["formats"] = {"courte": {"plans_min": 3, "plans_max": 5, "duree_min": 24, "duree_max": 40},
+                        "longue": {"plans_min": 7, "plans_max": 10, "duree_min": 66, "duree_max": 95}}
+        R["qualite"] = {"producteur": True, "scripte": True, "reprises_max": 1, "jury": True, "note_min": 65}
+        R["prix"]["verification"] = 0.01
         R["tiktok"] = {"profils": [], "auto": False, "jours": ["mercredi"], "duree_max": 45, "gilbert": True}
         R["publication"] = {"mode": "manuel", "compte": ""}
         ecrire("reglages.json", R)
@@ -54,7 +59,7 @@ class Simulation(Base):
         vids = self.file()
         self.assertEqual(sorted(v["format"] for v in vids), ["courte", "longue"])
         d = {v["format"]: v for v in vids}
-        self.assertTrue(12 <= d["courte"]["duree"] < 20, d["courte"]["duree"])   # blancs coupés
+        self.assertTrue(23 <= d["courte"]["duree"] <= 41, d["courte"]["duree"])  # durée adaptée à l'idée
         self.assertGreaterEqual(d["longue"]["duree"], 61)               # plus d'une minute : monétisable
         for v in vids:
             self.assertEqual(v["statut"], "a_publier")
@@ -98,11 +103,28 @@ class AvecFauxGrok(Base):
         os.environ["SIMULATION"] = "0"
         self.appels = []
 
-        def texte(modele, consignes, demande, prix):
+        self.scripte_ok, self.note_jury, self.departs, self.prompts = [True], 80, [], []
+
+        def texte(modele, consignes, demande, prix, images=()):
+            if "producteur exigeant" in consignes:
+                self.appels.append("producteur")
+                return {"note": 70, "problemes": ["La fin du plan 1 ne colle pas au début du plan 2."], "scenario": None}, 0.01
+            if "scripte d'un tournage" in consignes:
+                self.appels.append("scripte")
+                ok = self.scripte_ok.pop(0) if len(self.scripte_ok) > 1 else self.scripte_ok[0]
+                return {"ok": ok, "ecarts": [] if ok else ["la machine n'a pas explosé"], "correction": "" if ok else
+                        "the machine must visibly explode"}, 0.01
+            if "jury de critiques" in consignes:
+                self.appels.append("jury")
+                return {"notes": {"humour": 70, "continuite": 80, "image": 85, "son": 75}, "note": self.note_jury,
+                        "points_forts": ["l'effet"], "remarques": ["chute un peu molle"],
+                        "lecons": ["Toujours montrer l'expérience en entier."]}, 0.02
             self.appels.append("texte")
-            return {"titre": "Napoléon passe le permis", "legende": "Il a raté le créneau.", "hashtags": ["humour"],
-                    "plans": [{"decor": "garage", "action": "talks", "camera": "selfie",
-                               "dialogue": "mot " * 60} for _ in range(9)]}, 0.01
+            return {"titre": "La 2CV sur la mairie", "legende": "Elle y est encore.", "hashtags": ["humour"],
+                    "bible": {"lieu": "garage", "lumiere": "warm", "objets": [{"nom": "2CV", "description": "blue car"}]},
+                    "plans": [{"personnage": "gilbert", "duree": 10, "enchaine": k > 0, "cadrage": "medium",
+                               "debut": f"etat {k}", "deroule": ["0-5s: action"], "fin": f"etat {k + 1}",
+                               "dialogue": "mot " * 60} for k in range(7)]}, 0.01
 
         def image(modele, prompt, *a):
             self.appels.append("image")
@@ -111,6 +133,8 @@ class AvecFauxGrok(Base):
 
         def video(modele, prompt, image, duree, dest, prix, resolution="720p"):
             self.appels.append("video")
+            self.departs.append(image)
+            self.prompts.append(prompt)
             return grok._faux_clip(dest, duree, prompt), round(duree * prix, 4)
 
         self.p = [mock.patch.object(grok, "transcrire", lambda c, *a, **k: (grok._fausse_transcription(c), 0.0)),
@@ -126,36 +150,77 @@ class AvecFauxGrok(Base):
 
 
 class FauxGrok(AvecFauxGrok):
-    def test_couts_comptes_et_portrait_garde(self):
+    # courte : 7 plans de 10 s proposés → 5 plans ramenés à 40 s au plus. Coût : portrait 0,04 + scénario 0,01
+    # + producteur 0,01 + 1 image de départ 0,04 (les autres plans s'enchaînent) + 40 s × 0,02 + scripte 5 × 0,01 + jury 0,02
+    COURTE = 0.04 + 0.01 + 0.01 + 0.04 + 0.8 + 0.05 + 0.02
+
+    def test_couts_continuite_et_portrait(self):
         self.assertEqual(principal.main(["--format", "courte"]), 0)
         v = self.file()[0]
-        # portrait 0,04 + scénario 0,01 + 2 × (image 0,04 + 10 s × 0,02)
-        self.assertAlmostEqual(v["cout_usd"], 0.04 + 0.01 + 2 * (0.04 + 0.2), places=4)
-        b = lire("budget.json")
-        self.assertAlmostEqual(b["depense_usd"], v["cout_usd"], places=4)
+        self.assertAlmostEqual(v["cout_usd"], self.COURTE, places=4)
+        self.assertAlmostEqual(lire("budget.json")["depense_usd"], v["cout_usd"], places=4)
         self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portrait.jpg")))
-        self.assertEqual(len(v["plans"]), 2)                         # 9 plans proposés, 2 gardés
-        self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 29)
-        # deuxième vidéo : le portrait existe déjà, il n'est pas refait
+        self.assertEqual((len(v["plans"]), sum(p["duree"] for p in v["plans"])), (5, 40))
+        self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 21)          # 8 s × 2,5 mots
+        for k in range(1, 5):                                                     # chaque plan démarre sur la fin du précédent
+            self.assertTrue(self.departs[k].endswith(f"fin_{k}.jpg"), self.departs[k])
+        self.assertIn("START OF THE SHOT", self.prompts[1])
+        self.assertIn("etat 1", self.prompts[1])
+        self.assertEqual(v["qualite"]["producteur"]["note"], 70)
+        self.assertEqual(v["qualite"]["jury"]["note"], 80)
+        self.assertFalse(v["a_revoir"])
+        self.assertEqual(self.appels.count("scripte"), 5)
+        self.assertIn("Toujours montrer l'expérience en entier.", lire("memoire.json")["lecons"][0]["texte"])
+        # deuxième vidéo : le portrait existe déjà ; le scénariste reçoit les leçons du jury
         self.appels.clear()
         principal.main(["--format", "courte"])
-        self.assertEqual(self.appels.count("image"), 2)
+        self.assertEqual(self.appels.count("image"), 1)
+
+    def test_scripte_fait_refaire_un_plan(self):
+        self.scripte_ok = [False, True]
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual(self.appels.count("video"), 6)                         # 5 plans + 1 reprise
+        self.assertIn("FIX THESE PROBLEMS", self.prompts[1])
+        self.assertTrue(v["qualite"]["scripte"][0]["reprise"])
+        self.assertAlmostEqual(v["cout_usd"], self.COURTE + 0.16, places=4)     # reprise du plan 1 (8 s × 0,02)
+
+    def test_jury_a_revoir(self):
+        self.note_jury = 40
+        commande.appliquer("reglages", "", json.dumps({"publication": {"mode": "auto"}}))
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertTrue(v["a_revoir"])
+        self.assertEqual(v["statut"], "a_publier")                              # jamais publiée automatiquement
+        textes = " ".join(e["texte"] for e in lire("journal.json")["evenements"])
+        self.assertIn("à revoir", textes)
+
+    def test_avis_de_l_auteur(self):
+        principal.main(["--format", "courte"])
+        vid = self.file()[0]["id"]
+        commande.appliquer("avis", vid, json.dumps({"pouce": -1, "remarque": "On ne voit pas l'explosion"}))
+        self.assertEqual(self.file()[0]["avis_auteur"]["pouce"], -1)
+        self.assertIn("On ne voit pas l'explosion", lire("memoire.json")["lecons"][0]["texte"])
+        from robot import production
+        self.assertIn("On ne voit pas l'explosion", production.memoire_texte())
 
     def test_personnage_secondaire(self):
         vrai = grok.ecrire_json
 
-        def avec_mat(*a, **k):
-            ep, c = self_texte(*a, **k)
-            ep["plans"][1]["personnage"] = "mat"
-            ep["plans"][0]["personnage"] = "inconnu"                  # id inconnu : c'est Gilbert
+        def avec_mat(modele, consignes, *a, **k):
+            ep, c = self_texte(modele, consignes, *a, **k)
+            if "plans" in ep:
+                ep["plans"][1]["personnage"] = "mat"
+                ep["plans"][0]["personnage"] = "inconnu"                  # id inconnu : c'est Gilbert
             return ep, c
         self_texte = grok.ecrire_json
         with mock.patch.object(grok, "ecrire_json", avec_mat):
             self.assertEqual(principal.main(["--format", "courte"]), 0)
         v = self.file()[0]
-        self.assertEqual([p["personnage"] for p in v["plans"]], ["gilbert", "mat"])
+        self.assertEqual([p["personnage"] for p in v["plans"]], ["gilbert", "mat", "gilbert", "gilbert", "gilbert"])
+        self.assertEqual([p["enchaine"] for p in v["plans"]], [False, False, False, True, True])
         self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portraits", "mat.jpg")))
-        self.assertEqual(self.appels.count("image"), 4)                 # 2 portraits + 2 images de départ
+        self.assertEqual(self.appels.count("image"), 5)                 # 2 portraits + 3 images de départ
         self.assertIs(grok.ecrire_json, vrai)
 
     def test_plafond_respecte(self):
@@ -183,7 +248,7 @@ class FauxGrok(AvecFauxGrok):
             return vrai(*a, **k)
         with mock.patch.object(grok, "creer_video", parfois):
             self.assertEqual(principal.main(["--format", "courte"]), 0)
-        self.assertAlmostEqual(self.file()[0]["cout_usd"], 0.04 + 0.01 + 2 * 0.24 + 0.2, places=4)
+        self.assertAlmostEqual(self.file()[0]["cout_usd"], self.COURTE + 0.2, places=4)
 
     def test_echec_auto_compte(self):
         with mock.patch.object(grok, "creer_video", side_effect=grok.ErreurGrok("panne")):
@@ -330,10 +395,9 @@ class SonsTikTok(Base):
 class Divers(Base):
     def test_estimations(self):
         R = lire("reglages.json")
-        self.assertAlmostEqual(budget.estimation("courte", R), 0.49, places=2)
-        self.assertAlmostEqual(budget.estimation("longue", R), 1.93, places=2)
-        mois = 30 * budget.estimation("courte", R) + 4.35 * budget.estimation("longue", R)
-        self.assertLess(mois, R["budget"]["plafond_mensuel_usd"])
+        # courte : 40 s × 0,02 + 3 images × 0,04 + scénario et producteur 2 × 0,01 + 7 contrôles × 0,01
+        self.assertAlmostEqual(budget.estimation("courte", R), 1.01, places=2)
+        self.assertAlmostEqual(budget.estimation("longue", R), 2.24, places=2)
 
     def test_creneaux(self):
         R = lire("reglages.json")

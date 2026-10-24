@@ -13,16 +13,21 @@
   "image": 0.07,
   "scenario": 0.02,
   "_note": "Coûts réels constatés le 24/10/2026 (1re vraie vidéo, 720p) : clip de 10 s = 0,31 $, image de départ = 0,07 $. Le coût réel renvoyé par Grok est toujours celui qui est compté.",
-  "transcription_heure": 0.1
+  "transcription_heure": 0.1,
+  "verification": 0.01
  },
  "formats": {
   "courte": {
-   "clips": 2,
-   "secondes_par_clip": 10
+   "plans_min": 3,
+   "plans_max": 5,
+   "duree_min": 24,
+   "duree_max": 40
   },
   "longue": {
-   "clips": 6,
-   "secondes_par_clip": 14
+   "plans_min": 7,
+   "plans_max": 10,
+   "duree_min": 66,
+   "duree_max": 95
   }
  },
  "planning": {
@@ -37,7 +42,7 @@
  "montage": {
   "sous_titres": true,
   "resolution": "720p",
-  "couper_blancs": true
+  "couper_blancs": false
  },
  "tiktok": {
   "profils": [
@@ -62,5 +67,12 @@
  "publication": {
   "mode": "manuel",
   "compte": "petitsdramas"
+ },
+ "qualite": {
+  "producteur": true,
+  "scripte": true,
+  "reprises_max": 1,
+  "jury": true,
+  "note_min": 65
  }
 }

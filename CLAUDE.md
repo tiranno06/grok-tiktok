@@ -69,6 +69,17 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   à l'image ou hors champ selon le gag. Publication : compte Buffer « petitsdramas » (même compte que jt-auto), mode manuel.
   Budget volontairement à 5 $ et rien d'automatique tant que le propriétaire teste (24/10).
 
+- **Continuité et contrôle qualité** (24/10, après « La baguette du futur » : expérience jamais montrée, baguette en miettes
+  avant l'expérience) : `scenario.py` = scénariste (GRANDE expérience spectaculaire montrée en entier : enjeu, lancement,
+  effet, raté, chute ; `bible` = lieu, lumière, objets ; chaque plan : `debut`, `deroule` seconde par seconde, `fin` = début
+  du suivant, `duree` 5-12 s choisie selon l'idée dans `formats.<f>` plans_min/max, duree_min/max, `enchaine`).
+  `production.py` : producteur (relit et corrige le scénario AVANT le tournage), scripte (3 images de chaque plan, plan refait
+  au plus `qualite.reprises_max` fois avec correction), jury (8 images + texte dit : notes, remarques ; sous `note_min` =
+  `a_revoir`, jamais publiée automatiquement), mémoire `docs/donnees/memoire.json` (leçons du jury + avis de l'auteur
+  👍/👎/remarque, action `avis`) relue par scénariste et producteur. Tournage : plan `enchaine` = démarre sur la dernière
+  image du plan précédent (scène continue) ; sinon image de départ depuis le portrait ou la dernière image de la personne.
+  Plus de coupe dans les blancs (`montage.couper_blancs` faux : l'action continue pendant les silences).
+
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`
 et l'ouvrir à 400 px de large.
