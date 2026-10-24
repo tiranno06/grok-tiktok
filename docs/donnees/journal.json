@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T14:29:55+02:00",
+   "niveau": "alerte",
+   "texte": "🔎 « Le fromage orbital » prête (courte, 40 s, 3.21 $), note du jury 56/100 : à revoir avant de publier"
+  },
+  {
    "date": "2026-10-24T14:01:03+02:00",
    "niveau": "info",
    "texte": "🗑️ « [Test] la 2CV téléportée sur la mairie » supprimée."

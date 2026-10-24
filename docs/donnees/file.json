@@ -1,6 +1,240 @@
 {
  "videos": [
   {
+   "id": "20261024-140001-c",
+   "format": "courte",
+   "titre": "Le fromage orbital",
+   "legende": "Gilbert avait promis un fromage en orbite. Le fromage n'a pas bougé. Le Bouc, si.",
+   "hashtags": [
+    "#humour",
+    "#gilbertmouchon",
+    "#savantfou",
+    "#sketch",
+    "#village",
+    "#fromageorbital",
+    "#ia"
+   ],
+   "duree": 40.3,
+   "cout_usd": 3.2117,
+   "cree_le": "2026-10-24T14:00:01+02:00",
+   "statut": "a_publier",
+   "url": "https://github.com/tiranno06/grok-tiktok/releases/download/v-20261024-140001-c/20261024-140001-c.mp4",
+   "tag": "v-20261024-140001-c",
+   "miniature": "miniatures/20261024-140001-c.jpg",
+   "auto": false,
+   "simulation": false,
+   "idee": "",
+   "plans": [
+    {
+     "personnage": "gilbert",
+     "duree": 7,
+     "enchaine": false,
+     "cadrage": "Vertical phone medium-wide shot, Gilbert centered, copper ring and cheese behind him, red lever crate on the right of the ring, manure cart small in the right background, garage clocks behind.",
+     "emotion": "Deadly serious scientific exaltation",
+     "debut": "Gilbert, a man of about fifty, stands center on the grey cobblestones facing the phone. Wild white hair still down, brass welding goggles on his forehead, scorched white lab coat over a faded blue checked shirt, right index finger raised, left arm at his side. A silver watch and a gold-tone watch are on his wrists. Four screwdrivers with red, yellow, blue and green handles stick out of his right coat pocket. A black notebook and a yellow pencil are in his left coat pocket. Behind him a huge pale-yellow cheese wheel with a smooth brown rind sits still, uncut and centered on a white cloth on a wooden table, inside a dull copper ring on four wooden posts, not touching the copper, no scorch. The red lever is upright on a wooden crate to the right of the ring. The grey dynamo is quiet, no smoke. The fair bulbs are all lit. The manure cart is full and untouched on the right, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent. Mat and Le Bouc are not in frame. No skateboard is in frame.",
+     "deroule": [
+      "0-3s: Gilbert faces the lens, raises his right index higher, eyes wide, and starts speaking. The cheese stays still.",
+      "3-6s: He turns half-left and slaps the copper ring once with his left palm. The cheese does not move. He turns back to the lens. His goggles stay on his forehead.",
+      "6-8s: His left hand closes on the upright red lever and stays there. He does not pull it. His right arm lowers to his side. He finishes the line facing the phone. No smoke, no sparks."
+     ],
+     "fin": "Gilbert stands center on the grey cobblestones facing the phone, a man of about fifty, wild white hair still down, brass welding goggles on his forehead, scorched white lab coat over a faded blue checked shirt, right arm at his side, left hand closed on the upright red lever. The red lever is on a wooden crate to the right of the ring. A silver watch and a gold-tone watch are on his wrists, glass intact. Four screwdrivers with red, yellow, blue and green handles stick out of his right coat pocket. A black notebook and a yellow pencil are in his left coat pocket. Behind him a huge pale-yellow cheese wheel with a smooth brown rind sits still, uncut and centered on a white cloth on the wooden table, inside a dull copper ring held by four wooden posts, not touching the copper, no scorch. No smoke. The grey hand-crank dynamo is quiet. The fair bulbs are all lit. The manure cart is full and untouched on the right cobblestones, one meter from the right of the ring, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent. Mat and Le Bouc are not in frame. No skateboard is in frame.",
+     "dialogue": "Quand l'anneau s'allume, le fromage quitte le village."
+    },
+    {
+     "personnage": "gilbert",
+     "duree": 8,
+     "enchaine": true,
+     "cadrage": "Same continuous vertical phone shot, no cut, a slight push closer as the lever drops, still wide enough to keep the left edge and the right cart in frame.",
+     "emotion": "Theatrical countdown, then bug-eyed shock",
+     "debut": "Gilbert stands center on the grey cobblestones facing the phone, a man of about fifty, wild white hair still down, brass welding goggles on his forehead, scorched white lab coat over a faded blue checked shirt, right arm at his side, left hand closed on the upright red lever. The red lever is on a wooden crate to the right of the ring. A silver watch and a gold-tone watch are on his wrists, glass intact. Four screwdrivers with red, yellow, blue and green handles stick out of his right coat pocket. A black notebook and a yellow pencil are in his left coat pocket. Behind him a huge pale-yellow cheese wheel with a smooth brown rind sits still, uncut and centered on a white cloth on the wooden table, inside a dull copper ring held by four wooden posts, not touching the copper, no scorch. No smoke. The grey hand-crank dynamo is quiet. The fair bulbs are all lit. The manure cart is full and untouched on the right cobblestones, one meter from the right of the ring, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent. Mat and Le Bouc are not in frame. No skateboard is in frame.",
+     "deroule": [
+      "0-2s: Left hand stays on the upright lever. Right arm stays down. Gilbert only glances down at both wrists and says « Trois. Deux. Un. » The cheese stays still. The goggles stay on his forehead.",
+      "2-4s: He slams the red lever down with his left hand and says « Décollage ! » Blue sparks race around the copper ring. All the garage clocks chime together once. His white hair lifts into a tall frizz. The cheese does not move.",
+      "4-6s: The silver watch and the gold-tone watch rip off his wrists and stick to the copper ring. The four screwdrivers fly out of the right pocket and stick to the ring. The notebook and yellow pencil stay in the left pocket. The brass goggles stay on his forehead. The cheese does not move.",
+      "6-8s: White smoke pours from the dynamo. The fair bulbs go dark. He grabs his now standing white hair with both bare hands. Mat, a lanky man of about thirty-five, short brown hair, olive canvas jacket, grey trousers and brown shoes, rolls in from the left on a worn wooden skateboard with dull red wheels and stops at the left edge, mouth open, hands at his sides."
+     ],
+     "fin": "Gilbert stands center facing the phone, both hands gripping his electrified white hair which stands up in a tall frizz, brass welding goggles still on his forehead, scorched white lab coat over a faded blue checked shirt, both wrists bare, right coat pocket empty, black notebook and yellow pencil still in his left coat pocket. The silver watch, the gold-tone watch and the four colored screwdrivers are stuck to the copper ring. The red lever is down on the wooden crate to the right of the ring. White smoke rises from the grey dynamo. The pale-yellow cheese wheel is still unmoved on the white cloth, no scorch yet. The fair bulbs are dark. The manure cart is still full and untouched on the right, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks have finished chiming and are silent again. Mat, a lanky man of about thirty-five with short brown hair, olive canvas jacket, grey trousers and brown shoes, is at the left edge of frame, both feet on his worn wooden skateboard with dull red wheels, mouth open, hands at his sides. Le Bouc is not in frame.",
+     "dialogue": "Trois. Deux. Un. Décollage !"
+    },
+    {
+     "personnage": "mat",
+     "duree": 8,
+     "enchaine": false,
+     "cadrage": "New vertical phone shot, wide again, then favoring Mat on the left. Gilbert, the ring and the right cart stay visible. Not a continuation of the closer shot.",
+     "emotion": "Disbelieving panic",
+     "debut": "Gilbert stands center facing the phone, both hands gripping his electrified white hair which stands up in a tall frizz, brass welding goggles still on his forehead, scorched white lab coat over a faded blue checked shirt, both wrists bare, right coat pocket empty, black notebook and yellow pencil still in his left coat pocket. The silver watch, the gold-tone watch and the four colored screwdrivers are stuck to the copper ring. The red lever is down on the wooden crate to the right of the ring. White smoke rises from the grey dynamo. The pale-yellow cheese wheel is still unmoved on the white cloth, no scorch yet. The fair bulbs are dark. The manure cart is still full and untouched on the right, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks have finished chiming and are silent again. Mat, a lanky man of about thirty-five with short brown hair, olive canvas jacket, grey trousers and brown shoes, is at the left edge of frame, both feet on his worn wooden skateboard with dull red wheels, mouth open, hands at his sides. Le Bouc is not in frame.",
+     "deroule": [
+      "0-3s: Mat jumps off the skateboard. It clatters onto the cobblestones at his feet. Both hands go to his head. He stares at the watches stuck on the ring and says « Attends. Il n'a pas bougé. »",
+      "3-5s: He points at the unmoved cheese, then at the smoke. Gilbert, still center and visible, mouth opening, both hands staying in his hair, shouts « Tout est sous contrôle ! » The smoke stays thick. The cheese does not move.",
+      "5-8s: Le Bouc, a broad man of about forty, black greasy hair, stubble, stained brown leather vest over a dirty white shirt, heavy black boots, wide leather belt with a large shiny steel buckle, strides in from the right and stops between the full manure cart and the ring, cart directly behind his boots, toothpick in his mouth, greasy hands on his hips. He does not cross to Mat. Mat stays left, hands on his head."
+     ],
+     "fin": "Mat, the same lanky man of about thirty-five, short brown hair, olive canvas jacket, grey trousers and brown shoes, stands on the left, both hands on his head, mouth open, skateboard lying on the cobblestones at his feet. Gilbert stands center, both hands still in his electrified standing white hair, brass welding goggles still on his forehead, scorched white lab coat, faded blue checked shirt, wrists bare, right pocket empty, black notebook and yellow pencil still in the left pocket, mouth closed. The silver watch, the gold-tone watch and the four colored screwdrivers are still stuck to the copper ring. White smoke still rises from the grey dynamo. The red lever is still down. The pale-yellow cheese is still unmoved on the white cloth, no scorch yet. The fair bulbs are still dark. Le Bouc, a broad man of about forty with black greasy hair and stubble, stained brown leather vest over a dirty white shirt, heavy black boots, and a wide leather belt with a large shiny steel buckle, stands on the right between the full manure cart and the ring, wooden toothpick in his mouth, greasy hands on his hips. The manure cart is still full and untouched, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent.",
+     "dialogue": "Attends. Il n'a pas bougé."
+    },
+    {
+     "personnage": "bouc",
+     "duree": 9,
+     "enchaine": false,
+     "cadrage": "New vertical phone shot, wide, then pushing in on Le Bouc on the right, manure cart directly behind his boots, ring and still cheese visible in front of him.",
+     "emotion": "Mocking bully, then outraged disgust",
+     "debut": "Mat, the same lanky man of about thirty-five, short brown hair, olive canvas jacket, grey trousers and brown shoes, stands on the left, both hands on his head, mouth open, skateboard lying on the cobblestones at his feet. Gilbert stands center, both hands still in his electrified standing white hair, brass welding goggles still on his forehead, scorched white lab coat, faded blue checked shirt, wrists bare, right pocket empty, black notebook and yellow pencil still in the left pocket, mouth closed. The silver watch, the gold-tone watch and the four colored screwdrivers are still stuck to the copper ring. White smoke still rises from the grey dynamo. The red lever is still down. The pale-yellow cheese is still unmoved on the white cloth, no scorch yet. The fair bulbs are still dark. Le Bouc, a broad man of about forty with black greasy hair and stubble, stained brown leather vest over a dirty white shirt, heavy black boots, and a wide leather belt with a large shiny steel buckle, stands on the right between the full manure cart and the ring, wooden toothpick in his mouth, greasy hands on his hips. The manure cart is still full and untouched, nobody in it. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent.",
+     "deroule": [
+      "0-3s: Le Bouc stays on the right. He does not cross to Mat. He points at the still cheese, laughs with the toothpick in his mouth, and says « Je t'emprunte ça. » He steps to the crate and reaches for the red lever. The large steel buckle is clearly visible. The cheese does not move.",
+      "3-5s: The steel buckle yanks him up and forward toward the copper ring. He floats horizontal about one meter off the cobblestones, buckle toward the ring, boots toward the cart. He yelps « Ah non ! » The ring flares brighter. The white cloth under the cheese browns into a black circle. The cheese does not rise. Gilbert keeps both hands in his hair. Mat stays left.",
+      "5-9s: The dynamo pops. The flare dies, the ring goes dark, and the smoke thins to a wisp. The watches and screwdrivers fall off the ring onto the table beside the cheese. Magnetism gone, Le Bouc drops boots-first backward into the cart directly behind him, with a brown splash on the wooden edges, and shouts « Pas le fumier ! » Gilbert does not take his hands out of his hair."
+     ],
+     "fin": "Le Bouc, the same broad man of about forty, black greasy hair, stubble, stained brown leather vest and dirty white shirt now soaked, heavy black boots, wide belt and large shiny steel buckle still visible, sits inside the manure cart on the right, covered in dark brown manure, toothpick bent, glaring toward the phone. Manure is splashed on the cart's wooden edges. Mat stands one step further left, both hands on his head, mouth open, olive canvas jacket, grey trousers, brown shoes, skateboard still on the cobblestones. Gilbert stands center, both hands still in his electrified standing white hair, brass welding goggles on his forehead, scorched white lab coat, faded blue checked shirt, wrists bare, right pocket empty, black notebook and yellow pencil still in the left pocket, mouth closed. The two watches and four colored screwdrivers lie on the table beside the cheese. The pale-yellow cheese is still whole and unmoved. A black circular scorch marks the white cloth around the cheese. The copper ring is dark. The red lever is down. Only a thin wisp of smoke comes from the dynamo. The fair bulbs are still dark. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent.",
+     "dialogue": "Je t'emprunte ça. Ah non ! Pas le fumier !"
+    },
+    {
+     "personnage": "gilbert",
+     "duree": 8,
+     "enchaine": false,
+     "cadrage": "New vertical phone shot, wide, then favoring Gilbert center. Le Bouc in the cart and Mat on the left stay visible. The cheese stays in frame and does not rise.",
+     "emotion": "Brief surprise, then proud deadpan triumph",
+     "debut": "Le Bouc, the same broad man of about forty, black greasy hair, stubble, stained brown leather vest and dirty white shirt now soaked, heavy black boots, wide belt and large shiny steel buckle still visible, sits inside the manure cart on the right, covered in dark brown manure, toothpick bent, glaring toward the phone. Manure is splashed on the cart's wooden edges. Mat stands one step further left, both hands on his head, mouth open, olive canvas jacket, grey trousers, brown shoes, skateboard still on the cobblestones. Gilbert stands center, both hands still in his electrified standing white hair, brass welding goggles on his forehead, scorched white lab coat, faded blue checked shirt, wrists bare, right pocket empty, black notebook and yellow pencil still in the left pocket, mouth closed. The two watches and four colored screwdrivers lie on the table beside the cheese. The pale-yellow cheese is still whole and unmoved. A black circular scorch marks the white cloth around the cheese. The copper ring is dark. The red lever is down. Only a thin wisp of smoke comes from the dynamo. The fair bulbs are still dark. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent.",
+     "deroule": [
+      "0-3s: Gilbert lowers both hands from his standing white hair. The brass goggles stay on his forehead. He pulls the black notebook and the yellow pencil from his left pocket, opens the notebook, and points the pencil at the unmoved cheese and the black scorch. The cheese does not move. The watches stay on the table.",
+      "3-5s: The dynamo coughs one last blue spark. All the fair bulbs relight at once. The smoke stays a thin wisp. He freezes, eyes wider, pencil stopped. The cheese still does not move. Nothing sticks back to the ring.",
+      "5-8s: He turns the pencil toward manure-covered Le Bouc, not toward the sky, and says with proud deadpan « J'ai mis le bouc en orbite. » Le Bouc glares, toothpick bent. Mat's eyes go wide, both hands staying on his head. The cheese remains still on the table."
+     ],
+     "fin": "Gilbert stands center, brass welding goggles still on his forehead, electrified white hair still standing, scorched white lab coat, faded blue checked shirt, wrists bare, right pocket empty, left pocket now empty, black notebook open in his left hand, yellow pencil in his right hand pointed at Le Bouc, eyes wide. The fair bulbs are lit again. The pale-yellow cheese is still whole and unmoved inside the dark ring. The black scorch is still on the cloth. The two watches and four colored screwdrivers are still on the table. The red lever is down. A thin wisp of smoke remains. Le Bouc still sits manure-covered in the cart, steel buckle visible, toothpick bent, glaring. Mat still stands one step left, both hands on his head, eyes wide. The skateboard is still on the cobblestones. The black iron rooster weather vane is still on the garage roof. The garage clocks are silent.",
+     "dialogue": "J'ai mis le bouc en orbite."
+    }
+   ],
+   "bible": {
+    "lieu": "The main square of the imaginary village of Saint-Glinglin-sur-Loire, on grey cobblestones directly in front of Gilbert's open garage laboratory. A wooden fair table stands in the center. The stone church tower is far in the background. The garage interior shows black cables, a blackboard of chalk equations, and a wall of clocks. Gilbert, Mat and Le Bouc are adult men. No child is present.",
+    "lumiere": "Late afternoon, warm golden sunlight from the left, long shadows, clear sky. A string of round warm-white glass bulbs over the table starts lit, then goes dark when the ring fails, then relights only on the last spark. The garage interior is dimmer than the square.",
+    "objets": [
+     {
+      "nom": "orbital ring",
+      "description": "A dull copper ring, one and a half meters across, held by four rough wooden posts. Thick black rubber cables run to a red iron lever on a wooden crate standing to the right of the ring, and to a grey metal hand-crank dynamo beside that crate.",
+      "etat_initial": "Intact, lever upright and off, no sparks, no smoke, crate fixed on the right of the ring."
+     },
+     {
+      "nom": "cheese wheel",
+      "description": "A huge pale-yellow wheel of cheese, about sixty centimeters across, with a smooth brown rind, sitting on a white cloth on the wooden table inside the ring and not touching the copper.",
+      "etat_initial": "Whole, uncut, still, centered, cloth white, no scorch."
+     },
+     {
+      "nom": "fair bulbs",
+      "description": "A low string of round warm-white glass bulbs hung on a black wire over the table.",
+      "etat_initial": "All lit."
+     },
+     {
+      "nom": "manure cart",
+      "description": "A low wooden cart with two iron-rimmed wheels, filled with a mound of dark brown manure, parked on the right. Its near edge is one meter from the right side of the ring, directly behind the spot where Le Bouc will stand.",
+      "etat_initial": "Full, undisturbed, nobody in it."
+     },
+     {
+      "nom": "wristwatches",
+      "description": "One silver watch and one gold-tone watch, one worn on each of Gilbert's wrists.",
+      "etat_initial": "On his wrists, glass intact."
+     },
+     {
+      "nom": "screwdrivers",
+      "description": "Four screwdrivers with red, yellow, blue and green plastic handles, steel shafts.",
+      "etat_initial": "Sticking out of the right lab-coat pocket."
+     }
+    ]
+   },
+   "qualite": {
+    "producteur": {
+     "note": 41,
+     "problemes": [
+      "Plan 1 : le déroulement fait saisir les revers puis poser la main sur le levier, sans jamais relever l'index, alors que la fin le décrit encore levé. La fin ne sort pas des gestes.",
+      "Plan 2 : regarder les deux montres en même temps et garder la main gauche sur le levier est impossible dans le même temps. Geste non filmable.",
+      "Plan 1 : « C'est la dernière fois. Bon. Vas-y, montre. » fait environ 7 mots en 2 secondes, au-dessus de 2,5 mots/s, et chevauche la réplique de Gilbert.",
+      "Les cheveux « more electrified » sont déjà écrits dans la fin du plan 2 alors qu'aucun instant ne les montre se dresser. L'état précède l'action.",
+      "Plan 3 : Gilbert est au centre du cadre, mais le déroulement le fait crier « offscreen ». Tout ce qui est dit doit être vu ou entendu à sa place réelle.",
+      "Plan 5 : Mat est dans le cadre et parle quand même « offscreen ». « C'est du lourd, Gilbert. Du très lourd. » fait environ 7 mots en 2 secondes et chevauche la réplique de Gilbert.",
+      "Le crayon du plan 5 n'est ni dans la bible ni dans les plans d'avant : il apparaît sans action qui l'amène.",
+      "La boucle de ceinture en acier, cause de l'envol, n'existe pas avant le plan 4. L'effet n'a pas de cause visible.",
+      "Plan 4 : Le Bouc est à droite, Mat à gauche, Gilbert au centre. Le coup sur le front traverse le cadre sans trajet écrit, donc non filmable.",
+      "La charrette est à deux mètres et Le Bouc « tombe en arrière dedans » sans qu'on sache s'il flotte bottes vers la charrette. La chute n'est pas lisible.",
+      "Mat et Le Bouc n'ont ni âge, ni visage, ni costume stables. Le skateboard peut les faire lire comme des enfants. Interdit.",
+      "Les lunettes de laiton, au front au plan 1, disparaissent ensuite sans qu'on les voie bouger."
+     ]
+    },
+    "scripte": [
+     {
+      "ok": false,
+      "ecarts": [
+       "La dernière image ne correspond pas à la fin prévue : la main gauche n'est pas refermée sur le levier rouge, le bras droit n'est pas le long du corps.",
+       "Image 2 : fumée visible près du levier, non prévue dans le déroulé.",
+       "Gestes du milieu et de la fin incohérents avec le plan (pouce levé au lieu de frapper l'anneau, puis main sur levier incorrecte).",
+       "Image 3 : légère différence d'aspect de la blouse et position du corps non conforme."
+      ],
+      "reprise": true
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "Les montres et tournevis sont collés sur le fromage au lieu de l'anneau de cuivre dans les images 2 et 3",
+       "Le fromage a des thermomètres/gauges qui ne sont pas prévus",
+       "L'anneau de cuivre reste vide dans l'image 3 au lieu de recevoir les objets",
+       "Continuité des objets volants non respectée"
+      ],
+      "reprise": true
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "La dernière image montre la mauvaise personne pour Mat (jeune de 19 ans en doudoune rouge au lieu de l'homme élancé de 35 ans en veste olive)",
+       "Le Bouc porte un cigare au lieu d'un cure-dent en bois",
+       "Mat n'a pas le skateboard aux pieds et n'est pas positionné exactement comme prévu dans la fin"
+      ],
+      "reprise": true
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "Le Bouc n'a pas la bonne apparence : cheveux blonds plaqués au lieu de noirs gras, pas de barbe noire, pas de cure-dent visible dans les deux premières images.",
+       "La troisième image ne montre que Le Bouc dans la charrette ; Mat et Gilbert sont absents alors qu'ils doivent rester visibles à leur place respective.",
+       "Dans les images 1 et 2, les montres et tournevis ne sont pas collés sur l'anneau comme prévu au début.",
+       "La charrette à fumier est vide au lieu d'être pleine au début du plan."
+      ],
+      "reprise": true
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "Dernière image : cadrage trop serré sur Gilbert uniquement, Le Bouc mal positionné (pas dans la charrette à fumier), Mat absent de l'image, montre et tournevis non visibles sur la table, manque le pla"
+      ],
+      "reprise": true
+     }
+    ],
+    "jury": {
+     "notes": {
+      "humour": 68,
+      "continuite": 32,
+      "image": 48,
+      "son": 75
+     },
+     "note": 56,
+     "points_forts": [
+      "Idée visuelle forte et lisible sur mobile",
+      "Chute finale \"J'ai mis le bouc en orbite\" fonctionne bien",
+      "Texte compréhensible"
+     ],
+     "remarques": [
+      "Le fromage disparaît complètement entre les plans 4 et 5 sans explication",
+      "Les tournevis passent du ring au fromage puis tombent au sol de façon incohérente",
+      "Le jeune homme en skate change de tenue et de position sans transition",
+      "L'anneau de cuivre est vide dans un plan puis contient à nouveau le fromage",
+      "Le Bouc apparaît et disparaît de l'image sans logique spatiale",
+      "Les montres collées à l'anneau ne correspondent pas entre les plans"
+     ],
+     "lecons": [
+      "Vérifier image par image que chaque objet et personnage reste cohérent d'un plan à l'autre avant de publier",
+      "Filmer en continu ou avec repères visuels fixes pour éviter les jumps de position et d'accessoires"
+     ]
+    }
+   },
+   "a_revoir": true,
+   "publier_le": "2026-10-25T19:00:00+01:00"
+  },
+  {
    "id": "20261024-113159-c",
    "format": "courte",
    "titre": "La baguette du futur",
