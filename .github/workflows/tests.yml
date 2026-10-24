@@ -19,6 +19,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Installer ffmpeg
-        run: which ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+        timeout-minutes: 12
+        run: |
+          # d'abord sans tout remettre à jour (le 24/10, « apt-get update » a mis 10 minutes) ; mise à jour seulement si besoin
+          which ffmpeg || sudo apt-get install -y -q --no-install-recommends ffmpeg \
+            || (sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg)
+          ffmpeg -version | head -1
       - name: Tests (sans aucun appel payant)
         run: python -m unittest discover -s tests -v

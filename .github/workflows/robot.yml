@@ -47,8 +47,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Installer ffmpeg
+        timeout-minutes: 12
         run: |
-          which ffmpeg || (sudo apt-get update -q && sudo apt-get install -y -q ffmpeg)
+          # d'abord sans tout remettre à jour (le 24/10, « apt-get update » a mis 10 minutes) ; mise à jour seulement si besoin
+          which ffmpeg || sudo apt-get install -y -q --no-install-recommends ffmpeg \
+            || (sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg)
           ffmpeg -version | head -1
       - name: Installer yt-dlp (vidéos TikTok)
         run: pip install -q "yt-dlp[default,curl-cffi]" || pip install -q yt-dlp
