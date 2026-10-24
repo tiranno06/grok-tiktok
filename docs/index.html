@@ -352,16 +352,24 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <h2>Contrôle qualité</h2>
       <p class="hint">Avant le tournage, le producteur relit et corrige le scénario. Pendant le tournage, le scripte vérifie
         chaque plan et le fait refaire s'il ne colle pas. À la fin, le jury note la vidéo : sous la note minimale, elle est
-        marquée « À revoir » et n'est jamais publiée automatiquement.</p>
+        marquée « À revoir » et n'est jamais publiée automatiquement. Avec la deuxième passe, sous la note visée, le robot
+        refait seulement le plan que le jury montre du doigt (si le budget le permet) et garde la meilleure version.</p>
       <div class="seg">
         <label for="q_prod"><input type="checkbox" id="q_prod"> Producteur</label>
         <label for="q_sb"><input type="checkbox" id="q_sb"> Storyboard</label>
         <label for="q_scripte"><input type="checkbox" id="q_scripte"> Scripte</label>
-        <label for="q_jury"><input type="checkbox" id="q_jury"> Jury</label></div>
+        <label for="q_jury"><input type="checkbox" id="q_jury"> Jury</label>
+        <label for="q_passe2"><input type="checkbox" id="q_passe2"> Deuxième passe</label></div>
       <div class="row">
         <label class="f" for="q_reprises">Plans refaits au plus <span class="sub">Par plan. Chaque reprise coûte le prix du plan.</span>
           <select id="q_reprises"><option value="0">Aucun</option><option value="1">1 fois</option><option value="2">2 fois</option></select></label>
         <label class="f" for="q_note">Note minimale du jury<input type="number" id="q_note" min="0" max="100" step="5"></label>
+      </div>
+      <div class="row">
+        <label class="f" for="q_rvid">Reprises par vidéo au plus <span class="sub">Tous plans confondus.</span>
+          <input type="number" id="q_rvid" min="0" max="6" step="1"></label>
+        <label class="f" for="q_cible">Note visée (deuxième passe) <span class="sub">En dessous, le plan raté est refait.</span>
+          <input type="number" id="q_cible" min="0" max="100" step="5"></label>
       </div>
       <div class="actions"><button class="btn primary" type="submit">Enregistrer</button></div>
     </form>
@@ -430,7 +438,7 @@ const DEMO_DATA = {
   "reglages.json": {
     budget:{ plafond_mensuel_usd:30 }, prix:{ video_seconde:.02, image:.04, scenario:.01 },
     formats:{ courte:{plans_min:3, plans_max:4, duree_min:24, duree_max:40}, longue:{plans_min:7, plans_max:10, duree_min:66, duree_max:95} },
-    qualite:{ producteur:true, storyboard:true, scripte:true, reprises_max:1, jury:true, note_min:65 },
+    qualite:{ producteur:true, storyboard:true, scripte:true, reprises_max:1, jury:true, note_min:65, deuxieme_passe:true, note_cible:75, reprises_video_max:2 },
     video:{ modele:"lite", style:"vlog" },
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
     montage:{ sous_titres:true },
@@ -511,13 +519,15 @@ function jugement(v) {                                        // note du jury, e
 }
 function qualite(v) {                                         // le contrôle qualité, replié
   const q = v.qualite; if (!q) return "";
-  const j = q.jury || {}, pr = q.producteur || {}, sc = (q.scripte || []), sb = q.storyboard || {};
+  const j = q.jury || {}, pr = q.producteur || {}, sc = (q.scripte || []), sb = q.storyboard || {}, p2 = q.deuxieme_passe;
   const notes = j.notes ? Object.entries({ humour: "humour", continuite: "continuité", image: "image", son: "son" })
     .filter(([k]) => j.notes[k] != null).map(([k, l]) => `${l} ${j.notes[k]}`).join(" · ") : "";
   const li = a => a.map(x => `<li>${esc(x)}</li>`).join("");
   const reprises = sc.filter(x => x.reprise).length, ecarts = sc.flatMap((x, k) => (x.ecarts || []).map(e => `plan ${k + 1} : ${e}`));
   return `<details class="aide" style="padding:8px 12px"><summary style="font-size:13.5px">Contrôle qualité</summary>
     ${notes ? `<p class="hint">Jury : ${esc(notes)}</p>` : ""}
+    ${pr.versions > 1 ? `<p class="hint"><b>Salle des auteurs</b> : version ${pr.version} sur ${pr.versions} gardée${pr.pourquoi ? " — " + esc(pr.pourquoi) : ""}</p>` : ""}
+    ${p2 ? `<p class="hint"><b>Deuxième passe</b> : ${p2.sans_budget ? `plan ${p2.plans[0]} non refait (budget insuffisant)` : `plan(s) ${p2.plans.join(", ")} refait(s), note ${p2.note_avant} → ${p2.note_apres ?? "?"}, ${p2.gardee ? "nouvelle version gardée" : "première version gardée"}`}</p>` : ""}
     ${(j.points_forts || []).length ? `<p class="hint"><b>Points forts</b></p><ul class="hint">${li(j.points_forts)}</ul>` : ""}
     ${(j.remarques || []).length ? `<p class="hint"><b>Remarques du jury</b></p><ul class="hint">${li(j.remarques)}</ul>` : ""}
     ${(pr.problemes || []).length ? `<p class="hint"><b>Corrigé par le producteur avant le tournage</b></p><ul class="hint">${li(pr.problemes)}</ul>` : ""}
@@ -638,6 +648,7 @@ function remplirFormulaires() {
   $("#q_prod").checked = Q.producteur !== false; $("#q_sb").checked = Q.storyboard !== false;
   const V = R().video || { modele: "lite", style: "vlog" }; $("#v_modele").value = V.modele || "lite"; $("#v_style").value = V.style || "vlog"; $("#q_scripte").checked = Q.scripte !== false; $("#q_jury").checked = Q.jury !== false;
   $("#q_reprises").value = String(Q.reprises_max ?? 1); $("#q_note").value = Q.note_min ?? 65;
+  $("#q_passe2").checked = Q.deuxieme_passe !== false; $("#q_rvid").value = Q.reprises_video_max ?? 2; $("#q_cible").value = Q.note_cible ?? 75;
   const T = R().tiktok || { profils: [], auto: false, jours: [], duree_max: 45 };
   if (document.activeElement !== $("#tk_profils")) $("#tk_profils").value = (T.profils || []).map(p => "@" + p).join("\n");
   $("#tk_auto").checked = !!T.auto; $("#tk_max").value = T.duree_max || 45;
@@ -873,7 +884,8 @@ $("#f-perso").addEventListener("submit", e => { e.preventDefault();
   commande("personnage", "", json, "Fiche envoyée au robot."); });
 $("#f-qual").addEventListener("submit", e => { e.preventDefault();
   const qualite = { producteur: $("#q_prod").checked, storyboard: $("#q_sb").checked, scripte: $("#q_scripte").checked, jury: $("#q_jury").checked,
-    reprises_max: +$("#q_reprises").value, note_min: +$("#q_note").value || 0 };
+    reprises_max: +$("#q_reprises").value, note_min: +$("#q_note").value || 0, deuxieme_passe: $("#q_passe2").checked,
+    reprises_video_max: +$("#q_rvid").value || 0, note_cible: +$("#q_cible").value || 0 };
   commande("reglages", "", JSON.stringify({ qualite }), "Contrôle qualité envoyé au robot."); });
 $("#f-video").addEventListener("submit", e => { e.preventDefault();
   const video = { modele: $("#v_modele").value, style: $("#v_style").value };

@@ -37,17 +37,22 @@ Coûts réels constatés le 24/10/2026 (720p) : vidéo 0,031 $/s, image de dépa
 renvoyé par Grok est celui qui est compté.
 
 ## Contrôle qualité (comme une vraie équipe de tournage)
-1. **Le scénariste** écrit l'épisode autour d'une grande expérience spectaculaire, montrée en entier (l'enjeu, le
+1. **La salle des auteurs** écrit 3 versions complètes (la chute et son image drôle même sans le son d'abord), autour d'une grande expérience spectaculaire, montrée en entier (l'enjeu, le
    lancement, l'effet, ce qui foire, la chute), avec une fiche de continuité (lieu, lumière, objets et leur état) et,
    pour chaque plan, ce qu'on voit au début, ce qui se passe seconde par seconde et ce qu'on voit à la fin.
-   La durée s'adapte à l'idée (courte : 24 à 40 s ; longue : 66 à 95 s).
-2. **Le producteur** relit tout avant le tournage et fait corriger les incohérences (c'est gratuit ou presque).
+   La durée s'adapte à l'idée (courte : 24 à 40 s ; longue : 66 à 95 s). Jusqu'à 3 répliques courtes par plan :
+   Gilbert et son acolyte se répondent vraiment, chaque phrase à son moment. L'effet spectaculaire est pris dans la liste
+   de ce que la caméra IA sait filmer (fumée, étincelles, jet d'eau, farine…).
+2. **Le producteur** garde la version la plus drôle et la plus facile à filmer, puis relit tout avant le tournage et fait corriger les incohérences (c'est gratuit ou presque).
 3. **Le storyboard** : la première image de chaque plan est faite à l'avance et vérifiée par le producteur ; les images
    incohérentes sont refaites avant de payer la vidéo.
-4. **Le tournage**, en plan-séquence façon vlog (Gilbert se filme, un seul lieu) : chaque plan démarre exactement sur la
+4. **Le tournage**, en plan-séquence façon vlog (Gilbert se filme téléphone à la main, il bouge ; un seul lieu) : chaque plan démarre exactement sur la
    dernière image du précédent. Réglages → Tournage : modèle Lite (par défaut) ou complet (plus fidèle, environ 4 fois plus cher).
-5. **Le scripte** vérifie chaque plan juste après le tournage ; s'il ne colle pas, le plan est refait une fois.
-6. **Le jury** note la vidéo finie (humour, continuité, image, son). Sous la note minimale : « À revoir », jamais publiée
+5. **Le scripte** vérifie chaque plan juste après le tournage ; s'il ne colle pas, le plan est refait une fois. Un effet
+   raté est refait en plus simple (jamais redemandé tel quel, jamais deux fois dans la même vidéo), 2 reprises au plus par vidéo.
+6. **Le jury** note la vidéo finie (humour, continuité, image, son), comme un spectateur (les sous-titres = ce qui est
+   vraiment dit). **Deuxième passe** : sous la note visée (75), le plan qu'il montre du doigt est refait (avec ceux qui
+   en partent), si le budget le permet, et la meilleure des deux versions est gardée. Sous la note minimale : « À revoir », jamais publiée
    toute seule. Ses remarques et les tiennes (👍 / 👎 / Ma remarque sur chaque vidéo) sont gardées en mémoire pour les
    épisodes suivants.
 Réglages → Contrôle qualité : tout s'active ou se coupe, et tu choisis la note minimale et le nombre de reprises.

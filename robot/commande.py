@@ -128,13 +128,17 @@ def appliquer_reglages(d):
             V["style"] = v["style"]
     if isinstance(d.get("qualite"), dict):                   # Réglages → Contrôle qualité
         Q, q = R.setdefault("qualite", {}), d["qualite"]
-        for cle in ("producteur", "storyboard", "scripte", "jury"):
+        for cle in ("producteur", "storyboard", "scripte", "jury", "deuxieme_passe"):
             if cle in q:
                 Q[cle] = bool(q[cle])
         if "note_min" in q:
             Q["note_min"] = max(0, min(100, int(q["note_min"])))
         if "reprises_max" in q:
             Q["reprises_max"] = max(0, min(2, int(q["reprises_max"])))
+        if "reprises_video_max" in q:
+            Q["reprises_video_max"] = max(0, min(6, int(q["reprises_video_max"])))
+        if "note_cible" in q:
+            Q["note_cible"] = max(0, min(100, int(q["note_cible"])))
     if isinstance(d.get("publication"), dict):              # Réglages → Publication sur TikTok
         P_, pub = d["publication"], R.setdefault("publication", {"mode": "manuel", "compte": ""})
         if P_.get("mode") in ("manuel", "auto"):

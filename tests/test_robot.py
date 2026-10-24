@@ -91,7 +91,7 @@ class Simulation(Base):
         with mock.patch.object(avancement, "_envoyer", lambda force=False: (vus.append(dict(avancement.contenu())), vrai(force))):
             self.assertEqual(principal.main(["--format", "courte"]), 0)
         etapes = [v["etape"] for v in vus]
-        self.assertIn("Le scénariste écrit l'épisode", etapes)
+        self.assertIn("Les auteurs écrivent 3 versions", etapes)
         self.assertTrue(any(e.startswith("Tournage du plan 1") for e in etapes))
         pourcents = [v["pourcent"] for v in vus]
         self.assertEqual(pourcents, sorted(pourcents))                      # la barre n'avance que dans un sens
@@ -122,11 +122,13 @@ class AvecFauxGrok(Base):
 
         self.scripte_ok, self.note_jury, self.departs, self.prompts, self.modeles = [True], 80, [], [], []
         self.storyboard_problemes = []
+        self.scenar, self.version_prod, self.notes_jury, self.plans_jury = None, 1, [], []
 
         def texte(modele, consignes, demande, prix, images=()):
             if "producteur exigeant" in consignes:
                 self.appels.append("producteur")
-                return {"note": 70, "problemes": ["La fin du plan 1 ne colle pas au début du plan 2."], "scenario": None}, 0.01
+                return {"note": 70, "problemes": ["La fin du plan 1 ne colle pas au début du plan 2."], "scenario": None,
+                        "version": self.version_prod, "pourquoi": "la plus drôle"}, 0.01
             if "STORYBOARD" in consignes:
                 self.appels.append("storyboard")
                 pb, self.storyboard_problemes = self.storyboard_problemes, []
@@ -134,14 +136,19 @@ class AvecFauxGrok(Base):
             if "scripte d'un tournage" in consignes:
                 self.appels.append("scripte")
                 ok = self.scripte_ok.pop(0) if len(self.scripte_ok) > 1 else self.scripte_ok[0]
-                return {"ok": ok, "ecarts": [] if ok else ["la machine n'a pas explosé"], "correction": "" if ok else
-                        "the machine must visibly explode"}, 0.01
+                return {"ok": ok, "type": "effet", "ecarts": [] if ok else ["la machine n'a pas explosé"],
+                        "correction": "" if ok else "the machine must visibly explode"}, 0.01
             if "jury de critiques" in consignes:
                 self.appels.append("jury")
-                return {"notes": {"humour": 70, "continuite": 80, "image": 85, "son": 75}, "note": self.note_jury,
+                note = self.notes_jury.pop(0) if self.notes_jury else self.note_jury
+                return {"notes": {"humour": 70, "continuite": 80, "image": 85, "son": 75}, "note": note,
+                        "plan_a_refaire": self.plans_jury.pop(0) if self.plans_jury else 0,
+                        "correction": "make the explosion bigger",
                         "points_forts": ["l'effet"], "remarques": ["chute un peu molle"],
                         "lecons": ["Toujours montrer l'expérience en entier."]}, 0.02
             self.appels.append("texte")
+            if self.scenar:
+                return self.scenar, 0.01
             return {"titre": "La 2CV sur la mairie", "legende": "Elle y est encore.", "hashtags": ["humour"],
                     "bible": {"lieu": "garage", "lumiere": "warm", "objets": [{"nom": "2CV", "description": "blue car"}]},
                     "plans": [{"personnage": "gilbert", "duree": 10, "enchaine": k > 0, "cadrage": "medium",
@@ -187,7 +194,7 @@ class FauxGrok(AvecFauxGrok):
         self.assertAlmostEqual(lire("budget.json")["depense_usd"], v["cout_usd"], places=4)
         self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portrait.jpg")))
         self.assertEqual((len(v["plans"]), sum(p["duree"] for p in v["plans"])), (5, 40))
-        self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 21)          # 8 s × 2,5 mots
+        self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 19)          # 8 s × 2,3 mots
         self.assertTrue(self.departs[0].endswith("storyboard_1.jpg"), self.departs[0])
         for k in range(1, 5):                                                     # chaque plan démarre sur la fin du précédent
             self.assertTrue(self.departs[k].endswith(f"fin_{k}.jpg"), self.departs[k])
@@ -211,6 +218,58 @@ class FauxGrok(AvecFauxGrok):
         self.assertIn("FIX THESE PROBLEMS", self.prompts[1])
         self.assertTrue(v["qualite"]["scripte"][0]["reprise"])
         self.assertAlmostEqual(v["cout_usd"], self.COURTE + 0.16, places=4)     # reprise du plan 1 (8 s × 0,02)
+
+    def test_effet_rate_pas_refait_deux_fois(self):
+        self.scripte_ok = [False, False, True]
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual(self.appels.count("video"), 6)                         # plan 1 refait, plan 2 non (même défaut)
+        self.assertIn("SIMPLE, BIG and SUDDEN", self.prompts[1])               # l'effet raté est simplifié
+        self.assertTrue(v["qualite"]["scripte"][1]["deja_refait"])
+
+    def test_salle_des_auteurs_et_echanges(self):
+        def version(titre, reps):
+            return {"titre": titre, "chute": "farine partout", "image_cle": "Gilbert blanc de farine",
+                    "bible": {"lieu": "garage", "lumiere": "warm", "objets": []},
+                    "plans": [{"duree": 8, "enchaine": k > 0, "visibles": ["gilbert"], "debut": f"etat {k}",
+                               "deroule": ["0-8s: action"], "fin": f"etat {k + 1}", "repliques": reps} for k in range(3)]}
+        reps = [{"qui": "gilbert", "t": "0-3s", "texte": "Mat, recule de trois pas."},
+                {"qui": "mat", "t": "3-5s", "texte": "Pourquoi trois ?"},
+                {"qui": "gilbert", "t": "5-8s", "texte": "Parce que quatre, c'est trop loin !"},
+                {"qui": "gilbert", "t": "8s", "texte": "une de trop"}]
+        self.scenar = {"versions": [version("A", reps[:1]), version("B", reps), version("C", reps[:1])]}
+        self.version_prod = 2
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual(v["titre"], "B")
+        self.assertEqual((v["qualite"]["producteur"]["version"], v["qualite"]["producteur"]["versions"]), (2, 3))
+        self.assertEqual([r["qui"] for r in v["plans"][0]["repliques"]], ["gilbert", "mat", "gilbert"])
+        self.assertEqual(v["plans"][0]["personnage"], "gilbert")
+        self.assertIn("Pourquoi trois ?", v["plans"][0]["dialogue"])
+        self.assertIn('Mouflet (off-screen voice): "Pourquoi trois ?"', self.prompts[0])
+        self.assertIn("never a fixed tripod", self.prompts[0])
+        self.assertNotIn("autres", v)
+
+    def test_deuxieme_passe(self):
+        self.notes_jury, self.plans_jury = [60, 82], [3]
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual(self.appels.count("video"), 5 + 3)                     # plans 3, 4 et 5 refaits (enchaînés)
+        self.assertTrue(self.departs[5].endswith("fin_2.jpg"), self.departs[5])
+        self.assertTrue(self.departs[6].endswith("fin_3b.jpg"), self.departs[6])
+        self.assertIn("make the explosion bigger", self.prompts[5])
+        p2 = v["qualite"]["deuxieme_passe"]
+        self.assertEqual((p2["plans"], p2["note_avant"], p2["note_apres"], p2["gardee"]), ([3, 4, 5], 60, 82, True))
+        self.assertEqual(v["qualite"]["jury"]["note"], 82)
+        self.assertAlmostEqual(v["cout_usd"], self.COURTE + 24 * 0.02 + 3 * 0.01 + 0.02, places=4)
+
+    def test_deuxieme_passe_moins_bonne(self):
+        self.notes_jury, self.plans_jury = [60, 50], [5]
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual(self.appels.count("video"), 6)
+        self.assertFalse(v["qualite"]["deuxieme_passe"]["gardee"])
+        self.assertEqual(v["qualite"]["jury"]["note"], 60)
 
     def test_storyboard_corrige(self):
         self.storyboard_problemes = [{"plan": 2, "probleme": "la machine est déjà cassée", "correction": "machine intact"}]

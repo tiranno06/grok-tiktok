@@ -77,7 +77,10 @@
   "reprises_max": 1,
   "jury": true,
   "note_min": 75,
-  "storyboard": true
+  "storyboard": true,
+  "deuxieme_passe": true,
+  "note_cible": 75,
+  "reprises_video_max": 2
  },
  "video": {
   "modele": "lite",

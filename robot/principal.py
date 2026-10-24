@@ -60,20 +60,23 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
         deja = [v.get("titre", "") for v in (lire("file.json") or {}).get("videos", [])]
         Q = R.get("qualite") or {}
         caisse.autoriser(R["prix"]["scenario"], "scénario")
-        avancement.etape("Le scénariste écrit l'épisode", 4, "5 idées, il garde la plus drôle")
+        avancement.etape("Les auteurs écrivent 3 versions", 4, "la chute d'abord, puis toute l'histoire")
         t0 = time.time()
         ep, cout = scenario.ecrire(format_, P, R, idee, deja, production.memoire_texte())
         caisse.payer(cout, "scénario")
         print(f"  scénario écrit en {time.time() - t0:.0f} s", flush=True)
         avis_prod = None
         if Q.get("producteur", True):
-            avancement.etape("Le producteur relit le scénario", 9, "continuité, logique, drôlerie", titre=ep["titre"])
+            avancement.etape("Le producteur choisit et relit", 9, "la plus drôle et la plus facile à filmer",
+                             titre=ep["titre"])
             caisse.autoriser(R["prix"]["scenario"], "relecture du producteur")
             t0 = time.time()
             ep, avis_prod, cout = production.relire(R, ep, format_, P, scenario.nettoyer)
             caisse.payer(cout, "relecture du producteur")
             print(f"  relecture faite en {time.time() - t0:.0f} s", flush=True)
-            print(f"  producteur : {avis_prod.get('note')}/100, {len(avis_prod['problemes'])} correction(s)", flush=True)
+            print(f"  producteur : version {avis_prod.get('version', 1)} sur {avis_prod.get('versions', 1)} gardée, "
+                  f"{avis_prod.get('note')}/100, {len(avis_prod['problemes'])} correction(s)", flush=True)
+        ep.pop("autres", None)
         print(f"Épisode : {ep['titre']} ({len(ep['plans'])} plans, {sum(p['duree'] for p in ep['plans'])} s)", flush=True)
         # 3. le tournage, plan par plan. Un plan qui prolonge le précédent démarre sur SA dernière image (scène continue) ;
         #    sinon il démarre sur une image faite à partir du portrait (ou de la dernière image de cette personne).
@@ -101,47 +104,27 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
                 print(f"  storyboard : {len(avis_sb['problemes'])} image(s) refaite(s)", flush=True)
                 corrections = {x["plan"]: x["correction"] or x["probleme"] for x in avis_sb["problemes"]}
                 storyboard.update(faire_storyboard(R, ep, P, portraits, dossier, caisse, corrections, storyboard))
-        clips, scene, controles = [], None, []
-        total_s, fait_s = sum(p["duree"] for p in ep["plans"]), 0
-        for i, plan in enumerate(ep["plans"], 1):
-            gens, parleur = scenario.fiches_visibles(plan, P), scenario.qui(plan, P)
-            base, part = 20 + 68 * fait_s / total_s, 68 * plan["duree"] / total_s       # le tournage = 20 à 88 %
-            fait_s += plan["duree"]
-            avancement.etape(f"Tournage du plan {i} sur {len(ep['plans'])}", base,
-                             f"{', '.join(g['nom'].split(' (')[0] for g in gens)} · {plan['duree']} s")
-            if plan["enchaine"] and scene:
-                depart = scene                                       # la scène continue exactement
-            elif i in storyboard:
-                depart = storyboard[i]                               # image du storyboard, déjà vérifiée
-            else:                                                    # mêmes visages (portraits) et même lieu (scène)
-                depart = os.path.join(dossier, f"depart_{i}.jpg")
-                refs = ([scene] if scene else []) + [portraits[g["id"]] for g in gens]
-                caisse.autoriser(prix["image"], f"image du plan {i}")
-                _, cout = grok.modifier_image(R["modeles"]["image"], scenario.prompt_image(plan, gens, ep["bible"], bool(scene)),
-                                              refs, depart, prix["image"])
-                caisse.payer(cout, f"image du plan {i}")
-            reserve = sum(q["duree"] * budget.video(R)[1]
-                          + prix.get("verification", 0.01) for q in ep["plans"][i:]) + 0.05     # pour finir l'épisode
-            clip, controle = tourner(R, Q, plan, gens, parleur, ep["bible"], depart, i, dossier, caisse, (base, part), reserve)
-            clips.append(clip)
-            controles.append(controle)
-            scene = montage.derniere_image(clip, os.path.join(dossier, f"fin_{i}.jpg"))
-            print(f"  plan {i}/{len(ep['plans'])} filmé ({caisse.depense:.2f} $ jusqu'ici)", flush=True)
+        reprises = {"nb": 0, "max": int(Q.get("reprises_video_max", 2)), "types": []}   # reprises de toute la vidéo
+        clips, controles = tourner_episode(R, Q, ep, P, portraits, storyboard, dossier, caisse, reprises)
         # 4. sous-titres calés sur la vraie voix (plus de coupe dans les blancs : l'action continue pendant les silences)
         avancement.etape("Sous-titres calés sur la voix", 89)
-        clips, mots = rythmer(R, format_, clips, dossier, caisse)
-        avancement.etape("Montage de la vidéo", 92)
         video = os.path.join(dossier, f"{vid}.mp4")
-        duree = montage.monter(clips, ep["plans"], video, R["montage"].get("sous_titres", True), mots)
+        duree, mots = monter_video(R, format_, clips, ep, video, dossier, caisse)
         # 5. le jury regarde la vidéo finie
-        jury = None
+        jury, passe2 = None, None
         if Q.get("jury", True):
             avancement.etape("Le jury regarde la vidéo", 95)
-            dit = " ".join(m["w"] for m_ in (mots or []) for m in m_)
-            caisse.autoriser(R["prix"].get("verification", 0.01) * 2, "jury")
-            jury, cout = production.juger(R, video, ep, dit, dossier)
-            caisse.payer(cout, "avis du jury")
-            print(f"  jury : {jury['note']}/100", flush=True)
+            jury = faire_juger(R, video, ep, mots, dossier, caisse)
+            # 5 bis. deuxième passe : sous la note visée, on refait seulement le plan montré par le jury (et ceux qui en
+            #        partent), si le budget le permet, puis on garde la meilleure des deux versions
+            if (Q.get("deuxieme_passe", True) and jury["note"] < int(Q.get("note_cible", 75))
+                    and jury.get("plan_a_refaire")):
+                passe2 = deuxieme_passe(R, Q, ep, P, portraits, storyboard, dossier, caisse, reprises, clips, controles,
+                                        jury, format_, video)
+                if passe2.get("gardee"):
+                    jury, duree, controles = passe2.pop("jury"), passe2.pop("duree"), passe2.pop("controles")
+                for cle in ("jury", "duree", "controles"):
+                    passe2.pop(cle, None)
         a_revoir = bool(jury and jury["note"] < int(Q.get("note_min", 65)))
         avancement.etape("Envoi de la vidéo sur le site", 97)
         mini = montage.miniature(video, os.path.join(dossier, f"{vid}.jpg"))
@@ -153,7 +136,8 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
             "duree": duree, "cout_usd": caisse.depense, "cree_le": iso(now), "statut": "a_publier",
             "url": url, "tag": f"v-{vid}", "miniature": f"miniatures/{vid}.jpg", "auto": auto,
             "simulation": simulation(), "idee": idee, "plans": ep["plans"], "bible": ep["bible"],
-            "qualite": {"producteur": avis_prod, "storyboard": avis_sb, "scripte": controles, "jury": jury},
+            "qualite": {"producteur": avis_prod, "storyboard": avis_sb, "scripte": controles, "jury": jury,
+                        "deuxieme_passe": passe2},
             "a_revoir": a_revoir}
         res["evenements"].append(("alerte" if a_revoir else "info",
                                   f"{'🔎' if a_revoir else '✅'} « {ep['titre']} » prête ({format_}, {duree:.0f} s, "
@@ -213,30 +197,129 @@ def faire_storyboard(R, ep, P, portraits, dossier, caisse, corrections=None, exi
     return out
 
 
-def tourner(R, Q, plan, gens, parleur, bible, depart, i, dossier, caisse, zone=(0, 0), reserve=0.0):
+def tourner_episode(R, Q, ep, P, portraits, storyboard, dossier, caisse, reprises, de=1, a=None, scene=None,
+                    corrections=None, zone=(20, 68), suffixe=""):
+    """Filme les plans `de` à `a` (numéros à partir de 1). Un plan qui prolonge le précédent démarre sur SA dernière image
+    (scène continue) ; sinon sur l'image du storyboard, ou une image faite depuis les portraits. Renvoie (clips, contrôles)."""
+    prix, plans = R["prix"], ep["plans"]
+    a = a or len(plans)
+    clips, controles = [], []
+    total_s, fait_s = sum(p["duree"] for p in plans[de - 1:a]) or 1, 0
+    for i in range(de, a + 1):
+        plan = plans[i - 1]
+        gens = scenario.fiches_visibles(plan, P)
+        base, part = zone[0] + zone[1] * fait_s / total_s, zone[1] * plan["duree"] / total_s
+        fait_s += plan["duree"]
+        avancement.etape(f"Tournage du plan {i} sur {len(plans)}" + (" (deuxième passe)" if suffixe else ""), base,
+                         f"{', '.join(g['nom'].split(' (')[0] for g in gens)} · {plan['duree']} s")
+        if plan["enchaine"] and scene:
+            depart = scene                                       # la scène continue exactement
+        elif i in storyboard:
+            depart = storyboard[i]                               # image du storyboard, déjà vérifiée
+        else:                                                    # mêmes visages (portraits) et même lieu (scène)
+            depart = os.path.join(dossier, f"depart_{i}{suffixe}.jpg")
+            refs = ([scene] if scene else []) + [portraits[g["id"]] for g in gens]
+            caisse.autoriser(prix["image"], f"image du plan {i}")
+            _, cout = grok.modifier_image(R["modeles"]["image"], scenario.prompt_image(plan, gens, ep["bible"], bool(scene)),
+                                          refs, depart, prix["image"])
+            caisse.payer(cout, f"image du plan {i}")
+        reserve = sum(q["duree"] * budget.video(R)[1]
+                      + prix.get("verification", 0.01) for q in plans[i:a]) + 0.05      # pour finir l'épisode
+        clip, controle = tourner(R, Q, plan, gens, scenario.voix_du_plan(plan, P), ep["bible"], depart, i, dossier,
+                                 caisse, (base, part), reserve, reprises, (corrections or {}).get(i, ""), suffixe)
+        clips.append(clip)
+        controles.append(controle)
+        scene = montage.derniere_image(clip, os.path.join(dossier, f"fin_{i}{suffixe}.jpg"))
+        print(f"  plan {i}/{len(plans)} filmé ({caisse.depense:.2f} $ jusqu'ici)", flush=True)
+    return clips, controles
+
+
+def monter_video(R, format_, clips, ep, video, dossier, caisse):
+    """Sous-titres calés sur la vraie voix puis montage. Renvoie (durée, mots par clip)."""
+    clips, mots = rythmer(R, format_, clips, dossier, caisse)
+    avancement.etape("Montage de la vidéo", 92)
+    return montage.monter(clips, ep["plans"], video, R["montage"].get("sous_titres", True), mots), mots
+
+
+def faire_juger(R, video, ep, mots, dossier, caisse):
+    dit = " ".join(m["w"] for m_ in (mots or []) for m in m_)
+    caisse.autoriser(R["prix"].get("verification", 0.01) * 2, "jury")
+    jury, cout = production.juger(R, video, ep, dit, dossier)
+    caisse.payer(cout, "avis du jury")
+    print(f"  jury : {jury['note']}/100" + (f", plan à refaire : {jury['plan_a_refaire']}" if jury.get("plan_a_refaire")
+                                           else ""), flush=True)
+    return jury
+
+
+def deuxieme_passe(R, Q, ep, P, portraits, storyboard, dossier, caisse, reprises, clips, controles, jury, format_, video):
+    """Refait le plan montré par le jury (et les plans enchaînés qui en partent, pour garder la scène continue), remonte,
+    refait juger et garde la meilleure version. Renvoie le compte rendu (avec jury, durée et contrôles de la version gardée)."""
+    plans, k = ep["plans"], jury["plan_a_refaire"]
+    fin = k
+    while fin < len(plans) and plans[fin]["enchaine"]:           # le plan suivant démarre sur la fin du plan refait
+        fin += 1
+    prix = R["prix"]
+    cr = {"plans": list(range(k, fin + 1)), "note_avant": jury["note"], "raison": jury.get("correction", ""),
+          "gardee": False}
+    cout_max = (sum(p["duree"] for p in plans[k - 1:fin]) * budget.video(R)[1]
+                + (fin - k + 1) * prix.get("verification", 0.01) + len(plans) * 0.01 + prix.get("verification", 0.01) * 2)
+    try:
+        caisse.autoriser(cout_max, "deuxième passe")
+    except budget.PlafondAtteint:
+        print(f"  deuxième passe impossible : budget insuffisant ({cout_max:.2f} $ nécessaires)", flush=True)
+        cr["sans_budget"] = True
+        return cr
+    print(f"  deuxième passe : plan(s) {k} à {fin} refait(s) ({jury.get('correction', '')[:150]})", flush=True)
+    scene = os.path.join(dossier, f"fin_{k - 1}.jpg") if k > 1 else None
+    nouveaux, ctrl = tourner_episode(R, Q, ep, P, portraits, storyboard, dossier, caisse, reprises, k, fin, scene,
+                                     {k: jury.get("correction", "")}, zone=(95, 2), suffixe="b")
+    clips2, controles2 = clips[:k - 1] + nouveaux + clips[fin:], controles[:k - 1] + ctrl + controles[fin:]
+    video2 = os.path.join(dossier, "passe2.mp4")
+    duree2, mots2 = monter_video(R, format_, clips2, ep, video2, dossier, caisse)
+    avancement.etape("Le jury regarde la deuxième version", 97)
+    jury2 = faire_juger(R, video2, ep, mots2, dossier, caisse)
+    cr["note_apres"] = jury2["note"]
+    if jury2["note"] > jury["note"]:
+        os.replace(video2, video)
+        cr.update(gardee=True, jury=jury2, duree=duree2, controles=controles2)
+    print(f"  deuxième passe : {jury['note']} → {jury2['note']}/100, "
+          f"{'nouvelle version gardée' if cr['gardee'] else 'première version gardée'}", flush=True)
+    return cr
+
+
+SIMPLIFIER = (" The planned special effect was not rendered: replace it with a SIMPLE, BIG and SUDDEN effect that keeps "
+              "the joke and is visible at once (thick smoke puff, shower of sparks, water spray, flour explosion).")
+
+
+def tourner(R, Q, plan, gens, voix, bible, depart, i, dossier, caisse, zone=(0, 0), reserve=0.0, reprises=None,
+            correction="", suffixe=""):
     """Filme un plan, le fait vérifier par le scripte et le refait s'il a un défaut GRAVE (mauvaise personne, action ou effet
     absent, objet dans le mauvais état), seulement si le budget permet encore de finir l'épisode (`reserve`).
-    Refus de la modération : un nouvel essai plus sobre. Renvoie (clip, contrôle)."""
+    Reprises malignes : un effet raté est refait en plus simple (pas redemandé tel quel), jamais deux reprises pour un effet
+    raté dans la même vidéo, et au plus `reprises["max"]` reprises en tout. Refus de la modération : un nouvel essai plus
+    sobre. Renvoie (clip, contrôle)."""
     prix = R["prix"]
     modele_video, prix_s = budget.video(R)
-    correction, controle, reprises = "", {"ok": None, "ecarts": [], "reprise": False}, int(Q.get("reprises_max", 1))
+    reprises = reprises if reprises is not None else {"nb": 0, "max": 2, "types": []}
+    controle, par_plan = {"ok": None, "ecarts": [], "reprise": False}, int(Q.get("reprises_max", 1))
     base, part = zone
 
     def suivi(pc):                                               # pourcentage de Grok pendant qu'il filme
         avancement.progres(base + part * 0.85 * pc / 100,
                            f"Grok filme{' (reprise)' if controle['reprise'] else ''} : {int(pc)} %")
-    for essai in range(1, 3 + reprises):
-        dest = os.path.join(dossier, f"clip_{i}_{essai}.mp4")
+    for essai in range(1, 3 + par_plan):
+        dest = os.path.join(dossier, f"clip_{i}{suffixe}_{essai}.mp4")
         caisse.autoriser(plan["duree"] * prix_s, f"clip du plan {i}")
         try:
-            _, cout = grok.creer_video(modele_video, scenario.prompt_video(plan, gens, parleur, bible, correction), depart,
+            _, cout = grok.creer_video(modele_video, scenario.prompt_video(plan, gens, voix, bible, correction), depart,
                                        plan["duree"], dest, prix_s, R["montage"].get("resolution", "720p"), suivi=suivi)
             caisse.payer(cout, f"clip {plan['duree']} s (plan {i}{', reprise' if controle['reprise'] else ''})")
         except grok.RefusModeration as e:
             caisse.payer(e.cout, f"clip refusé par la modération (plan {i})")
             if essai >= 2:
                 raise
-            correction = "Keep it gentle and cartoonish-safe: no danger, nobody hurt, softer special effect."
+            correction = (correction + " Keep it gentle and cartoonish-safe: no danger, nobody hurt, softer special "
+                          "effect.").strip()
             print(f"  plan {i} refusé par la modération : nouvel essai plus sobre", flush=True)
             continue
         if not Q.get("scripte", True) or controle["reprise"]:
@@ -244,13 +327,21 @@ def tourner(R, Q, plan, gens, parleur, bible, depart, i, dossier, caisse, zone=(
         try:
             avancement.progres(base + part * 0.9, "Le scripte vérifie le plan")
             caisse.autoriser(prix.get("verification", 0.01), f"scripte du plan {i}")
-            avis, cout = production.verifier_plan(R, dest, plan, gens, bible, dossier, i)
+            avis, cout = production.verifier_plan(R, dest, plan, gens, bible, dossier, f"{i}{suffixe}")
             caisse.payer(cout, f"scripte du plan {i}")
         except grok.ErreurGrok as e:
             print(f"  scripte indisponible ({e}) : plan gardé", flush=True)
             return dest, controle
-        controle.update(ok=avis["ok"], ecarts=avis["ecarts"], grave=avis["grave"])
-        if avis["ok"] or not avis["grave"] or reprises <= 0:      # défaut mineur : on garde le plan
+        controle.update(ok=avis["ok"], ecarts=avis["ecarts"], grave=avis["grave"], type=avis.get("type", ""))
+        if avis["ok"] or not avis["grave"] or par_plan <= 0:     # défaut mineur : on garde le plan
+            return dest, controle
+        if avis.get("type") == "effet" and "effet" in reprises["types"]:
+            print(f"  plan {i} : effet encore raté, pas de nouvelle reprise (la caméra IA ne sait pas le faire)", flush=True)
+            controle["deja_refait"] = True
+            return dest, controle
+        if reprises["nb"] >= reprises["max"]:
+            print(f"  plan {i} imparfait, pas de reprise (déjà {reprises['nb']} reprise(s) dans la vidéo)", flush=True)
+            controle["plafond_reprises"] = True
             return dest, controle
         try:                                                     # le plan est refait, si le budget permet de finir quand même
             caisse.autoriser(plan["duree"] * prix_s + reserve, f"reprise du plan {i}")
@@ -260,7 +351,10 @@ def tourner(R, Q, plan, gens, parleur, bible, depart, i, dossier, caisse, zone=(
             return dest, controle
         print(f"  plan {i} refait (scripte : {'; '.join(avis['ecarts'])[:200]})", flush=True)
         avancement.progres(base, "Plan refait (le scripte a vu un problème)")
-        correction, controle["reprise"] = avis["correction"] or "; ".join(avis["ecarts"]), True
+        reprises["nb"] += 1
+        reprises["types"].append(avis.get("type", "autre"))
+        correction = (avis["correction"] or "; ".join(avis["ecarts"])) + (SIMPLIFIER if avis.get("type") == "effet" else "")
+        controle["reprise"] = True
     return dest, controle
 
 
