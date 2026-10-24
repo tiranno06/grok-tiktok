@@ -1,67 +1,6 @@
 {
  "videos": [
   {
-   "id": "20261024-095446-t",
-   "format": "tiktok",
-   "titre": "[Test] Son TikTok",
-   "legende": "Vidéo de test. 🎧 Son : @compte_de_test",
-   "hashtags": [
-    "#test",
-    "#ia"
-   ],
-   "duree": 24.0,
-   "cout_usd": 0.0,
-   "cree_le": "2026-10-24T09:54:46+02:00",
-   "statut": "ecartee",
-   "url": "https://github.com/tiranno06/grok-tiktok/releases/download/v-20261024-095446-t/20261024-095446-t.mp4",
-   "tag": "v-20261024-095446-t",
-   "miniature": "miniatures/20261024-095446-t.jpg",
-   "auto": false,
-   "simulation": true,
-   "idee": "https://www.tiktok.com/@test/video/1",
-   "source": "https://www.tiktok.com/@test/video/1",
-   "auteur": "compte_de_test",
-   "plans": [
-    {
-     "debut": 0.0,
-     "fin": 4.09,
-     "voix": 0,
-     "texte": "mot0 mot1 mot2 mot3 mot4 mot5 mot6 mot7"
-    },
-    {
-     "debut": 4.09,
-     "fin": 8.23,
-     "voix": 1,
-     "texte": "mot8 mot9 mot10 mot11 mot12 mot13 mot14 mot15"
-    },
-    {
-     "debut": 8.23,
-     "fin": 12.37,
-     "voix": 0,
-     "texte": "mot16 mot17 mot18 mot19 mot20 mot21 mot22 mot23"
-    },
-    {
-     "debut": 12.37,
-     "fin": 16.51,
-     "voix": 1,
-     "texte": "mot24 mot25 mot26 mot27 mot28 mot29 mot30 mot31"
-    },
-    {
-     "debut": 16.51,
-     "fin": 20.65,
-     "voix": 0,
-     "texte": "mot32 mot33 mot34 mot35 mot36 mot37 mot38 mot39"
-    },
-    {
-     "debut": 20.65,
-     "fin": 24.009,
-     "voix": 1,
-     "texte": "mot40 mot41 mot42 mot43 mot44 mot45"
-    }
-   ],
-   "publier_le": "2026-10-24T12:00:00+02:00"
-  },
-  {
    "id": "20261024-092153-c",
    "format": "courte",
    "titre": "Le drone secret",

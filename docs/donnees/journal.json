@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T10:23:50+02:00",
+   "niveau": "info",
+   "texte": "🗑️ « [Test] Son TikTok » supprimée."
+  },
+  {
    "date": "2026-10-24T10:23:37+02:00",
    "niveau": "info",
    "texte": "🛑 « [Test] Son TikTok » écartée (ne sera pas publiée)."
