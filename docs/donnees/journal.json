@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T11:35:37+02:00",
+   "niveau": "info",
+   "texte": "✅ « La baguette du futur » prête (courte, 17 s, 0.83 $)"
+  },
+  {
    "date": "2026-10-24T11:31:47+02:00",
    "niveau": "info",
    "texte": "✋ Mode manuel : plus aucune création automatique (bouton Créer seulement)."

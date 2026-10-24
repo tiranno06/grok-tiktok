@@ -1,6 +1,52 @@
 {
  "videos": [
   {
+   "id": "20261024-113159-c",
+   "format": "courte",
+   "titre": "La baguette du futur",
+   "legende": "Il a envoyé la baguette cinq minutes dans le futur. Newton, lui, a décidé de vivre dans le présent.",
+   "hashtags": [
+    "#humour",
+    "#sketch",
+    "#savantfou",
+    "#baguette",
+    "#village",
+    "#invention",
+    "#ia"
+   ],
+   "duree": 16.8,
+   "cout_usd": 0.8344,
+   "cree_le": "2026-10-24T11:31:59+02:00",
+   "statut": "a_publier",
+   "url": "https://github.com/tiranno06/grok-tiktok/releases/download/v-20261024-113159-c/20261024-113159-c.mp4",
+   "tag": "v-20261024-113159-c",
+   "miniature": "miniatures/20261024-113159-c.jpg",
+   "auto": false,
+   "simulation": false,
+   "idee": "",
+   "plans": [
+    {
+     "personnage": "gilbert",
+     "decor": "Cluttered garage laboratory in Saint-Glinglin-sur-Loire, dozens of wall clocks, cables on the floor, a blackboard of equations, morning light through a dusty window",
+     "cadrage": "selfie close-up",
+     "action": "He stares bug-eyed into the phone, points one finger straight up as the idea hits, then pats the red lever while muttering and checking both wristwatches at once",
+     "emotion": "wild breathless scientific excitement",
+     "meme_lieu": false,
+     "dialogue": "Aujourd'hui, j'ai inventé la machine qui envoie la baguette cinq minutes dans le futur, pour qu'elle reste fraîche avant de rassir. Voilà."
+    },
+    {
+     "personnage": "gilbert",
+     "decor": "Same cluttered garage laboratory, clocks ringing together, white flour smoke around the wooden crate, crumbs across the red lever",
+     "cadrage": "medium shot",
+     "action": "He grabs both hands in his electrified white hair, then freezes, points off-screen at Newton, scribbles in the notebook, and ends with a sheepish glance at the camera",
+     "emotion": "proud denial sliding into awkward triumph",
+     "meme_lieu": true,
+     "dialogue": "Ce n'est pas un échec, c'est un résultat inattendu de toute première importance : elle est revenue en miettes, et Newton a tout mangé. Bon."
+    }
+   ],
+   "publier_le": "2026-10-25T12:00:00+01:00"
+  },
+  {
    "id": "20261024-092153-c",
    "format": "courte",
    "titre": "Le drone secret",
