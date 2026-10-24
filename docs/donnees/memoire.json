@@ -1,6 +1,16 @@
 {
  "lecons": [
   {
+   "date": "2026-10-24T15:59:11+02:00",
+   "source": "jury",
+   "texte": "Rendre la chute visuelle exagérée et lisible en une seule image clé"
+  },
+  {
+   "date": "2026-10-24T15:59:11+02:00",
+   "source": "jury",
+   "texte": "Synchroniser strictement le texte prononcé avec les sous-titres et les actions visibles"
+  },
+  {
    "date": "2026-10-24T14:29:55+02:00",
    "source": "jury",
    "texte": "Filmer en continu ou avec repères visuels fixes pour éviter les jumps de position et d'accessoires"

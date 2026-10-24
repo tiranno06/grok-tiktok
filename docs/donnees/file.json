@@ -1,6 +1,235 @@
 {
  "videos": [
   {
+   "id": "20261024-154509-c",
+   "format": "courte",
+   "titre": "Le nuage privé",
+   "legende": "Il a inventé un nuage qui n'arrose qu'une tomate. Le nuage avait d'autres projets.",
+   "hashtags": [
+    "#humour",
+    "#savantfou",
+    "#invention",
+    "#village",
+    "#comedie",
+    "#experience",
+    "#ia"
+   ],
+   "duree": 35.2,
+   "cout_usd": 2.5788,
+   "cree_le": "2026-10-24T15:45:09+02:00",
+   "statut": "a_publier",
+   "url": "https://github.com/tiranno06/grok-tiktok/releases/download/v-20261024-154509-c/20261024-154509-c.mp4",
+   "tag": "v-20261024-154509-c",
+   "miniature": "miniatures/20261024-154509-c.jpg",
+   "auto": false,
+   "simulation": false,
+   "idee": "",
+   "plans": [
+    {
+     "personnage": "gilbert",
+     "duree": 10,
+     "enchaine": false,
+     "cadrage": "Locked phone on a tripod at the open garage door, medium-wide, same frame the whole episode: Mat left, barrel center-right, Gilbert beside it, Newton in front of the hook.",
+     "emotion": "excited and deadly serious",
+     "visibles": [
+      "gilbert",
+      "mat",
+      "newton"
+     ],
+     "debut": "Gilbert stands center-right beside the barrel, facing the camera, right index finger raised, left hand at his side. Mat stands on the left beside the tomato plant, arms down. Newton sits on the floor just left of the barrel, directly under the raincoat hook, dry, head level. Valve wheel closed and horizontal. Hose clipped up and dry. No vapor, no smoke, no sparks. Yellow raincoat hangs on the hook. Notebook lies closed on the lid. Tomato soil dry in the chalk circle. Battery still.",
+     "deroule": [
+      "0-3s: Gilbert taps the barrel once, then points his raised finger at the lid nozzle.",
+      "3-7s: He points at the tomato plant, then checks both wristwatches at the same time.",
+      "7-10s: He sets both hands on the closed valve wheel. Mat takes one step back and half-raises his arms. Newton tilts his head."
+     ],
+     "fin": "Gilbert stands center-right beside the barrel, both hands gripping the closed red valve wheel, facing the camera. Mat stands on the left, one step back from the tomato plant, arms half raised. Newton sits just left of the barrel under the hook, head tilted, dry. Valve wheel closed and horizontal. Hose clipped up and dry. No vapor, no smoke, no sparks. Yellow raincoat hangs on the hook. Notebook lies closed on the lid. Tomato soil dry in the chalk circle. Battery still.",
+     "dialogue": "Cette tomate aura son nuage. Rien que le sien. Si mes calculs sont exacts… à peu près."
+    },
+    {
+     "personnage": "gilbert",
+     "duree": 8,
+     "enchaine": true,
+     "cadrage": "Same locked tripod frame, no cut, Gilbert center-right, Mat left, Newton under the hook.",
+     "emotion": "theatrical and breathless",
+     "visibles": [
+      "gilbert",
+      "mat",
+      "newton"
+     ],
+     "debut": "Gilbert stands center-right beside the barrel, both hands gripping the closed red valve wheel, facing the camera. Mat stands on the left, one step back from the tomato plant, arms half raised. Newton sits just left of the barrel under the hook, head tilted, dry. Valve wheel closed and horizontal. Hose clipped up and dry. No vapor, no smoke, no sparks. Yellow raincoat hangs on the hook. Notebook lies closed on the lid. Tomato soil dry in the chalk circle. Battery still.",
+     "deroule": [
+      "0-3s: Gilbert looks from one wristwatch to the other and counts on his fingers, both hands returning to the valve.",
+      "3-6s: He turns the valve wheel from horizontal to vertical. A thick white vapor column shoots up from the lid nozzle. Tiny sparks crackle once at the battery clamps, then stop.",
+      "6-8s: The vapor spreads into a low white cloud across the top of the frame, hovering above the plant without raining. A thin smoke wisp starts on the copper coil. Gilbert freezes, left hand on the open wheel, right index finger up. Mat puts both hands on his head. Newton looks up."
+     ],
+     "fin": "Gilbert stands center-right, left hand on the open vertical valve wheel, right index finger raised, looking up. Mat stands on the left with both hands on his head. Newton sits in the same spot under the hook, looking up. A low white vapor cloud fills the top of the frame above the tomato plant. The plant soil is still dry. Hose still clipped up and dry. No sparks. A thin smoke wisp rises from the coil. Raincoat still hangs on the hook. Notebook still lies closed on the lid. Battery still.",
+     "dialogue": "Trois, deux, un. J'ouvre. Moment historique."
+    },
+    {
+     "personnage": "mat",
+     "duree": 9,
+     "enchaine": true,
+     "cadrage": "Same locked tripod frame, no cut, cloud at the top, hose still clipped at the start.",
+     "emotion": "disbelieving",
+     "visibles": [
+      "mat",
+      "gilbert",
+      "newton"
+     ],
+     "debut": "Gilbert stands center-right, left hand on the open vertical valve wheel, right index finger raised, looking up. Mat stands on the left with both hands on his head. Newton sits in the same spot under the hook, looking up. A low white vapor cloud fills the top of the frame above the tomato plant. The plant soil is still dry. Hose still clipped up and dry. No sparks. A thin smoke wisp rises from the coil. Raincoat still hangs on the hook. Notebook still lies closed on the lid. Battery still.",
+     "deroule": [
+      "0-3s: The smoke wisp thickens. The cloud drifts left off the plant and does not rain. Mat stares at it, mouth open, and speaks.",
+      "3-6s: The hose end unclips, whips left, knocks the yellow raincoat off the hook onto Newton, and sprays a hard stream of water over Mat. The blast blows the vapor cloud apart. Gilbert claps both hands to the sides of his head.",
+      "6-9s: The cloud is gone. The hose, still attached at the spigot, flops down and its nozzle comes to rest on the tomato pot rim, spray stopped, one water bead at the nozzle. Newton's head levels under the raincoat. The notebook stays closed and dry on the lid."
+     ],
+     "fin": "Gilbert stands center-right, both hands clapped to the sides of his head, feet unmoved. Mat stands on the left, both hands on his head, water droplets falling from him to the concrete, feet unmoved. Newton sits in the same spot, yellow raincoat draped over his head and back, head level, calm. No vapor cloud. A thin smoke wisp still rises from the coil. Valve wheel open and vertical. Hose attached at the spigot, free end lying on the pot rim, one water bead at the nozzle. Tomato soil still dry. Notebook still closed on the lid. Hook empty. No sparks. Battery still.",
+     "dialogue": "Le tuyau… il vise moi !"
+    },
+    {
+     "personnage": "gilbert",
+     "duree": 8,
+     "enchaine": true,
+     "cadrage": "Same locked tripod frame, no cut, hose nozzle already resting on the pot rim.",
+     "emotion": "triumphant and more shocked than everyone",
+     "visibles": [
+      "gilbert",
+      "mat",
+      "newton"
+     ],
+     "debut": "Gilbert stands center-right, both hands clapped to the sides of his head, feet unmoved. Mat stands on the left, both hands on his head, water droplets falling from him to the concrete, feet unmoved. Newton sits in the same spot, yellow raincoat draped over his head and back, head level, calm. No vapor cloud. A thin smoke wisp still rises from the coil. Valve wheel open and vertical. Hose attached at the spigot, free end lying on the pot rim, one water bead at the nozzle. Tomato soil still dry. Notebook still closed on the lid. Hook empty. No sparks. Battery still.",
+     "deroule": [
+      "0-2s: The last droplets fall from Mat and stop. The smoke wisp fades out completely. The bead at the hose nozzle swells.",
+      "2-5s: The bead rolls from the nozzle into the tomato soil and leaves one dark wet spot. Gilbert freezes, then slowly lowers his hands, more shocked than Mat.",
+      "5-8s: Gilbert picks the notebook and pencil off the lid, opens the notebook, and points the pencil upward while speaking. Newton gives one slow tail wag, then the tail rests. The hose end stays on the rim, empty."
+     ],
+     "fin": "Gilbert stands center-right, open notebook in his left hand, pencil in his right hand pointing up, feet unmoved. Mat stands on the left, both hands on his head, no droplets falling. Newton sits in the same spot under the yellow raincoat, tail resting on the floor. Hose end still lies on the pot rim, no bead left. Tomato soil shows one dark wet spot. No smoke, no vapor, no sparks. Valve wheel stays open and vertical. Notebook is no longer on the lid. Hook empty. Battery still.",
+     "dialogue": "Une goutte ! Victoire totale !"
+    }
+   ],
+   "bible": {
+    "lieu": "Inside Gilbert's garage laboratory, open concrete floor, open garage door in the background showing a sunlit empty village street. The phone is locked on a small tripod at the door, looking in. No one leaves this floor space.",
+    "lumiere": "Bright even daylight from the open garage door behind the camera, soft fill, clear daytime, no light change until an action on screen causes it.",
+    "objets": [
+     {
+      "nom": "climate barrel",
+      "description": "Upright yellow metal barrel, center-right. Copper coil around the upper third, red valve wheel on the lid, small brass nozzle on the lid, metal hook on the left side.",
+      "etat_initial": "Upright and dry. Valve wheel closed and horizontal. Lid nozzle silent. No vapor. No smoke."
+     },
+     {
+      "nom": "black rubber hose",
+      "description": "Two-meter black rubber hose fixed to a side spigot on the barrel, free end clipped to a bracket beside the lid nozzle and aimed at the tomato plant.",
+      "etat_initial": "Attached, clipped up, dry, not touching the plant."
+     },
+     {
+      "nom": "car battery",
+      "description": "Black plastic car battery on the concrete just right of the barrel, one red cable and one black cable clamped to bolts on the barrel.",
+      "etat_initial": "Still, cables connected, no sparks."
+     },
+     {
+      "nom": "tomato plant",
+      "description": "Small green tomato plant in a terracotta pot, inside a white chalk circle on the floor, left of the barrel and in front of Mat.",
+      "etat_initial": "Upright, soil dry, pot fully inside the chalk circle, nothing touching it."
+     },
+     {
+      "nom": "yellow raincoat",
+      "description": "Tiny bright yellow hooded raincoat hanging by its loop on the barrel's left hook, just above where Newton sits.",
+      "etat_initial": "Hanging on the hook, dry, not on Newton."
+     },
+     {
+      "nom": "notebook",
+      "description": "Small black hardcover notebook with a short pencil clipped to the cover, lying on the barrel lid to the right of the valve wheel.",
+      "etat_initial": "Closed, pencil clipped, flat on the lid, dry."
+     }
+    ]
+   },
+   "qualite": {
+    "producteur": {
+     "note": 65,
+     "problemes": [
+      "Dialogue de Mat ('Gilbert… pourquoi ça fume ?') ne correspond pas à l'action spectaculaire principale (le jet d'eau qui l'arrose et fait voler le nuage).",
+      "La chute finale n'est pas vraiment drôle ni inattendue.",
+      "Le wisp de fumée est trop discret pour justifier la réplique sur la fumée ; l'effet waouh est le jet d'eau et le ciré sur Newton."
+     ]
+    },
+    "storyboard": {
+     "ok": false,
+     "problemes": [
+      {
+       "plan": 3,
+       "probleme": "Le robinet n'est pas ouvert verticalement et il n'y a pas de nuage de vapeur au-dessus de la plante.",
+       "correction": "Open the red valve wheel to vertical position with Gilbert's left hand on it; add a low white vapor cloud filling the upper frame above the tomato plant, and a thin smoke wisp rising from the copper coil."
+      },
+      {
+       "plan": 3,
+       "probleme": "Le tuyau est toujours accroché alors que le plan indique qu'il reste en position relevée, mais l'image ne montre pas la vapeur requise.",
+       "correction": "Ensure the black rubber hose remains clipped up and dry; confirm valve is vertical and open with visible vapor cloud above the tomato plant."
+      }
+     ]
+    },
+    "scripte": [
+     {
+      "ok": true,
+      "ecarts": [],
+      "reprise": false,
+      "grave": false
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "Effet vapeur blanche épaisse absente sur les trois images",
+       "Nuage de vapeur bas au-dessus de la plante manquant dans l'image finale",
+       "Position de la valve et étincelles non conformes à la progression prévue"
+      ],
+      "reprise": true,
+      "grave": true
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "Image 1 : nuage de vapeur absent au-dessus de la plante ; Gilbert ne pose pas la main gauche sur la valve ; raincoat non accroché correctement visible ; pas de fumée du serpentin"
+      ],
+      "reprise": true,
+      "grave": true
+     },
+     {
+      "ok": false,
+      "ecarts": [
+       "Image finale : Mat n'a pas les deux mains sur la tête comme prévu.",
+       "Image finale : Newton ne porte pas le yellow raincoat comme prévu (disparu).",
+       "Image finale : le raincoat n'est visible nulle part alors qu'il doit être sur Newton."
+      ],
+      "reprise": true,
+      "grave": true
+     }
+    ],
+    "jury": {
+     "notes": {
+      "humour": 40,
+      "continuite": 55,
+      "image": 65,
+      "son": 45
+     },
+     "note": 51,
+     "points_forts": [
+      "Idée de base drôle et cohérente avec le thème du nuage privé"
+     ],
+     "remarques": [
+      "Le texte réellement prononcé ne correspond pas aux sous-titres incrustés (ex: « Moment historique ! » et « Y vise-moi ! » absents des images)",
+      "Le passage du ciré jaune sur le chien est trop brusque et incohérent entre les plans",
+      "Le nuage blanc reste trop discret et ne produit aucun effet pluie visible sur la tomate",
+      "Les positions du skateboard et du carnet varient sans logique d’un plan à l’autre",
+      "Le timing des réactions (mains sur la tête, applaudissement) est en retard par rapport au texte prononcé"
+     ],
+     "lecons": [
+      "Synchroniser strictement le texte prononcé avec les sous-titres et les actions visibles",
+      "Rendre la chute visuelle exagérée et lisible en une seule image clé"
+     ]
+    }
+   },
+   "a_revoir": true,
+   "publier_le": "2026-10-26T19:00:00+01:00"
+  },
+  {
    "id": "20261024-152242-c",
    "format": "courte",
    "titre": "[Test] le clocher invisible",

@@ -1,6 +1,6 @@
 {
  "mois": "2026-10",
- "depense_usd": 4.8511,
+ "depense_usd": 7.4299,
  "lignes": [
   {
    "date": "2026-10-24T09:22:05+02:00",
@@ -259,6 +259,156 @@
    "usd": 0.0061,
    "quoi": "avis du jury",
    "video": "20261024-140001-c"
+  },
+  {
+   "date": "2026-10-24T15:49:31+02:00",
+   "usd": 0.1335,
+   "quoi": "scénario",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:50:06+02:00",
+   "usd": 0.013,
+   "quoi": "relecture du producteur",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:50:25+02:00",
+   "usd": 0.04,
+   "quoi": "portrait de Newton, le chien de Gilbert",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:50:48+02:00",
+   "usd": 0.09,
+   "quoi": "storyboard, image 1",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:51:29+02:00",
+   "usd": 0.1,
+   "quoi": "storyboard, image 2",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:51:55+02:00",
+   "usd": 0.1,
+   "quoi": "storyboard, image 3",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:52:17+02:00",
+   "usd": 0.1,
+   "quoi": "storyboard, image 4",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:52:44+02:00",
+   "usd": 0.006,
+   "quoi": "vérification du storyboard",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:53:08+02:00",
+   "usd": 0.1,
+   "quoi": "storyboard, image 3 (refaite)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:53:47+02:00",
+   "usd": 0.31,
+   "quoi": "clip 10 s (plan 1)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:53:58+02:00",
+   "usd": 0.0042,
+   "quoi": "scripte du plan 1",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:54:28+02:00",
+   "usd": 0.25,
+   "quoi": "clip 8 s (plan 2)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:54:45+02:00",
+   "usd": 0.0046,
+   "quoi": "scripte du plan 2",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:55:15+02:00",
+   "usd": 0.25,
+   "quoi": "clip 8 s (plan 2, reprise)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:55:54+02:00",
+   "usd": 0.28,
+   "quoi": "clip 9 s (plan 3)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:56:27+02:00",
+   "usd": 0.0062,
+   "quoi": "scripte du plan 3",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:57:05+02:00",
+   "usd": 0.28,
+   "quoi": "clip 9 s (plan 3, reprise)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:57:35+02:00",
+   "usd": 0.25,
+   "quoi": "clip 8 s (plan 4)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:57:49+02:00",
+   "usd": 0.0049,
+   "quoi": "scripte du plan 4",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:58:19+02:00",
+   "usd": 0.25,
+   "quoi": "clip 8 s (plan 4, reprise)",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:58:21+02:00",
+   "usd": 0.0003,
+   "quoi": "transcription du plan 1",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:58:22+02:00",
+   "usd": 0.0002,
+   "quoi": "transcription du plan 2",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:58:22+02:00",
+   "usd": 0.0003,
+   "quoi": "transcription du plan 3",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:58:23+02:00",
+   "usd": 0.0002,
+   "quoi": "transcription du plan 4",
+   "video": "20261024-154509-c"
+  },
+  {
+   "date": "2026-10-24T15:59:02+02:00",
+   "usd": 0.0054,
+   "quoi": "avis du jury",
+   "video": "20261024-154509-c"
   }
  ],
  "historique": {},
