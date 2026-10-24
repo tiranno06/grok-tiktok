@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T19:21:58+02:00",
+   "niveau": "info",
+   "texte": "🗑️ « [Test] le clocher invisible » supprimée."
+  },
+  {
    "date": "2026-10-24T19:21:54+02:00",
    "niveau": "info",
    "texte": "🗑️ « [Test] la machine à arrêter le temps » supprimée."
