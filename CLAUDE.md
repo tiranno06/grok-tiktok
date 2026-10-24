@@ -106,8 +106,12 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   par plan) : `plan.repliques` = jusqu'à 3 répliques {qui, t, texte} (2,3 mots/s en tout, jamais à moitié dites ; `dialogue`
   = leur texte joint, `personnage` = 1er qui parle ; `scenario.voix_du_plan` → `prompt_video(plan, gens, voix, …)`) ;
   vlog téléphone à la main, gens qui bougent ; `scenario.EFFETS` (ce que Lite filme bien / mal) donné au scénariste et au
-  producteur. **Salle des auteurs** : 3 versions complètes (`versions`, chute + `image_cle` d'abord), `ep["autres"]` ;
-  `production.relire` choisit (`avis.version`, `pourquoi`). Scripte : `type` du défaut ; effet raté → reprise simplifiée
+  producteur. **Salle des auteurs** (corrigée le 24/10 au soir : 3 scénarios complets en un appel = plus de 6 min, xAI
+  coupait « Remote end closed connection ») : `scenario.proposer` = 3 pitchs courts (chute + `image_cle` d'abord) →
+  `production.choisir` (producteur) → `scenario.ecrire(..., pitch=…)` = découpage du pitch choisi → `relire`
+  (`avis.version`, `versions`, `pourquoi`). `grok.ecrire_json` lit la réponse en flux (`_appel_flux`, stream) et réessaie
+  après une coupure réseau. ffmpeg : `outils/installer_ffmpeg.sh` + cache GitHub `~/paquets-ffmpeg` (le serveur d'Ubuntu
+  a déjà mis plus de 12 min). Scripte : `type` du défaut ; effet raté → reprise simplifiée
   (`principal.SIMPLIFIER`), pas de 2e reprise d'effet dans la vidéo, `qualite.reprises_video_max` (2). Jury : juge le
   spectateur, renvoie `plan_a_refaire` + `correction`. **Deuxième passe** (`principal.deuxieme_passe`, `qualite.deuxieme_passe`,
   `note_cible` 75) : refait le plan k et les plans enchaînés qui suivent (départ `fin_{k-1}.jpg`, fichiers suffixe `b`),
