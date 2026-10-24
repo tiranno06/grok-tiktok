@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T12:47:13+02:00",
+   "niveau": "erreur",
+   "texte": "❌ Vidéo tiktok ratée : transcription refusée par xAI (400) : {\"code\":\"Client specified an invalid argument\",\"error\":\"Incorrect API key provided. You can obtain an API key from https://console.x.ai.\"}"
+  },
+  {
    "date": "2026-10-24T12:29:16+02:00",
    "niveau": "erreur",
    "texte": "❌ Vidéo courte ratée : xAI a répondu 400 : {\"code\":\"invalid-argument\",\"error\":\"Incorrect API key provided. You can obtain an API key from https://console.x.ai.\"}"
