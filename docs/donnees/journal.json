@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T09:29:50+02:00",
+   "niveau": "info",
+   "texte": "🛑 « [Test] un concours de soupe » écartée (ne sera pas publiée)."
+  },
+  {
    "date": "2026-10-24T09:24:31+02:00",
    "niveau": "info",
    "texte": "✅ « Le drone secret » prête (courte, 20 s, 0.81 $)"
