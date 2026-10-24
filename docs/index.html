@@ -158,13 +158,14 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
   <div class="banner" id="nojeton" hidden>Pour que les boutons agissent, ajoute ta clé GitHub dans <a href="#reglages" data-go="reglages">Réglages</a> (une seule fois sur ce téléphone).</div>
 
   <section class="view" id="v-file">
+    <div class="banner" id="b-manuel" hidden>Mode manuel : le robot ne crée rien tout seul. <a href="#creer" data-go="creer">Créer une vidéo</a></div>
     <details class="aide" id="aide">
       <summary>Comment publier sur TikTok (1 minute)</summary>
       <ol class="steps">
-        <li><b>Télécharger</b> la vidéo, puis <b>Copier la légende</b>.</li>
+        <li>Appuie sur <b>Publier</b> sous la vidéo, puis <b>Télécharger</b> et <b>Copier la légende</b>.</li>
         <li>Dans TikTok : <b>+</b> → Importer → choisis la vidéo → Suivant.</li>
         <li>Colle la légende. Dans <b>Plus d'options</b>, active <b>« Contenu généré par l'IA »</b> (obligatoire).</li>
-        <li>Publie, puis reviens ici et appuie sur <b>J'ai publié</b>.</li>
+        <li>Publie, puis reviens ici et appuie sur <b>C'est publié</b>.</li>
       </ol>
     </details>
     <div id="list-file" style="display:grid;gap:12px"></div>
@@ -239,6 +240,14 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
   </section>
 
   <section class="view" id="v-reglages" hidden>
+    <div class="panel">
+      <h2>Création des vidéos</h2>
+      <div class="choice" role="radiogroup" aria-label="Mode de création">
+        <label><input type="radio" name="mode" id="m_auto" value="auto"><b>Automatique</b><span>Le robot crée les vidéos du planning chaque matin</span></label>
+        <label><input type="radio" name="mode" id="m_manuel" value="manuel"><b>Manuelle</b><span>Rien ne se crée tout seul : tu appuies sur Créer</span></label>
+      </div>
+      <p class="hint">La publication sur TikTok, elle, se fait toujours à la main : bouton <b>Publier</b> sur chaque vidéo.</p>
+    </div>
     <form class="panel" id="f-conn">
       <h2>Clé GitHub de ce téléphone</h2>
       <p class="hint">Le site a besoin d'une clé GitHub pour envoyer tes ordres au robot. Elle reste uniquement dans ce navigateur.
@@ -249,21 +258,17 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
     </form>
     <form class="panel" id="f-cfg">
       <h2>Planning</h2>
+      <p class="hint" id="planning-manuel" hidden>Mode manuel : ce planning ne sert qu'à conseiller les heures de publication. Les vidéos ne se créent que quand tu appuies sur Créer.</p>
       <label class="f" for="r_cap">Plafond mensuel (dollars) <span class="sub">30 $ ≈ 26 €. Le robot s'arrête de lui-même avant de le dépasser.</span><input type="number" id="r_cap" min="1" max="200" step="1"></label>
-      <div class="f">Vidéo courte
+      <div class="f">Vidéo courte automatique
         <div class="seg"><label for="r_daily"><input type="checkbox" id="r_daily"> Une chaque jour</label></div></div>
-      <div class="f">Jours des vidéos longues
+      <div class="f">Jours des vidéos longues automatiques
         <div class="seg" id="r_days"></div></div>
       <label class="f" for="r_hours">Heures de publication conseillées <span class="sub">Ex. 12, 19. Les longues visent la dernière heure.</span><input type="text" id="r_hours"></label>
       <div class="f">Montage
         <div class="seg"><label for="r_subs"><input type="checkbox" id="r_subs"> Sous-titres incrustés</label></div></div>
       <div class="actions"><button class="btn primary" type="submit">Envoyer au robot</button></div>
     </form>
-    <div class="panel">
-      <h2 id="pause-titre">Robot actif</h2>
-      <p class="hint" id="pause-texte">Il fabrique les vidéos prévues chaque matin.</p>
-      <div class="actions"><button class="btn" type="button" id="b-pause">Mettre en pause</button></div>
-    </div>
   </section>
 </main>
 
@@ -380,9 +385,7 @@ function carte(v) {
   const mini = v.miniature && !DEMO ? `background-image:url('${esc(v.miniature)}')` : "";
   let act = "";
   if (v.statut === "a_publier") act = `
-      ${v.url ? `<a class="btn primary" href="${esc(v.url)}" target="_blank" rel="noopener">Télécharger</a>` : `<button class="btn primary" type="button" data-a="demo">Télécharger</button>`}
-      <button class="btn" type="button" data-a="copier" data-id="${v.id}">Copier la légende</button>
-      <button class="btn" type="button" data-a="jai_publie" data-id="${v.id}">J'ai publié</button>
+      <button class="btn primary" type="button" data-a="publier" data-id="${v.id}">Publier</button>
       <button class="btn" type="button" data-a="legende" data-id="${v.id}">Modifier la légende</button>
       <button class="btn" type="button" data-a="refaire" data-id="${v.id}">Refaire</button>
       <button class="btn danger" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>`;
@@ -421,7 +424,7 @@ function rendre() {
   $("#c-file").textContent = nb.length;
   $("#c-pub").textContent = pub.length;
   $("#tally").classList.toggle("idle", !nb.length);
-  $("#sub").textContent = R().planning.pause ? "robot en pause" : nb.length ? `${nb.length} à publier` : "rien à publier";
+  $("#sub").textContent = (nb.length ? `${nb.length} à publier` : "rien à publier") + (R().planning.pause ? " · mode manuel" : "");
 
   for (const f of ["courte","longue"]) { const [s, c] = cout(f); $("#est-" + f).textContent = `${s} s · ~${usd(c)}`; }
 
@@ -443,10 +446,9 @@ function rendre() {
   $("#log").innerHTML = J.map(e => `<li class="${esc(e.niveau)}"><time>${new Date(e.date).toLocaleString("fr-FR",{timeZone:"Europe/Paris",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</time><span>${esc(e.texte)}</span></li>`).join("") || `<li><span class="hint">Le robot n'a encore rien fait.</span></li>`;
   const c = conn(); $("#l-actions").href = c.repo ? `https://github.com/${c.repo}/actions` : "https://github.com";
 
-  const pause = !!pl.pause;
-  $("#pause-titre").textContent = pause ? "Robot en pause" : "Robot actif";
-  $("#pause-texte").textContent = pause ? "Il ne fabrique plus rien tout seul. Tu peux toujours commander une vidéo dans « Créer »." : "Il fabrique les vidéos prévues chaque matin.";
-  $("#b-pause").textContent = pause ? "Relancer le robot" : "Mettre en pause";
+  const manuel = !!pl.pause;                                   // « pause » = mode manuel : aucune création automatique
+  $("#m_auto").checked = !manuel; $("#m_manuel").checked = manuel;
+  $("#b-manuel").hidden = !manuel; $("#planning-manuel").hidden = !manuel;
 }
 
 function remplirFormulaires() {
@@ -500,7 +502,7 @@ document.addEventListener("click", async e => {
   if (a === "copier") {
     const t = legendeComplete(v);
     try { await navigator.clipboard.writeText(t); toast("Légende copiée. Colle-la dans TikTok."); }
-    catch { zone.innerHTML = `<textarea id="cp-${id}" readonly>${esc(t)}</textarea>`; const ta = $("#cp-" + id); ta.focus(); ta.select(); toast("Sélectionnée : copie-la à la main."); }
+    catch { zone.insertAdjacentHTML("beforeend", `<textarea id="cp-${id}" readonly>${esc(t)}</textarea>`); const ta = $("#cp-" + id); ta.focus(); ta.select(); toast("Sélectionnée : copie-la à la main."); }
     return;
   }
   if (a === "legende") {
@@ -513,9 +515,16 @@ document.addEventListener("click", async e => {
     if (await commande("legende", id, t, "Légende envoyée.")) { v.legende = t; rendre(); }
     return;
   }
-  if (a === "jai_publie") {
-    zone.innerHTML = `<label class="f" for="lien-${id}">Lien de la vidéo TikTok <span class="sub">Facultatif. Dans TikTok : Partager → Copier le lien.</span><input type="url" id="lien-${id}" placeholder="https://www.tiktok.com/@…"></label>
-      <span class="actions"><button class="btn primary" type="button" data-a="publiee" data-id="${id}">Confirmer : elle est en ligne</button></span>`;
+  if (a === "publier") {
+    const tele = v.url ? `<a class="btn primary" href="${esc(v.url)}" target="_blank" rel="noopener">Télécharger la vidéo</a>`
+      : `<button class="btn primary" type="button" data-a="demo">Télécharger la vidéo</button>`;
+    zone.innerHTML = `<ol class="steps">
+        <li>${tele}</li>
+        <li><button class="btn" type="button" data-a="copier" data-id="${id}">Copier la légende</button></li>
+        <li>Dans TikTok : <b>+</b> → Importer → la vidéo. Colle la légende et active <b>« Contenu généré par l'IA »</b> (Plus d'options).</li>
+        <li><label class="f" for="lien-${id}">Lien de la vidéo TikTok <span class="sub">Facultatif. Dans TikTok : Partager → Copier le lien.</span><input type="url" id="lien-${id}" placeholder="https://www.tiktok.com/@…"></label>
+          <span class="actions"><button class="btn primary" type="button" data-a="publiee" data-id="${id}">C'est publié</button></span></li>
+      </ol>`;
     return;
   }
   if (a === "publiee") {
@@ -558,8 +567,12 @@ $("#f-cfg").addEventListener("submit", e => { e.preventDefault();
     jours_longue:[...document.querySelectorAll("#r_days input:checked")].map(i => i.value),
     heures_publication:heures, sous_titres:$("#r_subs").checked });
   commande("reglages", "", json, "Réglages envoyés au robot."); });
-$("#b-pause").onclick = async () => { const p = !R().planning.pause;
-  if (await commande(p ? "pause" : "reprise", "", "", p ? "Robot mis en pause." : "Robot relancé.")) { R().planning.pause = p; rendre(); } };
+document.querySelectorAll('input[name="mode"]').forEach(i => i.addEventListener("change", async () => {
+  const manuel = i.value === "manuel";
+  if (await commande(manuel ? "pause" : "reprise", "", "", manuel ? "Mode manuel : le robot ne crée plus rien tout seul."
+      : "Mode automatique : le robot crée les vidéos du planning chaque matin.")) R().planning.pause = manuel;
+  rendre();                                                    // en cas d'échec, remet le choix tel qu'il était
+}));
 $("#f-conn").addEventListener("submit", e => { e.preventDefault();
   const repo = $("#c_repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
   if (repo && !/^[\w.-]+\/[\w.-]+$/.test(repo)) return toast("Le dépôt doit ressembler à pseudo/grok-tiktok.");

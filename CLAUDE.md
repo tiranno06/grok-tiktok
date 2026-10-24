@@ -6,7 +6,9 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
 
 ## Choix du propriétaire (23/10/2026)
 - Images réalistes, personnage récurrent **Gilbert Mouchon** (fiche modifiable depuis le site, `docs/donnees/personnage.json`).
-- **Publication toujours à la main** depuis le site (Télécharger, Copier la légende, J'ai publié) : pas d'API TikTok, pas de Buffer.
+- **Publication toujours à la main** depuis le site (bouton Publier → Télécharger, Copier la légende, C'est publié) : pas d'API TikTok, pas de Buffer.
+- **Création automatique ou manuelle** (24/10, Réglages → Création des vidéos) : manuel = `planning.pause` vrai (actions `pause` /
+  `reprise`), les réveils programmés ne créent plus rien ; seul le bouton Créer (`--format courte|longue`) fabrique.
 - **Son intégré de Grok Imagine** (voix comprise), pas d'ElevenLabs.
 - Budget : 30 €/mois au plus → plafond 30 $ (≈ 26 €) dans `reglages.json`. Une courte (20 s) par jour, une longue (84 s,
   > 1 min pour la rémunération TikTok) le samedi ≈ 23 $/mois.

@@ -8,7 +8,11 @@ Chaque matin, le robot :
 3. **monte la vidéo** : format vertical 720×1280, son égalisé, sous-titres incrustés ;
 4. la range dans les **Releases** du dépôt et l'affiche sur le **site**, avec l'heure conseillée pour la publier.
 
-Tu publies toi-même sur TikTok depuis le site : **Télécharger → Copier la légende → J'ai publié**.
+Tu publies toi-même sur TikTok depuis le site : bouton **Publier** → Télécharger → Copier la légende → C'est publié.
+
+**Automatique ou manuel**, au choix dans **Réglages → Création des vidéos** :
+- *Automatique* : le robot crée chaque matin les vidéos du planning (courte chaque jour, longue le samedi ; les deux se règlent).
+- *Manuelle* : rien ne se crée tout seul, ni le matin ni le samedi. Tu crées chaque vidéo avec le bouton **Créer**.
 
 | Vidéo | Durée | Coût prévu |
 |---|---|---|
@@ -55,7 +59,7 @@ Tu peux ensuite la supprimer : **Écarter**, puis **Supprimer**.
 (onglet **Personnage**), puis la vidéo. Regarde-la, et vérifie son coût dans **Budget**.
 Si la voix ou le visage ne te plaisent pas : **Personnage** → modifie l'apparence ou la voix → **Refaire le portrait**.
 
-Ensuite, tout est automatique : une courte chaque jour, une longue le samedi.
+Ensuite, en mode automatique : une courte chaque jour, une longue le samedi. En mode manuel : seulement quand tu appuies sur **Créer**.
 
 ---
 
@@ -63,7 +67,7 @@ Ensuite, tout est automatique : une courte chaque jour, une longue le samedi.
 - **À publier** : les vidéos prêtes, avec l'heure conseillée (12 h, et 19 h pour les longues). **Refaire** commande une
   autre version, **Écarter** la met de côté.
 - Sur TikTok, active toujours **« Contenu généré par l'IA »** (Plus d'options) : c'est obligatoire pour ces vidéos.
-- **Réglages** : plafond, jours des longues, heures, sous-titres, pause.
+- **Réglages** : création automatique ou manuelle, plafond, jours des longues, heures, sous-titres.
 - **Journal** : ce que fait le robot, et pourquoi une vidéo a raté.
 
 ## Si quelque chose ne va pas

@@ -141,7 +141,7 @@ def main(argv=None):
     R = reglages()
     if args.format == "auto":
         if R["planning"].get("pause"):
-            print("Robot en pause (Réglages du site) : rien à faire.")
+            print("Mode manuel (Réglages du site) : aucune création automatique.")
             return 0
         formats = planning.a_faire(R, lire("file.json") or {"videos": []}, planning.etat())
         if not formats:

@@ -56,7 +56,8 @@ def appliquer(action, vid, texte):
         R = reglages()
         R["planning"]["pause"] = action == "pause"
         ecrire("reglages.json", R)
-        noter("⏸️ Robot mis en pause." if action == "pause" else "▶️ Robot relancé.")
+        noter("✋ Mode manuel : plus aucune création automatique (bouton Créer seulement)." if action == "pause"
+              else "🤖 Mode automatique : le robot crée les vidéos du planning chaque matin.")
     elif action == "portrait_pret":                          # étape interne de « portrait »
         shutil.copy(texte, os.path.join(DONNEES, "portrait.jpg"))
     else:

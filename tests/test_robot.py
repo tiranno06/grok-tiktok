@@ -28,6 +28,11 @@ class Base(unittest.TestCase):
         shutil.rmtree(os.path.join(TMP, "docs"), ignore_errors=True)
         shutil.copytree(os.path.join(RACINE, "docs", "donnees"), os.path.join(TMP, "docs", "donnees"))
         os.makedirs(os.path.join(TMP, "docs", "miniatures"))
+        for nom, vide in (("file.json", {"videos": []}), ("journal.json", {"evenements": []}), ("etat.json", {"essais": {}})):
+            ecrire(nom, vide)                                       # repart de zéro, quelles que soient les vraies données
+        for nom in ("budget.json", "portrait.jpg"):
+            if os.path.exists(os.path.join(TMP, "docs", "donnees", nom)):
+                os.remove(os.path.join(TMP, "docs", "donnees", nom))
         os.environ["SIMULATION"] = "1"
         os.environ["ROBOT_MAINTENANT"] = "2026-10-24T06:17:00"          # un samedi
 
@@ -73,6 +78,8 @@ class Simulation(Base):
         commande.appliquer("pause", "", "")
         self.assertEqual(principal.main(["--format", "auto"]), 0)
         self.assertEqual(self.file(), [])
+        principal.main(["--format", "courte"])                       # mode manuel : le bouton Créer marche toujours
+        self.assertEqual(len(self.file()), 1)
 
 
 class FauxGrok(Base):
