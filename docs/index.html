@@ -120,6 +120,12 @@ th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: upp
 td.n { text-align: right; font-family: var(--f-mono); }
 .scroll { overflow-x: auto; }
 
+details.sec { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); padding: 10px 12px; }
+details.sec summary { cursor: pointer; display: flex; gap: 10px; align-items: center; font-weight: 700; }
+details.sec summary img { width: 40px; height: 54px; object-fit: cover; border-radius: 6px; background: var(--surface); flex: none; }
+details.sec summary span { min-width: 0; overflow-wrap: anywhere; }
+details.sec[open] summary { margin-bottom: 10px; }
+.sec-corps { display: grid; gap: 10px; }
 .perso { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: start; }
 .perso img { width: 120px; max-width: 100%; aspect-ratio: 9/16; object-fit: cover; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); }
 @media (max-width: 460px) { .perso { grid-template-columns: 1fr; } .perso img { width: 140px; } }
@@ -245,6 +251,7 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <label class="f" for="p_ville">Ville<input type="text" id="p_ville"></label>
       <label class="f" for="p_apparence">Apparence <span class="sub">En anglais : c'est ce que lit Grok pour filmer. Après un changement, refais le portrait.</span><textarea id="p_apparence"></textarea></label>
       <label class="f" for="p_voix">Voix <span class="sub">En anglais aussi. Grok s'en sert pour la voix de chaque plan.</span><input type="text" id="p_voix"></label>
+      <label class="f" for="p_gestuelle">Gestes et mimiques <span class="sub">En anglais : Grok s'en sert pour le jeu d'acteur.</span><textarea id="p_gestuelle"></textarea></label>
       <label class="f" for="p_personnalite">Personnalité<textarea id="p_personnalite"></textarea></label>
       <label class="f" for="p_phrase">Phrase fétiche<input type="text" id="p_phrase"></label>
       <label class="f" for="p_repliques">Répliques typiques <span class="sub">Une par ligne. Le robot en glisse une ou deux par épisode, quand elles tombent bien.</span><textarea id="p_repliques" rows="6"></textarea></label>
@@ -252,6 +259,15 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <label class="f" for="p_ton">Ton<input type="text" id="p_ton"></label>
       <div class="actions"><button class="btn primary" type="submit">Enregistrer la fiche</button></div>
     </form>
+    <div class="panel">
+      <h2>Personnages secondaires</h2>
+      <p class="hint">Ils reviennent d'un épisode à l'autre, inspirés des personnages de Retour vers le futur. Le robot en invite
+        0, 1 ou 2 selon l'idée de l'épisode. Chacun a son portrait de référence pour garder le même visage (fait tout seul à sa
+        première apparition, 0,04 $).</p>
+      <div id="sec-liste" style="display:grid;gap:10px"></div>
+      <div class="actions"><button class="btn" type="button" id="sec_ajouter">Ajouter un personnage</button>
+        <button class="btn primary" type="button" id="sec_ok">Enregistrer les personnages</button></div>
+    </div>
   </section>
 
   <section class="view" id="v-budget" hidden>
@@ -369,7 +385,7 @@ const DEMO_DATA = {
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
     montage:{ sous_titres:true },
     tiktok:{ profils:["yan_animation0","eliotlehanneur","same_same53","charly.bse"], auto:false, jours:["mercredi","dimanche"], duree_max:45 } },
-  "personnage.json": {"nom": "Gilbert Mouchon", "age": 62, "ville": "Saint-Glinglin-sur-Loire (village imaginaire)", "apparence": "French man in his early sixties, round friendly face, wild untamed shock of white hair sticking up in all directions as if electrified, thick grey walrus moustache, bushy eyebrows, wide wild excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly scorched white lab coat over a faded blue checked shirt, a wristwatch on each wrist, a pocket full of screwdrivers", "voix": "excited, slightly hoarse voice of a French man in his sixties, theatrical and breathless, speeds up and goes high-pitched when he gets carried away, then whispers dramatically", "personnalite": "Hommage assumé à Doc, le savant fou de Retour vers le futur, transposé dans un village français. Génie incompris, persuadé d'avoir 30 ans d'avance sur son époque, que tout le village prend pour un doux dingue. Il vit dans son garage transformé en laboratoire : des dizaines d'horloges qui sonnent toutes en même temps, une machine à petit-déjeuner automatique qui rate tout (elle verse le café à côté et nourrit Napoléon), des câbles partout, un tableau noir couvert d'équations, une maquette du village en carton pour « reconstituer ses expériences ». Il invente des machines et des technologies complètement ubuesques : voyager dans le temps (au moins de cinq minutes), lire dans les pensées de Monique avec un casque à électrodes, une 2CV qui doit atteindre 88 km/h pour… quelque chose, une tondeuse à réaction, un grille-pain qui prédit l'avenir. Il présente chaque invention avec une exaltation et un sérieux scientifique absolus, grands gestes, yeux écarquillés, explications pseudo-techniques à toute vitesse… et presque à chaque fois ça foire : court-circuit, fumée, coupure de courant dans tout le village, effet inverse, Napoléon qui disparaît (puis réapparaît trois secondes plus tard, très calme). Mais il a énormément d'humour : il rebondit toujours, transforme chaque catastrophe en « découverte majeure » et note tout dans son carnet. De temps en temps, une expérience marche… pour de mauvaises raisons.", "phrase_fetiche": "Nom d'une pile atomique !", "gags_recurrents": ["Presque toutes ses expériences foirent de façon spectaculaire : court-circuit, nuage de fumée, cheveux encore plus électrisés", "Compte à rebours très théâtral avant chaque essai, montre en main, et note de la date et de l'heure exactes dans son carnet", "Napoléon, son pigeon, est le cobaye officiel de chaque expérience : il disparaît, réapparaît, ou se retrouve avec des lunettes de soudeur", "Monique, la voisine qu'on ne voit jamais, crie à travers la haie à cause du bruit, des éclairs et des coupures de courant", "Les horloges du garage sonnent toutes en même temps au mauvais moment", "Il enfile une combinaison de protection jaune et des gants de cuisine pour des expériences qui n'en ont pas besoin", "Quand une expérience marche par miracle, il est encore plus surpris que tout le monde"], "ton": "comédie de savant fou à la Doc : exaltation, génie incompris, démonstration très sérieuse, catastrophe qui foire, humour et résilience, chute absurde", "repliques": ["Nom d'une pile atomique !", "Si mes calculs sont exacts… et ils le sont toujours… à peu près.", "Il me faut 1,21 gigawatt ! Ou deux piles plates et une rallonge.", "Quand cette machine atteindra 88 km/h, tu vas voir quelque chose de vraiment… bon, tu vas voir.", "Ce n'est pas un échec, c'est un résultat inattendu de toute première importance !", "Note bien la date et l'heure : ceci est un moment historique.", "Napoléon, tu es le premier pigeon de l'histoire à… où est passé Napoléon ?", "Tu ne réfléchis pas en quatre dimensions, Monique !", "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main."]}
+  "personnage.json": {"nom": "Gilbert Mouchon", "age": 62, "ville": "Saint-Glinglin-sur-Loire (village imaginaire)", "apparence": "French man in his early sixties, round friendly face, wild untamed shock of white hair sticking up in all directions as if electrified, thick grey walrus moustache, bushy eyebrows, wide wild excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly scorched white lab coat over a faded blue checked shirt, a wristwatch on each wrist, a pocket full of screwdrivers", "voix": "excited, slightly hoarse voice of a French man in his sixties, theatrical and breathless, speeds up and goes high-pitched when he gets carried away, then whispers dramatically", "personnalite": "Hommage assumé à Doc, le savant fou de Retour vers le futur, transposé dans un village français. Génie incompris, persuadé d'avoir 30 ans d'avance sur son époque, que tout le village prend pour un doux dingue. Il vit dans son garage transformé en laboratoire : des dizaines d'horloges qui sonnent toutes en même temps, une machine à petit-déjeuner automatique qui rate tout (elle verse le café à côté et nourrit Napoléon), des câbles partout, un tableau noir couvert d'équations, une maquette du village en carton pour « reconstituer ses expériences ». Il invente des machines et des technologies complètement ubuesques : voyager dans le temps (au moins de cinq minutes), lire dans les pensées de Monique avec un casque à électrodes, une 2CV qui doit atteindre 88 km/h pour… quelque chose, une tondeuse à réaction, un grille-pain qui prédit l'avenir. Il présente chaque invention avec une exaltation et un sérieux scientifique absolus, grands gestes, yeux écarquillés, explications pseudo-techniques à toute vitesse… et presque à chaque fois ça foire : court-circuit, fumée, coupure de courant dans tout le village, effet inverse, Napoléon qui disparaît (puis réapparaît trois secondes plus tard, très calme). Mais il a énormément d'humour : il rebondit toujours, transforme chaque catastrophe en « découverte majeure » et note tout dans son carnet. De temps en temps, une expérience marche… pour de mauvaises raisons.", "phrase_fetiche": "Nom d'une pile atomique !", "gags_recurrents": ["Presque toutes ses expériences foirent de façon spectaculaire : court-circuit, nuage de fumée, cheveux encore plus électrisés", "Compte à rebours très théâtral avant chaque essai, montre en main, et note de la date et de l'heure exactes dans son carnet", "Napoléon, son pigeon, est le cobaye officiel de chaque expérience : il disparaît, réapparaît, ou se retrouve avec des lunettes de soudeur", "Monique, la voisine qu'on ne voit jamais, crie à travers la haie à cause du bruit, des éclairs et des coupures de courant", "Les horloges du garage sonnent toutes en même temps au mauvais moment", "Il enfile une combinaison de protection jaune et des gants de cuisine pour des expériences qui n'en ont pas besoin", "Quand une expérience marche par miracle, il est encore plus surpris que tout le monde"], "ton": "comédie de savant fou à la Doc : exaltation, génie incompris, démonstration très sérieuse, catastrophe qui foire, humour et résilience, chute absurde", "repliques": ["Nom d'une pile atomique !", "Si mes calculs sont exacts… et ils le sont toujours… à peu près.", "Il me faut 1,21 gigawatt ! Ou deux piles plates et une rallonge.", "Quand cette machine atteindra 88 km/h, tu vas voir quelque chose de vraiment… bon, tu vas voir.", "Ce n'est pas un échec, c'est un résultat inattendu de toute première importance !", "Note bien la date et l'heure : ceci est un moment historique.", "Napoléon, tu es le premier pigeon de l'histoire à… où est passé Napoléon ?", "Tu ne réfléchis pas en quatre dimensions, Monique !", "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main."], "secondaires": [{"nom": "Mathis « Mat » Mouflet", "age": 19, "role": "Le jeune acolyte et seul ami de Gilbert (adaptation de Marty) : embarqué malgré lui dans chaque expérience", "apparence": "French young man aged 19, slim, messy brown hair, red puffer vest over a denim jacket, checked shirt, faded jeans, white sneakers, a skateboard under his arm, a portable cassette player clipped to his belt", "voix": "young French man's voice, quick and sarcastic, cracks and goes high-pitched when panicking", "gestuelle": "double take with his mouth wide open, both hands on his head in disbelief, points at himself 'me?', air guitar when happy, rides his skateboard in and jumps off it, nervous glance at his watch, steps back slowly from danger", "personnalite": "Cool, un peu flemmard, rêve d'être une rock star (sa guitare électrique est toujours trop forte). Fidèle à Gilbert même s'il panique à chaque expérience. Toujours en retard. Son point faible : il perd tout son sang-froid quand on le traite de « poule mouillée » et accepte alors n'importe quel défi absurde.", "repliques": ["C'est du lourd, Gilbert. Du très lourd.", "Attends, attends, attends… tu es en train de me dire que…", "Personne ne me traite de poule mouillée !", "Gilbert… pourquoi ça fume ?", "C'est la dernière fois. Bon. Vas-y, montre."], "id": "mat"}, {"nom": "Brice « Le Bouc » Tanguy", "age": 38, "role": "La brute du village (adaptation de Biff) : garagiste costaud qui se moque de tout le monde", "apparence": "burly French man aged 38, square jaw, short blond hair slicked back, dark blue mechanic overalls with rolled sleeves, grease stains, a toothpick in his mouth", "voix": "loud, gravelly French voice, mocking, slightly slow-witted", "gestuelle": "knocks his knuckles on people's foreheads, cracks his knuckles, chews his toothpick, leans over people to intimidate, laughs loudly at his own jokes, wipes greasy hands on others' clothes", "personnalite": "Gros bras pas très malin, jaloux de tout, il veut toujours « emprunter » les inventions de Gilbert et rate tous les proverbes. Il tape sur la tête des gens en demandant s'il y a quelqu'un dedans. Il finit TOUJOURS dans le tas de fumier (ou dans le bassin, ou couvert de mousse).", "repliques": ["Hé ho, y a quelqu'un là-dedans ? Hé ho ?", "Fais comme une feuille et… dégage.", "Qu'est-ce que tu regardes, toi ?", "Je t'emprunte ta machine. Tu me la reprendras quand je l'aurai cassée.", "Ah non ! Je déteste le fumier !"], "id": "bouc"}, {"nom": "Gérard Mollard", "age": 47, "role": "Le voisin timide (adaptation de George) : maladroit, terrorisé par Le Bouc, écrit en secret des romans de science-fiction", "apparence": "skinny awkward French man aged 47, neat side-parted dark hair, big round glasses, beige cardigan buttoned wrong, tie, carrying a notebook", "voix": "soft, hesitant French voice, high nervous laugh", "gestuelle": "nervous high-pitched laugh, pushes his glasses up his nose, fidgets with his notebook, hunches his shoulders, practices clumsy punches in the air, suddenly stands up straight when he finds his courage", "personnalite": "Timide, gentil, trop poli, il n'ose jamais dire non : c'est le volontaire idéal pour tester les inventions. Il écrit des histoires d'extraterrestres qu'il ne montre à personne. Une fois de temps en temps, il trouve un courage inattendu… et c'est Le Bouc qui en fait les frais.", "repliques": ["Je… je suis votre… votre densité. Destin ! Votre destin.", "Je crois que je ne suis pas prêt pour ce genre de… responsabilités.", "Si jamais vous avez besoin d'aide pour… pour quoi que ce soit… enfin, non, rien.", "Ôte… ôte tes mains de là, Le Bouc !"], "id": "gerard"}, {"nom": "Lola Fabre", "age": 19, "role": "La copine de Mat (adaptation de Jennifer) : lucide, ironique, elle filme toutes les catastrophes", "apparence": "French young woman aged 19, wavy auburn hair with a scrunchie, light denim jacket over a pastel top, small hoop earrings, holding her phone", "voix": "young French woman's voice, calm and ironic", "gestuelle": "films everything with her phone held up, arms crossed with one eyebrow raised, slow ironic clap, writes a phone number on Mat's hand, sighs and checks the time", "personnalite": "Pragmatique et pince-sans-rire, la seule qui garde son calme. Elle tient la liste des prédictions de Gilbert pour vérifier qu'aucune ne se réalise. Elle croit en Mat (et en sa musique), un peu moins en Gilbert.", "repliques": ["Gilbert, c'est la troisième fois ce mois-ci que tu fais sauter le transfo.", "Je filme. Pour l'assurance.", "Appelle-moi ce soir. Si le village a encore du courant."], "id": "lola"}, {"nom": "Laurence Mouflet", "age": 45, "role": "La mère de Mat (adaptation de Lorraine) : romantique, nostalgique de sa jeunesse, un peu trop émue par tout", "apparence": "French woman aged 45, curly reddish-brown hair, floral dress with a cardigan, pearl necklace, a glass of rosé often in hand", "voix": "warm, dreamy French woman's voice, a little tipsy", "gestuelle": "hand on her heart, dreamy sigh while looking into the distance, clinks her glass, pinches Mat's cheek, giggles behind her hand", "personnalite": "Elle raconte sans arrêt comment elle a rencontré son mari, et la version change à chaque fois. Elle trouve Gilbert « tellement intéressant » et se porte volontaire pour les expériences les plus dangereuses.", "repliques": ["Ah, quand j'avais ton âge… on ne faisait pas des choses pareilles. Enfin… pas souvent.", "Un inventeur ! Comme c'est romantique.", "Mathis, tiens-toi droit, on te regarde."], "id": "laurence"}, {"nom": "M. Strecker, le maire", "age": 64, "role": "Le maire sévère du village (adaptation du proviseur Strickland) : chauve, autoritaire, il veut interdire les expériences", "apparence": "stern bald French man aged 64, thin moustache, bow tie, short-sleeved white shirt, tricolour mayor's sash, clipboard in hand", "voix": "sharp, stern French voice, clipped words", "gestuelle": "appears suddenly behind people, leans in far too close to their face, points a stiff finger, slaps his clipboard, squints with suspicion, hands behind his back", "personnalite": "Il déteste les tire-au-flanc, les inventeurs et la musique trop forte. Il arrive toujours au pire moment avec un nouvel arrêté municipal.", "repliques": ["Tire-au-flanc !", "Aucun Mouchon n'a jamais rien fait de bon à Saint-Glinglin.", "Arrêté municipal numéro 412 : interdiction de voyager dans le temps après 22 heures."], "id": "maire"}], "gestuelle": "bug-eyed wide stare, grabs both hands on his electrified hair when shocked, points one finger up when an idea strikes, freezes mid-sentence then rushes off, grabs the other person by the shoulders when excited, mutters calculations to himself, checks both wristwatches at once"}
 };
 const NOMS = Object.keys(DEMO_DATA);
 
@@ -530,9 +546,10 @@ function remplirFormulaires() {
   const img = $("#portrait");
   img.onerror = () => { img.onerror = null; img.src = SILHOUETTE; };
   img.src = DEMO ? SILHOUETTE : `donnees/portrait.jpg?t=${Date.now()}`;
-  const pf = { p_nom:P.nom, p_age:P.age, p_ville:P.ville, p_apparence:P.apparence, p_voix:P.voix, p_personnalite:P.personnalite,
+  const pf = { p_nom:P.nom, p_age:P.age, p_ville:P.ville, p_apparence:P.apparence, p_voix:P.voix, p_gestuelle:P.gestuelle, p_personnalite:P.personnalite,
     p_phrase:P.phrase_fetiche, p_gags:(P.gags_recurrents||[]).join("\n"), p_repliques:(P.repliques||[]).join("\n"), p_ton:P.ton };
   for (const [k, v] of Object.entries(pf)) { const el = document.getElementById(k); if (document.activeElement !== el) el.value = v ?? ""; }
+  rendreSec();
   $("#r_cap").value = R().budget.plafond_mensuel_usd; $("#r_daily").checked = !!pl.courte_chaque_jour;
   $("#r_days").innerHTML = JOURS.map(j => `<label for="j_${j}"><input type="checkbox" id="j_${j}" value="${j}" ${pl.jours_longue.includes(j) ? "checked" : ""}> ${j}</label>`).join("");
   $("#r_hours").value = pl.heures_publication.join(", "); $("#r_subs").checked = R().montage.sous_titres !== false;
@@ -695,9 +712,61 @@ $("#f-tkp").addEventListener("submit", e => { e.preventDefault();
     jours: [...document.querySelectorAll("#tk_jours input:checked")].map(i => i.value) };
   commande("reglages", "", JSON.stringify({ tiktok }), "Profils TikTok envoyés au robot."); });
 $("#b-portrait").addEventListener("click", e => { if (arme(e.currentTarget, "portrait")) commande("portrait", "", "", "Nouveau portrait commandé (1 à 2 min)."); });
+// ---------------- personnages secondaires
+let secModifie = false;
+const SEC_CHAMPS = [["nom", "Nom", "input"], ["age", "Âge", "number"], ["role", "Rôle", "input"],
+  ["apparence", "Apparence (en anglais, pour Grok)", "area"], ["voix", "Voix (en anglais)", "input"],
+  ["gestuelle", "Gestes et mimiques (en anglais)", "area"],
+  ["personnalite", "Personnalité", "area"], ["repliques", "Répliques typiques (une par ligne)", "area"]];
+function carteSec(c, k) {
+  const champs = SEC_CHAMPS.map(([cle, lib, type]) => {
+    const id = `sec_${k}_${cle}`, val = cle === "repliques" ? (c.repliques || []).join("\n") : (c[cle] ?? "");
+    const ctrl = type === "area" ? `<textarea id="${id}">${esc(val)}</textarea>`
+      : `<input type="${type === "number" ? "number" : "text"}" id="${id}" value="${esc(val)}">`;
+    return `<label class="f" for="${id}">${lib}${ctrl}</label>`;
+  }).join("");
+  const img = DEMO || !c.id ? SILHOUETTE : `donnees/portraits/${encodeURIComponent(c.id)}.jpg?t=${Date.now()}`;
+  return `<details class="sec" data-k="${k}" data-id="${esc(c.id || "")}"><summary><img src="${img}" alt="" onerror="this.onerror=null;this.src=SILHOUETTE">
+      <span>${esc(c.nom || "Nouveau personnage")}<br><small class="hint">${esc((c.role || "").length > 90 ? c.role.slice(0, 88).trimEnd() + "…" : (c.role || ""))}</small></span></summary>
+    <div class="sec-corps">${champs}
+      <div class="actions">${c.id ? `<button class="btn" type="button" data-sec="portrait">Refaire son portrait (0,04 $)</button>` : ""}
+        <button class="btn danger" type="button" data-sec="retirer">Retirer</button></div></div></details>`;
+}
+function rendreSec(force) {
+  if (secModifie && !force) return;
+  $("#sec-liste").innerHTML = (D["personnage.json"].secondaires || []).map(carteSec).join("")
+    || `<div class="empty">Aucun personnage secondaire : Gilbert joue seul.</div>`;
+}
+function lireSec() {
+  return [...document.querySelectorAll("#sec-liste details.sec")].map(d => {
+    const k = d.dataset.k, v = cle => (document.getElementById(`sec_${k}_${cle}`)?.value || "").trim();
+    return { id: d.dataset.id, nom: v("nom"), age: +v("age") || 30, role: v("role"), apparence: v("apparence"), voix: v("voix"),
+      personnalite: v("personnalite"), gestuelle: v("gestuelle"), repliques: v("repliques").split("\n").map(x => x.trim()).filter(Boolean) };
+  }).filter(c => c.nom);
+}
+$("#sec-liste").addEventListener("input", () => { secModifie = true; });
+$("#sec-liste").addEventListener("click", async e => {
+  const b = e.target.closest("[data-sec]"); if (!b) return;
+  const d = b.closest("details.sec");
+  if (b.dataset.sec === "retirer") { if (!arme(b, "ret" + d.dataset.k)) return; d.remove(); secModifie = true; toast("Retiré. Appuie sur « Enregistrer les personnages »."); return; }
+  if (b.dataset.sec === "portrait" && arme(b, "por" + d.dataset.k)) commande("portrait", d.dataset.id, "", "Nouveau portrait commandé (1 à 2 min).");
+});
+$("#sec_ajouter").onclick = () => {
+  const k = Date.now();
+  $("#sec-liste").querySelector(".empty")?.remove();
+  $("#sec-liste").insertAdjacentHTML("beforeend", carteSec({ nom: "", age: 30 }, k));
+  const d = $("#sec-liste").lastElementChild; d.open = true; secModifie = true; document.getElementById(`sec_${k}_nom`).focus();
+};
+$("#sec_ok").onclick = async () => {
+  const secondaires = lireSec();
+  if (await commande("personnage", "", JSON.stringify({ secondaires }), "Personnages envoyés au robot.")) {
+    D["personnage.json"].secondaires = secondaires; secModifie = false;
+  }
+};
+
 $("#f-perso").addEventListener("submit", e => { e.preventDefault();
   const json = JSON.stringify({ nom:$("#p_nom").value, age:+$("#p_age").value, ville:$("#p_ville").value, apparence:$("#p_apparence").value,
-    voix:$("#p_voix").value, personnalite:$("#p_personnalite").value, phrase_fetiche:$("#p_phrase").value,
+    voix:$("#p_voix").value, gestuelle:$("#p_gestuelle").value, personnalite:$("#p_personnalite").value, phrase_fetiche:$("#p_phrase").value,
     gags_recurrents:$("#p_gags").value.split("\n").map(s => s.trim()).filter(Boolean),
     repliques:$("#p_repliques").value.split("\n").map(s => s.trim()).filter(Boolean), ton:$("#p_ton").value });
   commande("personnage", "", json, "Fiche envoyée au robot."); });

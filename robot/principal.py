@@ -14,17 +14,22 @@ from . import budget, depot, grok, montage, planning, publier, scenario, sons_ti
 from .commun import MINIATURES, SORTIE, DONNEES, ecrire, iso, lire, maintenant, noter, personnage, reglages, simulation
 
 
-def portrait_present():
-    return os.path.exists(os.path.join(DONNEES, "portrait.jpg"))
+def chemin_portrait(ident="gilbert"):
+    """Portrait de référence : Gilbert dans donnees/portrait.jpg, chaque personnage secondaire dans donnees/portraits/."""
+    return os.path.join(DONNEES, "portrait.jpg") if ident in ("", "gilbert") else os.path.join(DONNEES, "portraits", f"{ident}.jpg")
 
 
-def fabriquer_portrait(R, P, caisse, dest):
-    """Portrait de référence du personnage : il sert de point de départ à chaque plan (même visage partout)."""
-    caisse.autoriser(R["prix"]["image"], "portrait")
-    prompt = (f"Photorealistic vertical portrait photo of a fictional man: {P['apparence']}. "
+def portrait_present(ident="gilbert"):
+    return os.path.exists(chemin_portrait(ident))
+
+
+def fabriquer_portrait(R, c, caisse, dest):
+    """Portrait de référence d'un personnage : il sert de point de départ à chacun de ses plans (même visage partout)."""
+    caisse.autoriser(R["prix"]["image"], f"portrait de {c['nom']}")
+    prompt = (f"Photorealistic vertical portrait photo of a fictional person: {c['apparence']}. "
               f"Looking at the camera, neutral background, soft daylight, sharp face, upper body visible, no text.")
     _, cout = grok.creer_image(R["modeles"]["image"], prompt, dest, R["prix"]["image"])
-    caisse.payer(cout, "portrait du personnage")
+    caisse.payer(cout, f"portrait de {c['nom']}")
     return dest
 
 
@@ -37,7 +42,7 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
     os.makedirs(dossier, exist_ok=True)
     caisse = budget.Caisse(R, vid)
     res = {"id": vid, "format": format_, "auto": auto, "remplace": remplace, "caisse": caisse,
-           "evenements": [], "entree": None, "portrait": None}
+           "evenements": [], "entree": None, "portraits": {}}
     try:
         if format_ != "tiktok":                              # (vidéo TikTok : estimée une fois la durée du son connue)
             caisse.autoriser(budget.estimation(format_, R), f"vidéo {format_}")   # on ne commence pas ce qu'on ne finira pas
@@ -45,7 +50,8 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
         portrait = os.path.join(DONNEES, "portrait.jpg")
         if not portrait_present() and format_ != "tiktok":       # (vidéos TikTok : personnages inventés, pas Gilbert)
             portrait = fabriquer_portrait(R, P, caisse, os.path.join(dossier, "portrait.jpg"))
-            res["portrait"] = None if simulation() else portrait    # un faux portrait de test n'est jamais gardé
+            if not simulation():                             # un faux portrait de test n'est jamais gardé
+                res["portraits"]["gilbert"] = portrait
         if format_ == "tiktok":
             return video_tiktok(res, R, caisse, dossier, lien)
         # 2. le scénario
@@ -57,10 +63,20 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
         # 3. chaque plan : une image de départ (le personnage dans le décor) puis le clip filmé.
         #    Même lieu que le plan d'avant : on repart de sa dernière image (mêmes objets, même lumière).
         secondes = R["formats"][format_]["secondes_par_clip"]
-        clips, derniere = [], None
+        portraits = {"gilbert": portrait}
+        for ident in sorted({p["personnage"] for p in ep["plans"]} - {"gilbert"}):     # personnages secondaires du jour
+            c = scenario.qui({"personnage": ident}, P)
+            portraits[ident] = chemin_portrait(ident)
+            if not portrait_present(ident):
+                portraits[ident] = fabriquer_portrait(R, c, caisse, os.path.join(dossier, f"portrait_{ident}.jpg"))
+                if not simulation():
+                    res["portraits"][ident] = portraits[ident]
+        clips, derniere, avant = [], None, None
         for i, plan in enumerate(ep["plans"], 1):
-            depart = derniere if plan.get("meme_lieu") and derniere else portrait
-            clip = filmer_plan(R, P, plan, i, secondes, depart, dossier, caisse, ep.get("objets", []), depart is derniere)
+            suite = bool(plan.get("meme_lieu") and derniere and plan["personnage"] == avant)    # même lieu, même personne
+            depart = derniere if suite else portraits[plan["personnage"]]
+            clip = filmer_plan(R, scenario.qui(plan, P), plan, i, secondes, depart, dossier, caisse, ep.get("objets", []), suite)
+            avant = plan["personnage"]
             clips.append(clip)
             derniere = montage.derniere_image(clip, os.path.join(dossier, f"fin_{i}.jpg"))
             print(f"  plan {i}/{len(ep['plans'])} filmé ({caisse.depense:.2f} $ jusqu'ici)", flush=True)
@@ -109,17 +125,17 @@ def video_tiktok(res, R, caisse, dossier, lien):
     return res
 
 
-def filmer_plan(R, P, plan, i, secondes, depart, dossier, caisse, objets=(), suite=False):
+def filmer_plan(R, c, plan, i, secondes, depart, dossier, caisse, objets=(), suite=False):
     m, prix = R["modeles"], R["prix"]
     image = os.path.join(dossier, f"depart_{i}.jpg")
     caisse.autoriser(prix["image"], f"image du plan {i}")
-    _, cout = grok.modifier_image(m["image"], scenario.prompt_image(plan, P, objets, suite), depart, image, prix["image"])
+    _, cout = grok.modifier_image(m["image"], scenario.prompt_image(plan, c, objets, suite), depart, image, prix["image"])
     caisse.payer(cout, f"image du plan {i}")
     dest = os.path.join(dossier, f"clip_{i}.mp4")
     for essai in (1, 2):
         caisse.autoriser(secondes * prix["video_seconde"], f"clip du plan {i}")
         try:
-            _, cout = grok.creer_video(m["video"], scenario.prompt_video(plan, P, objets), image, secondes, dest,
+            _, cout = grok.creer_video(m["video"], scenario.prompt_video(plan, c, objets), image, secondes, dest,
                                        prix["video_seconde"], R["montage"].get("resolution", "720p"))
             caisse.payer(cout, f"clip {secondes} s (plan {i})")
             return dest
@@ -169,8 +185,9 @@ def ranger(res):
     """Écrit le résultat dans les données du site (appelé sur la dernière version du dépôt)."""
     R = reglages()
     budget.ajouter(R, res["caisse"].lignes)
-    if res.get("portrait"):
-        shutil.copy(res["portrait"], os.path.join(DONNEES, "portrait.jpg"))
+    for ident, chemin in (res.get("portraits") or {}).items():
+        os.makedirs(os.path.dirname(chemin_portrait(ident)), exist_ok=True)
+        shutil.copy(chemin, chemin_portrait(ident))
     file = publier.mettre_a_jour(lire("file.json") or {"videos": []})
     if res["entree"]:
         e = res["entree"]

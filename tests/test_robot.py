@@ -140,6 +140,23 @@ class FauxGrok(AvecFauxGrok):
         principal.main(["--format", "courte"])
         self.assertEqual(self.appels.count("image"), 2)
 
+    def test_personnage_secondaire(self):
+        vrai = grok.ecrire_json
+
+        def avec_mat(*a, **k):
+            ep, c = self_texte(*a, **k)
+            ep["plans"][1]["personnage"] = "mat"
+            ep["plans"][0]["personnage"] = "inconnu"                  # id inconnu : c'est Gilbert
+            return ep, c
+        self_texte = grok.ecrire_json
+        with mock.patch.object(grok, "ecrire_json", avec_mat):
+            self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual([p["personnage"] for p in v["plans"]], ["gilbert", "mat"])
+        self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portraits", "mat.jpg")))
+        self.assertEqual(self.appels.count("image"), 4)                 # 2 portraits + 2 images de départ
+        self.assertIs(grok.ecrire_json, vrai)
+
     def test_plafond_respecte(self):
         R = lire("reglages.json")
         ecrire("budget.json", {"mois": "2026-10", "depense_usd": R["budget"]["plafond_mensuel_usd"] - 0.3,
@@ -243,6 +260,15 @@ class Commandes(Base):
         self.assertEqual(R["budget"]["plafond_mensuel_usd"], 200)
         self.assertEqual(R["planning"]["jours_longue"], ["samedi"])
         self.assertEqual(R["planning"]["heures_publication"], [12, 19])
+
+    def test_secondaires(self):
+        commande.appliquer("personnage", "", json.dumps({"secondaires": [
+            {"id": "mat", "nom": "Mat", "age": "19", "apparence": "young man", "repliques": ["Sérieux ?", ""]},
+            {"nom": "Nouvelle Voisine !", "apparence": "woman"}, {"nom": ""}]}))
+        S = lire("personnage.json")["secondaires"]
+        self.assertEqual([c["id"] for c in S], ["mat", "nouvellevoisine"])
+        self.assertEqual((S[0]["age"], S[0]["repliques"]), (19, ["Sérieux ?"]))
+        self.assertEqual(scenario.qui({"personnage": "mat"}, lire("personnage.json"))["nom"], "Mat")
 
     def test_personnage(self):
         commande.appliquer("personnage", "", json.dumps({"nom": "Gaston", "age": "61", "gags_recurrents": ["a", "", "b"]}))

@@ -60,6 +60,11 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
 - **Gilbert = hommage à Doc** (24/10) : fiche complète dans `personnage.json`, champ `repliques` (phrases à la Doc, une ou
   deux par épisode). Clins d'œil permis ; jamais « Doc », « Marty », « DeLorean », « convecteur temporel », le titre du film,
   ni ressemblance avec l'acteur (visage de Gilbert : rond, moustache de morse, lunettes).
+- **Personnages secondaires** (24/10) : vraie adaptation de Retour vers le futur sous d'autres noms (`personnage.secondaires` :
+  mat = Marty, bouc = Biff, gerard = George, lola = Jennifer, laurence = Lorraine, maire = Strickland), chacun avec rôle,
+  apparence, voix, `gestuelle` (gestes et mimiques, aussi pour Gilbert), personnalité, répliques. Plan = UNE personne
+  (`plan.personnage`, `scenario.qui`), portrait de chacun dans `docs/donnees/portraits/<id>.jpg` (fait à la 1re apparition,
+  refait si son apparence change). 0 à 2 secondaires par épisode, environ un épisode sur deux en solo.
 
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`

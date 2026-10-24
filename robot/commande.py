@@ -5,14 +5,15 @@ Actions : publiee, a_publier, ecarter, supprimer, legende, personnage, reglages,
 buffer_test, tiktok_maintenant, tiktok_programmer, annuler_programmation (publication par Buffer, voir publier.py).
 """
 import json
+import re
 import os
 import shutil
 import sys
 
 from . import budget, depot, planning, principal, publier
-from .commun import DONNEES, JOURS, MINIATURES, SORTIE, ecrire, iso, lire, noter, personnage, reglages
+from .commun import JOURS, MINIATURES, SORTIE, ecrire, iso, lire, noter, personnage, reglages
 
-CHAMPS_PERSO = {"nom": 60, "age": 3, "ville": 120, "apparence": 700, "voix": 300, "personnalite": 2500,
+CHAMPS_PERSO = {"nom": 60, "age": 3, "ville": 120, "apparence": 700, "voix": 300, "personnalite": 2500, "gestuelle": 500,
                 "phrase_fetiche": 120, "ton": 200}
 
 
@@ -61,8 +62,6 @@ def appliquer(action, vid, texte):
         ecrire("reglages.json", R)
         noter("✋ Mode manuel : plus aucune création automatique (bouton Créer seulement)." if action == "pause"
               else "🤖 Mode automatique : le robot crée les vidéos du planning chaque matin.")
-    elif action == "portrait_pret":                          # étape interne de « portrait »
-        shutil.copy(texte, os.path.join(DONNEES, "portrait.jpg"))
     else:
         raise ValueError(f"action inconnue : {action}")
 
@@ -74,6 +73,22 @@ def appliquer_personnage(d):
             P[k] = int(d[k]) if k == "age" else str(d[k]).strip()[:n]
     if isinstance(d.get("gags_recurrents"), list):
         P["gags_recurrents"] = [str(g).strip()[:200] for g in d["gags_recurrents"] if str(g).strip()][:10]
+    if isinstance(d.get("secondaires"), list):
+        anciens = {c.get("id"): c for c in P.get("secondaires", [])}
+        P["secondaires"] = []
+        for c in d["secondaires"][:8]:
+            if not isinstance(c, dict) or not str(c.get("nom", "")).strip():
+                continue
+            ident = re.sub(r"[^a-z0-9]", "", str(c.get("id") or c["nom"]).lower())[:20] or f"perso{len(P['secondaires'])}"
+            n = {k: str(c.get(k, "")).strip()[:lim] for k, lim in (("nom", 60), ("role", 300), ("apparence", 600),
+                                                                   ("voix", 300), ("personnalite", 1000), ("gestuelle", 500))}
+            n.update(id=ident, age=int(c.get("age") or 30),
+                     repliques=[str(r).strip()[:200] for r in c.get("repliques") or [] if str(r).strip()][:8])
+            if ident in anciens and anciens[ident].get("apparence") != n["apparence"]:   # nouveau look : portrait à refaire
+                vieux = principal.chemin_portrait(ident)
+                if os.path.exists(vieux):
+                    os.remove(vieux)
+            P["secondaires"].append(n)
     if isinstance(d.get("repliques"), list):
         P["repliques"] = [str(g).strip()[:200] for g in d["repliques"] if str(g).strip()][:12]
     ecrire("personnage.json", P)
@@ -118,14 +133,16 @@ def appliquer_reglages(d):
     noter(f"⚙️ Réglages modifiés (plafond {R['budget']['plafond_mensuel_usd']:.0f} $/mois).")
 
 
-def portrait():
-    """Régénère le portrait de référence (payant : une image)."""
+def portrait(ident=""):
+    """Régénère le portrait de référence de Gilbert, ou d'un personnage secondaire (payant : une image)."""
+    from . import scenario
     R, P = reglages(), personnage()
+    c = scenario.qui({"personnage": ident or "gilbert"}, P)
     caisse = budget.Caisse(R, "portrait")
     os.makedirs(SORTIE, exist_ok=True)
-    dest = os.path.join(SORTIE, "portrait.jpg")
+    dest = os.path.join(SORTIE, f"portrait_{c['id']}.jpg")
     try:
-        principal.fabriquer_portrait(R, P, caisse, dest)
+        principal.fabriquer_portrait(R, c, caisse, dest)
     except Exception as e:
         depot.enregistrer(lambda: (budget.ajouter(R, caisse.lignes), noter(f"❌ Portrait pas refait : {e}", "erreur")),
                           "Robot : portrait raté")
@@ -133,8 +150,10 @@ def portrait():
 
     def ranger():
         budget.ajouter(reglages(), caisse.lignes)
-        appliquer("portrait_pret", "", dest)
-        noter(f"🖼️ Nouveau portrait de {P['nom']} ({caisse.depense:.2f} $).")
+        cible = principal.chemin_portrait(c["id"])
+        os.makedirs(os.path.dirname(cible), exist_ok=True)
+        shutil.copy(dest, cible)
+        noter(f"🖼️ Nouveau portrait de {c['nom']} ({caisse.depense:.2f} $).")
     depot.enregistrer(ranger, "Robot : nouveau portrait")
     return 0
 
@@ -190,7 +209,7 @@ def buffer(action, vid):
 def main():
     action, vid, texte = os.environ.get("ACTION", ""), os.environ.get("ID", ""), os.environ.get("TEXTE", "")
     if action == "portrait":
-        return portrait()
+        return portrait(vid)
     programmee = False
     if vid and action in ("ecarter", "supprimer"):
         try:

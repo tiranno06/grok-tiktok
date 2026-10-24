@@ -26,5 +26,103 @@
   "Napoléon, tu es le premier pigeon de l'histoire à… où est passé Napoléon ?",
   "Tu ne réfléchis pas en quatre dimensions, Monique !",
   "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main."
- ]
+ ],
+ "secondaires": [
+  {
+   "nom": "Mathis « Mat » Mouflet",
+   "age": 19,
+   "role": "Le jeune acolyte et seul ami de Gilbert (adaptation de Marty) : embarqué malgré lui dans chaque expérience",
+   "apparence": "French young man aged 19, slim, messy brown hair, red puffer vest over a denim jacket, checked shirt, faded jeans, white sneakers, a skateboard under his arm, a portable cassette player clipped to his belt",
+   "voix": "young French man's voice, quick and sarcastic, cracks and goes high-pitched when panicking",
+   "gestuelle": "double take with his mouth wide open, both hands on his head in disbelief, points at himself 'me?', air guitar when happy, rides his skateboard in and jumps off it, nervous glance at his watch, steps back slowly from danger",
+   "personnalite": "Cool, un peu flemmard, rêve d'être une rock star (sa guitare électrique est toujours trop forte). Fidèle à Gilbert même s'il panique à chaque expérience. Toujours en retard. Son point faible : il perd tout son sang-froid quand on le traite de « poule mouillée » et accepte alors n'importe quel défi absurde.",
+   "repliques": [
+    "C'est du lourd, Gilbert. Du très lourd.",
+    "Attends, attends, attends… tu es en train de me dire que…",
+    "Personne ne me traite de poule mouillée !",
+    "Gilbert… pourquoi ça fume ?",
+    "C'est la dernière fois. Bon. Vas-y, montre."
+   ],
+   "id": "mat"
+  },
+  {
+   "nom": "Brice « Le Bouc » Tanguy",
+   "age": 38,
+   "role": "La brute du village (adaptation de Biff) : garagiste costaud qui se moque de tout le monde",
+   "apparence": "burly French man aged 38, square jaw, short blond hair slicked back, dark blue mechanic overalls with rolled sleeves, grease stains, a toothpick in his mouth",
+   "voix": "loud, gravelly French voice, mocking, slightly slow-witted",
+   "gestuelle": "knocks his knuckles on people's foreheads, cracks his knuckles, chews his toothpick, leans over people to intimidate, laughs loudly at his own jokes, wipes greasy hands on others' clothes",
+   "personnalite": "Gros bras pas très malin, jaloux de tout, il veut toujours « emprunter » les inventions de Gilbert et rate tous les proverbes. Il tape sur la tête des gens en demandant s'il y a quelqu'un dedans. Il finit TOUJOURS dans le tas de fumier (ou dans le bassin, ou couvert de mousse).",
+   "repliques": [
+    "Hé ho, y a quelqu'un là-dedans ? Hé ho ?",
+    "Fais comme une feuille et… dégage.",
+    "Qu'est-ce que tu regardes, toi ?",
+    "Je t'emprunte ta machine. Tu me la reprendras quand je l'aurai cassée.",
+    "Ah non ! Je déteste le fumier !"
+   ],
+   "id": "bouc"
+  },
+  {
+   "nom": "Gérard Mollard",
+   "age": 47,
+   "role": "Le voisin timide (adaptation de George) : maladroit, terrorisé par Le Bouc, écrit en secret des romans de science-fiction",
+   "apparence": "skinny awkward French man aged 47, neat side-parted dark hair, big round glasses, beige cardigan buttoned wrong, tie, carrying a notebook",
+   "voix": "soft, hesitant French voice, high nervous laugh",
+   "gestuelle": "nervous high-pitched laugh, pushes his glasses up his nose, fidgets with his notebook, hunches his shoulders, practices clumsy punches in the air, suddenly stands up straight when he finds his courage",
+   "personnalite": "Timide, gentil, trop poli, il n'ose jamais dire non : c'est le volontaire idéal pour tester les inventions. Il écrit des histoires d'extraterrestres qu'il ne montre à personne. Une fois de temps en temps, il trouve un courage inattendu… et c'est Le Bouc qui en fait les frais.",
+   "repliques": [
+    "Je… je suis votre… votre densité. Destin ! Votre destin.",
+    "Je crois que je ne suis pas prêt pour ce genre de… responsabilités.",
+    "Si jamais vous avez besoin d'aide pour… pour quoi que ce soit… enfin, non, rien.",
+    "Ôte… ôte tes mains de là, Le Bouc !"
+   ],
+   "id": "gerard"
+  },
+  {
+   "nom": "Lola Fabre",
+   "age": 19,
+   "role": "La copine de Mat (adaptation de Jennifer) : lucide, ironique, elle filme toutes les catastrophes",
+   "apparence": "French young woman aged 19, wavy auburn hair with a scrunchie, light denim jacket over a pastel top, small hoop earrings, holding her phone",
+   "voix": "young French woman's voice, calm and ironic",
+   "gestuelle": "films everything with her phone held up, arms crossed with one eyebrow raised, slow ironic clap, writes a phone number on Mat's hand, sighs and checks the time",
+   "personnalite": "Pragmatique et pince-sans-rire, la seule qui garde son calme. Elle tient la liste des prédictions de Gilbert pour vérifier qu'aucune ne se réalise. Elle croit en Mat (et en sa musique), un peu moins en Gilbert.",
+   "repliques": [
+    "Gilbert, c'est la troisième fois ce mois-ci que tu fais sauter le transfo.",
+    "Je filme. Pour l'assurance.",
+    "Appelle-moi ce soir. Si le village a encore du courant."
+   ],
+   "id": "lola"
+  },
+  {
+   "nom": "Laurence Mouflet",
+   "age": 45,
+   "role": "La mère de Mat (adaptation de Lorraine) : romantique, nostalgique de sa jeunesse, un peu trop émue par tout",
+   "apparence": "French woman aged 45, curly reddish-brown hair, floral dress with a cardigan, pearl necklace, a glass of rosé often in hand",
+   "voix": "warm, dreamy French woman's voice, a little tipsy",
+   "gestuelle": "hand on her heart, dreamy sigh while looking into the distance, clinks her glass, pinches Mat's cheek, giggles behind her hand",
+   "personnalite": "Elle raconte sans arrêt comment elle a rencontré son mari, et la version change à chaque fois. Elle trouve Gilbert « tellement intéressant » et se porte volontaire pour les expériences les plus dangereuses.",
+   "repliques": [
+    "Ah, quand j'avais ton âge… on ne faisait pas des choses pareilles. Enfin… pas souvent.",
+    "Un inventeur ! Comme c'est romantique.",
+    "Mathis, tiens-toi droit, on te regarde."
+   ],
+   "id": "laurence"
+  },
+  {
+   "nom": "M. Strecker, le maire",
+   "age": 64,
+   "role": "Le maire sévère du village (adaptation du proviseur Strickland) : chauve, autoritaire, il veut interdire les expériences",
+   "apparence": "stern bald French man aged 64, thin moustache, bow tie, short-sleeved white shirt, tricolour mayor's sash, clipboard in hand",
+   "voix": "sharp, stern French voice, clipped words",
+   "gestuelle": "appears suddenly behind people, leans in far too close to their face, points a stiff finger, slaps his clipboard, squints with suspicion, hands behind his back",
+   "personnalite": "Il déteste les tire-au-flanc, les inventeurs et la musique trop forte. Il arrive toujours au pire moment avec un nouvel arrêté municipal.",
+   "repliques": [
+    "Tire-au-flanc !",
+    "Aucun Mouchon n'a jamais rien fait de bon à Saint-Glinglin.",
+    "Arrêté municipal numéro 412 : interdiction de voyager dans le temps après 22 heures."
+   ],
+   "id": "maire"
+  }
+ ],
+ "gestuelle": "bug-eyed wide stare, grabs both hands on his electrified hair when shocked, points one finger up when an idea strikes, freezes mid-sentence then rushes off, grabs the other person by the shoulders when excited, mutters calculations to himself, checks both wristwatches at once"
 }

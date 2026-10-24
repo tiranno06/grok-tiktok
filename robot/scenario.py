@@ -18,8 +18,12 @@ FICHE DU PERSONNAGE
 - Personnalité : {personnalite}
 - Phrase fétiche : « {phrase} » (pas à chaque épisode : seulement quand elle tombe bien)
 - Répliques typiques (une ou deux par épisode au plus, adaptées à la situation, jamais toutes) : {repliques}
+- Gestes et mimiques : {gestuelle}
 - Gags récurrents : {gags}
 - Ton : {ton}
+
+PERSONNAGES SECONDAIRES (ils reviennent d'un épisode à l'autre ; "id" entre crochets)
+{secondaires}
 
 CE QUI REND UN SKETCH TIKTOK DRÔLE
 - Accroche dans les 2 premières secondes : la première phrase pose une situation absurde avec un sérieux total
@@ -35,18 +39,26 @@ CE QUI REND UN SKETCH TIKTOK DRÔLE
 
 RÈGLES
 - Personnage fictif. Jamais de vraie personne, de marque, de politique, de violence, d'enfant ni de sujet choquant.
-- Le personnage est un hommage au savant fou de Retour vers le futur : énergie, tics, inventions, ratés et clins d'œil
-  (horloges, éclairs, 88 km/h, gigawatts, voyage dans le temps raté) sont bienvenus. Mais on ne dit jamais « Doc »,
-  « Marty », « DeLorean », « convecteur temporel » ni le titre du film, et il ne ressemble pas à l'acteur du film.
+- Le personnage et ses proches sont un hommage à Retour vers le futur (le savant fou, son jeune acolyte, la brute, le
+  voisin timide, la copine, le proviseur devenu maire) : énergie, tics, relations, inventions, ratés et clins d'œil
+  (horloges, éclairs, 88 km/h, gigawatts, voyage dans le temps raté, la brute qui finit dans le fumier) sont bienvenus.
+  Mais on ne dit jamais « Doc », « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel » ni le titre du film,
+  et personne ne ressemble aux acteurs du film.
 - Les ratés restent drôles et sans blessé : fumée, étincelles, cheveux électrisés, effet inverse.
 - Monique la voisine n'apparaît JAMAIS à l'image : on l'entend pas, on parle d'elle, on la montre du doigt hors champ.
-- Seul {nom} parle, en français, face caméra ou presque, comme un vlogueur.
+- {nom} est le héros de chaque épisode. Selon l'idée, 0, 1 ou 2 personnages secondaires peuvent venir (pas toujours les
+  mêmes, et environ un épisode sur deux en solo). Tout le monde parle français.
+- C'est une vraie adaptation du film : chacun garde ses phrases fétiches (adaptées à la situation), sa gestuelle, ses
+  mimiques, sa personnalité et ses relations (l'acolyte qui panique, la brute qui finit dans le fumier, le voisin timide qui
+  trouve enfin du courage…). Mets ses gestes typiques dans "action".
+- Chaque plan montre UNE personne (champ / contrechamp) : "personnage" = l'id de celle qu'on voit et qui dit "dialogue"
+  ("gilbert" ou un id secondaire). L'autre peut être évoquée hors champ dans "action".
 - Chaque plan dure {secondes} secondes : la réplique fait entre {mots_min} et {mots} mots (il parle presque tout le plan,
   pas de long blanc).
 - "objets" : les accessoires importants (en ANGLAIS, décrits précisément : couleur, matière, forme). Ils doivent rester
   identiques dans tous les plans.
 - "decor", "action" et "cadrage" sont en ANGLAIS, courts et très visuels. "action" décrit aussi les gestes naturels et
-  l'expression du visage pendant qu'il parle. Varie les cadrages : selfie close-up, medium shot, wide shot, phone propped
+  l'expression du visage pendant que la personne parle. Varie les cadrages : selfie close-up, medium shot, wide shot, phone propped
   on a table, walking selfie, insert shot on an object.
 - "meme_lieu" : true si le plan se passe exactement au même endroit que le plan précédent (sinon false).
 
@@ -54,7 +66,8 @@ Réponds uniquement en JSON :
 {{"idees": ["5 idées d'épisode en une phrase chacune"], "choix": "l'idée retenue (la plus drôle) et pourquoi",
  "titre": "...", "legende": "légende TikTok drôle, 1 ou 2 phrases, sans hashtag",
  "hashtags": ["#...", "..."], "objets": ["..."],
- "plans": [{{"decor": "...", "cadrage": "...", "action": "...", "emotion": "...", "meme_lieu": false, "dialogue": "..."}}]}}
+ "plans": [{{"personnage": "gilbert", "decor": "...", "cadrage": "...", "action": "...", "emotion": "...", "meme_lieu": false,
+            "dialogue": "..."}}]}}
 Exactement {nb} plans. 4 à 6 hashtags en français, dont #humour."""
 
 DEMANDE = """Écris l'épisode {genre}.
@@ -67,6 +80,12 @@ def _fiche(p, secondes, nb):
                             voix=p.get("voix", ""), personnalite=p["personnalite"], phrase=p["phrase_fetiche"],
                             gags="; ".join(p.get("gags_recurrents", [])), ton=p["ton"],
                             repliques=" / ".join(f"« {r} »" for r in p.get("repliques", [])) or "aucune",
+                            gestuelle=p.get("gestuelle", ""),
+                            secondaires="\n".join(
+                                f"- [{c['id']}] {c['nom']}, {c.get('age', '?')} ans : {c.get('role', '')}. {c.get('personnalite', '')} "
+                                f"Gestes et mimiques : {c.get('gestuelle', '')}. "
+                                f"Répliques typiques : " + " / ".join(f"« {r} »" for r in c.get("repliques", []))
+                                for c in p.get("secondaires", [])) or "aucun",
                             secondes=secondes, mots=int(secondes * 2.6), mots_min=int(secondes * 1.8), nb=nb)
 
 
@@ -86,6 +105,14 @@ def ecrire(format_, perso, reglages, idee="", deja=()):
     return nettoyer(ep, nb, secondes, perso), cout
 
 
+def qui(plan, perso):
+    """Fiche de la personne filmée dans le plan (Gilbert si l'id est inconnu)."""
+    for c in perso.get("secondaires", []):
+        if c.get("id") and c["id"] == plan.get("personnage"):
+            return c
+    return dict(perso, id="gilbert")
+
+
 def nettoyer(ep, nb, secondes, perso):
     """Remet l'épisode d'aplomb quoi que Grok ait répondu (plans en trop ou manquants, répliques trop longues)."""
     plans = [p for p in (ep.get("plans") or []) if isinstance(p, dict)][:nb]
@@ -99,6 +126,7 @@ def nettoyer(ep, nb, secondes, perso):
         for k in ("decor", "action", "cadrage", "emotion", "dialogue"):
             p[k] = str(p.get(k) or "").strip()
         p.pop("camera", None)
+        p["personnage"] = qui(p, perso)["id"]
         p["meme_lieu"] = bool(p.get("meme_lieu")) and k_ > 0
         mots = p["dialogue"].split()
         if len(mots) > mots_max:
@@ -119,42 +147,44 @@ def _episode_simulation(perso, nb, idee):
     return {"titre": f"[Test] {sujet[:60]}", "legende": "Vidéo de test : aucune IA n'a été appelée.",
             "hashtags": ["#test", "#humour"],
             "objets": ["a rusty red wheelbarrow"],
-            "plans": [{"decor": "village street in France", "action": f"{perso['nom']} talks to the camera",
+            "plans": [{"personnage": "gilbert" if i % 2 == 0 or not perso.get("secondaires") else perso["secondaires"][0]["id"],
+                       "decor": "village street in France", "action": "talks to the camera",
                        "cadrage": "handheld selfie", "meme_lieu": i > 0,
                        "dialogue": f"Plan {i + 1}. {perso['phrase_fetiche']} Ça, c'est la vérité vraie."}
                       for i in range(nb)]}
 
 
-JEU = ("Natural, spontaneous acting like a real person filming himself: expressive face, micro-expressions, raised "
-       "eyebrows, quick glances away then back to the lens, natural hand gestures that follow his words, small head "
-       "movements, shifts his weight, blinks. Never stiff, never robotic, never frozen.")
+JEU = ("Natural, spontaneous acting like a real person: expressive face, micro-expressions, raised eyebrows, quick "
+       "glances away then back, natural hand gestures that follow the words, small head movements, shifts weight, blinks. "
+       "Never stiff, never robotic, never frozen.")
 
 
 def _objets(objets):
     return f" Props that must look exactly the same in every shot: {'; '.join(objets)}." if objets else ""
 
 
-def prompt_image(plan, perso, objets=(), depuis_plan_precedent=False):
+def prompt_image(plan, c, objets=(), depuis_plan_precedent=False):
     """Image de départ du plan : à partir du portrait (même visage), ou de la dernière image du plan précédent
     quand on reste au même endroit (mêmes objets, même lumière)."""
     if depuis_plan_precedent:
-        debut = ("Same man, same place, same props, same lighting and clothes as in this image; change only the framing "
-                 "and his pose for the next shot. ")
+        debut = ("Same person, same place, same props, same lighting and clothes as in this image; change only the framing "
+                 "and the pose for the next shot. ")
     else:
-        debut = (f"The same man as in the reference photo, keep exactly his face, moustache, glasses, hair and clothes "
-                 f"({perso['apparence']}). New scene: {plan['decor']}. ")
+        debut = (f"The same person as in the reference photo, keep exactly the same face, hair, facial hair, glasses and "
+                 f"clothes ({c['apparence']}). New scene: {plan['decor']}. ")
     return (debut + f"Framing: {plan['cadrage']}. Action: {plan['action']}. Expression: {plan.get('emotion') or 'deadpan'}."
             + _objets(objets) + " Vertical 9:16 photorealistic smartphone photo, natural light, realistic skin, no text.")
 
 
-def prompt_video(plan, perso, objets=()):
-    texte = (f"Photorealistic vertical smartphone video, filmed like a real TikTok vlog. "
-             f"The man ({perso['apparence']}). Setting: {plan['decor']}. Framing: {plan['cadrage']}, handheld phone with "
-             f"slight natural movement. Action: {plan['action']}. Emotion: {plan.get('emotion') or 'deadpan'}. {JEU}"
+def prompt_video(plan, c, objets=()):
+    texte = (f"Photorealistic vertical smartphone video, filmed like a real TikTok sketch. "
+             f"The person ({c['apparence']}). Setting: {plan['decor']}. Framing: {plan['cadrage']}, handheld phone with "
+             f"slight natural movement. Action: {plan['action']}. Emotion: {plan.get('emotion') or 'deadpan'}. "
+             + (f"Typical mannerisms of this character: {c['gestuelle']}. " if c.get("gestuelle") else "") + f"{JEU}"
              + _objets(objets) + " ")
     if plan["dialogue"]:
-        texte += (f'He speaks French, at a lively natural pace, and says exactly: "{plan["dialogue"]}". '
-                  f"Voice: {perso.get('voix', 'calm French male voice')}. Accurate lip sync. ")
+        texte += (f'The person speaks French, at a lively natural pace, and says exactly: "{plan["dialogue"]}". '
+                  f"Voice: {c.get('voix') or 'natural French voice'}. Accurate lip sync. ")
     else:
-        texte += "He does not speak; he reacts silently. "
-    return texte + "Ambient sound only, no music, no on-screen text, no subtitles, no other person visible."
+        texte += "The person does not speak; reacts silently. "
+    return texte + "Ambient sound only, no music, no on-screen text, no subtitles, nobody else speaks."
