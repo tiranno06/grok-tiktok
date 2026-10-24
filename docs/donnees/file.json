@@ -1,6 +1,45 @@
 {
  "videos": [
   {
+   "id": "20261024-092153-c",
+   "format": "courte",
+   "titre": "Le drone secret",
+   "legende": "Gilbert teste son invention avec Napoléon, mais la réalité est plus têtue que prévu.",
+   "hashtags": [
+    "#humour",
+    "#absurde",
+    "#GilbertMouchon",
+    "#Napoléon",
+    "#invention",
+    "#ia"
+   ],
+   "duree": 20.1,
+   "cout_usd": 0.805,
+   "cree_le": "2026-10-24T09:21:53+02:00",
+   "statut": "a_publier",
+   "url": "https://github.com/tiranno06/grok-tiktok/releases/download/v-20261024-092153-c/20261024-092153-c.mp4",
+   "tag": "v-20261024-092153-c",
+   "miniature": "miniatures/20261024-092153-c.jpg",
+   "auto": false,
+   "simulation": false,
+   "idee": "",
+   "plans": [
+    {
+     "decor": "Cluttered garage with workbench and pigeon perch",
+     "action": "Gilbert holds a homemade drone with feathers attached, serious face",
+     "camera": "Medium static shot facing Gilbert",
+     "dialogue": "Bon. On va pas se mentir. Napoléon va tester ce drone secret."
+    },
+    {
+     "decor": "Same garage, drone on table, Napoleon perched nearby",
+     "action": "Gilbert watches the pigeon ignore the drone and preen",
+     "camera": "Medium static shot facing Gilbert",
+     "dialogue": "Il préfère les graines de Monique. Concurrence trop forte."
+    }
+   ],
+   "publier_le": "2026-10-24T19:00:00+02:00"
+  },
+  {
    "id": "20261024-085847-c",
    "format": "courte",
    "titre": "[Test] un concours de soupe",

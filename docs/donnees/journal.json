@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T09:24:31+02:00",
+   "niveau": "info",
+   "texte": "✅ « Le drone secret » prête (courte, 20 s, 0.81 $)"
+  },
+  {
    "date": "2026-10-24T09:23:57+02:00",
    "niveau": "info",
    "texte": "⚙️ Réglages modifiés (plafond 5 $/mois)."

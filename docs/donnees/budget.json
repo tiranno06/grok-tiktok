@@ -1,7 +1,44 @@
 {
  "mois": "2026-10",
- "depense_usd": 0.0,
- "lignes": [],
+ "depense_usd": 0.805,
+ "lignes": [
+  {
+   "date": "2026-10-24T09:22:05+02:00",
+   "usd": 0.04,
+   "quoi": "portrait du personnage",
+   "video": "20261024-092153-c"
+  },
+  {
+   "date": "2026-10-24T09:22:35+02:00",
+   "usd": 0.005,
+   "quoi": "scénario",
+   "video": "20261024-092153-c"
+  },
+  {
+   "date": "2026-10-24T09:22:56+02:00",
+   "usd": 0.07,
+   "quoi": "image du plan 1",
+   "video": "20261024-092153-c"
+  },
+  {
+   "date": "2026-10-24T09:23:23+02:00",
+   "usd": 0.31,
+   "quoi": "clip 10 s (plan 1)",
+   "video": "20261024-092153-c"
+  },
+  {
+   "date": "2026-10-24T09:23:39+02:00",
+   "usd": 0.07,
+   "quoi": "image du plan 2",
+   "video": "20261024-092153-c"
+  },
+  {
+   "date": "2026-10-24T09:24:14+02:00",
+   "usd": 0.31,
+   "quoi": "clip 10 s (plan 2)",
+   "video": "20261024-092153-c"
+  }
+ ],
  "historique": {},
- "plafond_usd": 30
+ "plafond_usd": 5.0
 }
