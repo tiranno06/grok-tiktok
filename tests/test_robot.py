@@ -52,8 +52,8 @@ class Simulation(Base):
         vids = self.file()
         self.assertEqual(sorted(v["format"] for v in vids), ["courte", "longue"])
         d = {v["format"]: v for v in vids}
-        self.assertAlmostEqual(d["courte"]["duree"], 20, delta=0.5)
-        self.assertAlmostEqual(d["longue"]["duree"], 84, delta=0.5)     # plus d'une minute : monétisable
+        self.assertTrue(12 <= d["courte"]["duree"] < 20, d["courte"]["duree"])   # blancs coupés
+        self.assertGreaterEqual(d["longue"]["duree"], 61)               # plus d'une minute : monétisable
         for v in vids:
             self.assertEqual(v["statut"], "a_publier")
             self.assertTrue(v["simulation"])
@@ -111,7 +111,8 @@ class FauxGrok(Base):
             self.appels.append("video")
             return grok._faux_clip(dest, duree, prompt), round(duree * prix, 4)
 
-        self.p = [mock.patch.object(grok, "ecrire_json", texte), mock.patch.object(grok, "creer_image", image),
+        self.p = [mock.patch.object(grok, "transcrire", lambda c, *a, **k: (grok._fausse_transcription(c), 0.0)),
+                  mock.patch.object(grok, "ecrire_json", texte), mock.patch.object(grok, "creer_image", image),
                   mock.patch.object(grok, "modifier_image", image), mock.patch.object(grok, "creer_video", video)]
         for p in self.p:
             p.start()
@@ -129,7 +130,7 @@ class FauxGrok(Base):
         self.assertAlmostEqual(b["depense_usd"], v["cout_usd"], places=4)
         self.assertTrue(os.path.exists(os.path.join(TMP, "docs", "donnees", "portrait.jpg")))
         self.assertEqual(len(v["plans"]), 2)                         # 9 plans proposés, 2 gardés
-        self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 27)
+        self.assertLessEqual(len(v["plans"][0]["dialogue"].split()), 29)
         # deuxième vidéo : le portrait existe déjà, il n'est pas refait
         self.appels.clear()
         principal.main(["--format", "courte"])

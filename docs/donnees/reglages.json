@@ -3,15 +3,16 @@
   "plafond_mensuel_usd": 5.0
  },
  "modeles": {
-  "texte": "grok-4.3",
+  "texte": "grok-4.7",
   "image": "grok-imagine-image-2.0",
   "video": "grok-imagine-video-1.5-lite"
  },
  "prix": {
   "video_seconde": 0.031,
   "image": 0.07,
-  "scenario": 0.01,
-  "_note": "Coûts réels constatés le 24/10/2026 (1re vraie vidéo, 720p) : clip de 10 s = 0,31 $, image de départ = 0,07 $. Le coût réel renvoyé par Grok est toujours celui qui est compté."
+  "scenario": 0.02,
+  "_note": "Coûts réels constatés le 24/10/2026 (1re vraie vidéo, 720p) : clip de 10 s = 0,31 $, image de départ = 0,07 $. Le coût réel renvoyé par Grok est toujours celui qui est compté.",
+  "transcription_heure": 0.1
  },
  "formats": {
   "courte": {
@@ -34,6 +35,7 @@
  },
  "montage": {
   "sous_titres": true,
-  "resolution": "720p"
+  "resolution": "720p",
+  "couper_blancs": true
  }
 }

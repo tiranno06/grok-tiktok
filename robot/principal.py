@@ -52,15 +52,20 @@ def fabriquer(format_, idee="", remplace="", auto=False):
         ep, cout = scenario.ecrire(format_, P, R, idee, deja)
         caisse.payer(cout, "scénario")
         print(f"Épisode : {ep['titre']}", flush=True)
-        # 3. chaque plan : une image de départ (le personnage dans le décor) puis le clip filmé
+        # 3. chaque plan : une image de départ (le personnage dans le décor) puis le clip filmé.
+        #    Même lieu que le plan d'avant : on repart de sa dernière image (mêmes objets, même lumière).
         secondes = R["formats"][format_]["secondes_par_clip"]
-        clips = []
+        clips, derniere = [], None
         for i, plan in enumerate(ep["plans"], 1):
-            clips.append(filmer_plan(R, P, plan, i, secondes, portrait, dossier, caisse))
+            depart = derniere if plan.get("meme_lieu") and derniere else portrait
+            clip = filmer_plan(R, P, plan, i, secondes, depart, dossier, caisse, ep.get("objets", []), depart is derniere)
+            clips.append(clip)
+            derniere = montage.derniere_image(clip, os.path.join(dossier, f"fin_{i}.jpg"))
             print(f"  plan {i}/{len(ep['plans'])} filmé ({caisse.depense:.2f} $ jusqu'ici)", flush=True)
-        # 4. montage, miniature, rangement dans une Release
+        # 4. ce qui est vraiment dit dans chaque clip (sous-titres exacts), et coupe des blancs façon vlog
+        clips, mots = rythmer(R, format_, clips, dossier, caisse)
         video = os.path.join(dossier, f"{vid}.mp4")
-        duree = montage.monter(clips, ep["plans"], video, R["montage"].get("sous_titres", True))
+        duree = montage.monter(clips, ep["plans"], video, R["montage"].get("sous_titres", True), mots)
         mini = montage.miniature(video, os.path.join(dossier, f"{vid}.jpg"))
         url = depot.publier_release(f"v-{vid}", ep["titre"], [video])
         res["miniature"] = mini
@@ -82,17 +87,17 @@ def fabriquer(format_, idee="", remplace="", auto=False):
     return res
 
 
-def filmer_plan(R, P, plan, i, secondes, portrait, dossier, caisse):
+def filmer_plan(R, P, plan, i, secondes, depart, dossier, caisse, objets=(), suite=False):
     m, prix = R["modeles"], R["prix"]
     image = os.path.join(dossier, f"depart_{i}.jpg")
     caisse.autoriser(prix["image"], f"image du plan {i}")
-    _, cout = grok.modifier_image(m["image"], scenario.prompt_image(plan, P), portrait, image, prix["image"])
+    _, cout = grok.modifier_image(m["image"], scenario.prompt_image(plan, P, objets, suite), depart, image, prix["image"])
     caisse.payer(cout, f"image du plan {i}")
     dest = os.path.join(dossier, f"clip_{i}.mp4")
     for essai in (1, 2):
         caisse.autoriser(secondes * prix["video_seconde"], f"clip du plan {i}")
         try:
-            _, cout = grok.creer_video(m["video"], scenario.prompt_video(plan, P), image, secondes, dest,
+            _, cout = grok.creer_video(m["video"], scenario.prompt_video(plan, P, objets), image, secondes, dest,
                                        prix["video_seconde"], R["montage"].get("resolution", "720p"))
             caisse.payer(cout, f"clip {secondes} s (plan {i})")
             return dest
@@ -101,8 +106,41 @@ def filmer_plan(R, P, plan, i, secondes, portrait, dossier, caisse):
             if essai == 2:
                 raise
             plan = dict(plan, action="looks at the camera and talks calmly, deadpan expression",
-                        camera="static selfie framing")
+                        cadrage="selfie, medium close-up")
             print(f"  plan {i} refusé par la modération : nouvel essai plus sobre", flush=True)
+
+
+DUREE_MIN_LONGUE = 62          # TikTok ne rémunère que les vidéos de plus d'une minute : on garde de la marge
+
+
+def rythmer(R, format_, clips, dossier, caisse):
+    """Transcrit chaque clip (les sous-titres suivent alors la vraie voix) et coupe les blancs, comme un vlogueur qui
+    monte sa vidéo. Une longue reste au-dessus d'une minute : on coupe moins si besoin. Renvoie (clips, mots par clip)."""
+    if not R["montage"].get("couper_blancs", True) and not R["montage"].get("sous_titres", True):
+        return clips, None
+    mots, durees = [], [montage.duree(c) for c in clips]
+    for i, c in enumerate(clips, 1):
+        try:
+            caisse.autoriser(0.01, f"transcription du plan {i}")
+            m_, cout = grok.transcrire(c, R["prix"].get("transcription_heure", 0.10))
+            caisse.payer(cout, f"transcription du plan {i}")
+        except grok.ErreurGrok as e:                       # sans transcription : sous-titres estimés, pas de coupe
+            print(f"  transcription impossible ({e}) : sous-titres estimés", flush=True)
+            return clips, None
+        mots.append(m_)
+    if not R["montage"].get("couper_blancs", True):
+        return clips, mots
+    for blanc_max in (0.45, 0.8, 1.5, None):
+        if blanc_max is None:
+            return clips, mots                             # même sans couper, trop court : on garde tout
+        inter = [montage.intervalles_parole(m_, d, blanc_max, fin_en_plus=0.6 if k == len(clips) - 1 else 0.0)
+                 for k, (m_, d) in enumerate(zip(mots, durees))]
+        total = sum(b - a for iv in inter for a, b in iv)
+        if format_ != "longue" or total >= DUREE_MIN_LONGUE:
+            break
+    out = [montage.couper(c, iv, os.path.join(dossier, f"coupe_{k}.mp4")) for k, (c, iv) in enumerate(zip(clips, inter), 1)]
+    print(f"  blancs coupés : {sum(durees):.1f} s → {total:.1f} s", flush=True)
+    return out, [montage.recaler(m_, iv) for m_, iv in zip(mots, inter)]
 
 
 def ranger(res):

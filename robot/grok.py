@@ -77,11 +77,15 @@ def image_en_data_url(chemin):
 
 
 # ---------------------------------------------------------------- texte
-def ecrire_json(modele, consignes, demande, prix):
-    """Demande à Grok une réponse JSON. Renvoie (objet, coût en $)."""
+def ecrire_json(modele, consignes, demande, prix, images=()):
+    """Demande à Grok une réponse JSON (en lui montrant des images si on en donne). Renvoie (objet, coût en $)."""
+    contenu = demande
+    if images:
+        contenu = [{"type": "image_url", "image_url": {"url": image_en_data_url(i), "detail": "low"}} for i in images]
+        contenu.append({"type": "text", "text": demande})
     rep = _appel("POST", "/chat/completions", {
         "model": modele,
-        "messages": [{"role": "system", "content": consignes}, {"role": "user", "content": demande}],
+        "messages": [{"role": "system", "content": consignes}, {"role": "user", "content": contenu}],
         "response_format": {"type": "json_object"},
         "temperature": 1.0,
     })
@@ -91,6 +95,52 @@ def ecrire_json(modele, consignes, demande, prix):
         return json.loads(texte[debut:fin + 1]), _cout(rep, prix)
     except ValueError:
         raise ErreurGrok("Grok n'a pas renvoyé un scénario lisible")
+
+
+# ---------------------------------------------------------------- transcription (qui dit quoi, et quand)
+def transcrire(chemin, prix_heure, langue="fr", voix_separees=False):
+    """Mots prononcés avec leurs instants : [{"w", "s", "e", "voix"}], coût. Service « Speech to Text » de xAI (POST /v1/stt).
+    voix_separees : chaque mot reçoit le numéro de la personne qui parle."""
+    if os.environ.get("SIMULATION") == "1":
+        return _fausse_transcription(chemin), 0.0
+    limite = "----grokTiktok" + str(int(time.time() * 1000))
+    champs = {"model": "grok-voice-transcribe-2.0", "language": langue, "diarize": "true" if voix_separees else "false"}
+    corps = b"".join(f'--{limite}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode() for k, v in champs.items())
+    corps += (f'--{limite}\r\nContent-Disposition: form-data; name="file"; filename="{os.path.basename(chemin)}"\r\n'
+              f"Content-Type: application/octet-stream\r\n\r\n").encode() + open(chemin, "rb").read() + f"\r\n--{limite}--\r\n".encode()
+    for n in range(3):
+        req = urllib.request.Request(API + "/stt", data=corps, method="POST", headers={
+            "Authorization": f"Bearer {_cle()}", "Content-Type": f"multipart/form-data; boundary={limite}", "User-Agent": "grok-tiktok-robot"})
+        try:
+            with urllib.request.urlopen(req, timeout=600) as r:
+                rep = json.loads(r.read().decode())
+            break
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503, 504) and n < 2:
+                time.sleep(10 * (n + 1))
+                continue
+            raise ErreurGrok(f"transcription refusée par xAI ({e.code}) : {e.read().decode(errors='replace')[:300]}")
+        except (urllib.error.URLError, TimeoutError) as e:
+            if n < 2:
+                time.sleep(10)
+                continue
+            raise ErreurGrok(f"transcription impossible : {e}")
+    mots = [{"w": str(m.get("text", "")).strip(), "s": float(m["start"]), "e": float(m["end"]), "voix": int(m.get("speaker") or 0)}
+            for m in rep.get("words") or [] if str(m.get("text", "")).strip()]
+    duree = float(rep.get("duration") or (mots[-1]["e"] if mots else 0))
+    return mots, _cout(rep, round(duree / 3600 * prix_heure, 5))
+
+
+def _fausse_transcription(chemin):
+    """Test gratuit : des mots réguliers, deux voix qui alternent, sur toute la durée du son."""
+    r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", chemin],
+                       capture_output=True, text=True)
+    duree, mots, t, k = float(r.stdout.strip() or 0), [], 0.4, 0
+    while t + 0.3 < duree - 0.3:
+        mots.append({"w": f"mot{k}", "s": round(t, 2), "e": round(t + 0.3, 2), "voix": (k // 8) % 2})
+        k += 1
+        t += 0.42 if k % 8 else 1.2                       # un blanc toutes les 8 paroles
+    return mots
 
 
 # ---------------------------------------------------------------- images
