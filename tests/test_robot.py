@@ -30,6 +30,12 @@ class Base(unittest.TestCase):
         os.makedirs(os.path.join(TMP, "docs", "miniatures"))
         for nom, vide in (("file.json", {"videos": []}), ("journal.json", {"evenements": []}), ("etat.json", {"essais": {}})):
             ecrire(nom, vide)                                       # repart de zéro, quelles que soient les vraies données
+        R = lire("reglages.json")                                   # réglages fixes : les tests ne dépendent pas des vrais
+        R["prix"].update(video_seconde=0.02, image=0.04, scenario=0.01)
+        R["budget"]["plafond_mensuel_usd"] = 30
+        R["planning"].update(courte_chaque_jour=True, jours_longue=["samedi"], heures_publication=[12, 19], pause=False)
+        R["montage"]["sous_titres"] = True
+        ecrire("reglages.json", R)
         for nom in ("budget.json", "portrait.jpg"):
             if os.path.exists(os.path.join(TMP, "docs", "donnees", nom)):
                 os.remove(os.path.join(TMP, "docs", "donnees", nom))

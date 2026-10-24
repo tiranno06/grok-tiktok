@@ -10,8 +10,8 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
 - **Création automatique ou manuelle** (24/10, Réglages → Création des vidéos) : manuel = `planning.pause` vrai (actions `pause` /
   `reprise`), les réveils programmés ne créent plus rien ; seul le bouton Créer (`--format courte|longue`) fabrique.
 - **Son intégré de Grok Imagine** (voix comprise), pas d'ElevenLabs.
-- Budget : 30 €/mois au plus → plafond 30 $ (≈ 26 €) dans `reglages.json`. Une courte (20 s) par jour, une longue (84 s,
-  > 1 min pour la rémunération TikTok) le samedi ≈ 23 $/mois.
+- Budget : 30 €/mois au plus (plafond réglable dans `reglages.json`, 5 $ choisi par le propriétaire le 24/10). Coûts réels
+  du 24/10 en 720p : courte 20 s ≈ 0,77 $, longue 84 s ≈ 3,03 $ (clip 0,031 $/s, image de départ 0,07 $).
 
 ## Fonctionnement
 - `robot/principal.py` (workflow `robot.yml`, réveils 4 h 17, 7 h 17, 10 h 17 UTC + bouton Créer du site) :

@@ -16,13 +16,13 @@ Tu publies toi-même sur TikTok depuis le site : bouton **Publier** → Téléch
 
 | Vidéo | Durée | Coût prévu |
 |---|---|---|
-| Courte, chaque jour | 20 s (2 plans de 10 s) | ~0,49 $ |
-| Longue, le samedi | 84 s (6 plans de 14 s), plus d'une minute pour la rémunération TikTok | ~1,93 $ |
+| Courte, chaque jour | 20 s (2 plans de 10 s) | ~0,77 $ |
+| Longue, le samedi | 84 s (6 plans de 14 s), plus d'une minute pour la rémunération TikTok | ~3,03 $ |
 
-Avec ce planning, compte **environ 23 $ par mois** (≈ 20 €). Le plafond est réglé à **30 $** (≈ 26 €) : le robot
-s'arrête de lui-même avant de le dépasser, et reprend le 1er du mois.
-Prix de xAI au 23/10/2026 : vidéo Lite 0,02 $/s, image 0,04 $, scénario ~0,01 $. Le coût réel renvoyé par Grok est
-celui qui est compté.
+En automatique complet (courte chaque jour + longue le samedi), il faudrait **environ 37 $ par mois**, plus que 30 € :
+le plafond (réglable dans Réglages) arrête le robot avant de le dépasser, et il reprend le 1er du mois.
+Coûts réels constatés le 24/10/2026 (720p) : vidéo 0,031 $/s, image de départ 0,07 $, scénario ~0,01 $. Le coût réel
+renvoyé par Grok est celui qui est compté.
 
 ---
 
