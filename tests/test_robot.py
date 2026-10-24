@@ -36,6 +36,7 @@ class Base(unittest.TestCase):
         R["planning"].update(courte_chaque_jour=True, jours_longue=["samedi"], heures_publication=[12, 19], pause=False)
         R["montage"]["sous_titres"] = True
         R["tiktok"] = {"profils": [], "auto": False, "jours": ["mercredi"], "duree_max": 45, "gilbert": True}
+        R["publication"] = {"mode": "manuel", "compte": ""}
         ecrire("reglages.json", R)
         for nom in ("budget.json", "portrait.jpg"):
             if os.path.exists(os.path.join(TMP, "docs", "donnees", nom)):
