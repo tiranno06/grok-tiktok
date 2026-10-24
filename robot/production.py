@@ -54,6 +54,7 @@ Vérifie un par un :
 7. Personnages : leur apparence vient UNIQUEMENT de leurs fiches ci-dessous. Ne la réécris jamais dans les plans (seulement
    leur nom et leur position) et n'invente jamais une autre apparence. "visibles" liste les ids des personnes à l'image ;
    chacun garde sa place d'un plan à l'autre sauf si on le voit bouger. Une seule réplique par plan.
+   Au plus UN personnage secondaire dans l'épisode (Newton le chien en plus si utile) : retire les autres.
 8. Règles : pas de « Doc », « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel », pas de titre de film,
    pas de vraie personne, pas d'enfant.
 

@@ -66,7 +66,8 @@ RÈGLES
   gigawatts, voyage dans le temps raté, la brute qui finit dans le fumier) sont bienvenus. Mais on ne dit jamais « Doc »,
   « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel » ni le titre du film, et personne ne ressemble aux
   acteurs du film.
-- Seuls {nom} et les personnages secondaires existent. 0, 1 ou 2 secondaires selon l'idée. Chacun garde ses phrases
+- Seuls {nom} et les personnages secondaires existent. AU PLUS UN personnage secondaire par épisode (souvent aucun) :
+  on ne présente jamais toute la bande. Newton le chien peut s'ajouter s'il sert le gag. Chacun garde ses phrases
   fétiches, sa gestuelle, ses mimiques et sa personnalité.
 - "visibles" = les ids des personnes à l'image dans ce plan (1 à 3, le chien compris). "personnage" = l'id de celle qui dit
   "dialogue" (elle est dans "visibles"). Une seule réplique par plan. Les autres peuvent être hors champ : on les entend
@@ -126,6 +127,14 @@ def qui(plan, perso):
     return dict(perso, id="gilbert")
 
 
+def _secondaire_autorise(plans, perso):
+    """Ids permis dans l'épisode : Gilbert, le chien, et UN seul autre personnage secondaire (le premier qui parle)."""
+    ids = {c["id"] for c in perso.get("secondaires", [])}
+    ordre = [i for p in plans for i in [p.get("personnage")] + list(p.get("visibles") or [])]   # dans l'ordre d'apparition
+    premier = next((i for i in ordre if i in ids and i != "newton"), None)
+    return {"gilbert", "newton"} & ({"gilbert"} | ids) | ({premier} if premier else set())
+
+
 def _texte(x):
     return str(x or "").strip()
 
@@ -135,6 +144,7 @@ def nettoyer(ep, f, perso):
     plans = [p for p in (ep.get("plans") or []) if isinstance(p, dict)][:f["plans_max"]]
     if not plans:
         raise grok.ErreurGrok("scénario sans aucun plan")
+    autorise = _secondaire_autorise(plans, perso)
     avant = None
     for k, p in enumerate(plans):
         try:
@@ -147,7 +157,9 @@ def nettoyer(ep, f, perso):
         der = p.get("deroule")
         p["deroule"] = [_texte(x) for x in (der if isinstance(der, list) else [der]) if _texte(x)] or ["the action continues"]
         p["personnage"] = qui(p, perso)["id"]
-        connus_ = {"gilbert"} | {c["id"] for c in perso.get("secondaires", [])}
+        if p["personnage"] not in autorise:                  # un 2e secondaire : sa réplique revient à Gilbert
+            p["personnage"] = "gilbert"
+        connus_ = autorise
         vis = [v for v in (p.get("visibles") if isinstance(p.get("visibles"), list) else []) if v in connus_]
         p["visibles"] = list(dict.fromkeys([p["personnage"]] + vis))[:3]
         # on n'enchaîne que si ce sont les mêmes personnes à l'image (la caméra continue)

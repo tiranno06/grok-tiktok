@@ -214,6 +214,16 @@ class FauxGrok(AvecFauxGrok):
         textes = " ".join(e["texte"] for e in lire("journal.json")["evenements"])
         self.assertIn("à revoir", textes)
 
+    def test_un_seul_secondaire(self):
+        P = lire("personnage.json")
+        f = {"plans_min": 3, "plans_max": 5, "duree_min": 24, "duree_max": 40}
+        ep = scenario.nettoyer({"plans": [
+            {"personnage": "gilbert", "visibles": ["gilbert", "mat", "newton"], "duree": 8},
+            {"personnage": "bouc", "visibles": ["bouc", "gilbert"], "duree": 8},
+            {"personnage": "mat", "visibles": ["mat", "lola"], "duree": 8}]}, f, P)
+        self.assertEqual([p["personnage"] for p in ep["plans"]], ["gilbert", "gilbert", "mat"])
+        self.assertEqual([p["visibles"] for p in ep["plans"]], [["gilbert", "mat", "newton"], ["gilbert"], ["mat"]])
+
     def test_avis_de_l_auteur(self):
         principal.main(["--format", "courte"])
         vid = self.file()[0]["id"]
