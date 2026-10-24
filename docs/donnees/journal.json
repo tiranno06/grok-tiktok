@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T14:00:48+02:00",
+   "niveau": "info",
+   "texte": "⚙️ Réglages modifiés (plafond 5 $/mois)."
+  },
+  {
    "date": "2026-10-24T13:57:23+02:00",
    "niveau": "info",
    "texte": "✅ « [Test] la 2CV téléportée sur la mairie » prête (courte, 24 s, 0.00 $), note du jury 80/100 — test gratuit"
