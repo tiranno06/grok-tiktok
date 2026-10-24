@@ -40,7 +40,17 @@
   "couper_blancs": true
  },
  "tiktok": {
-  "profils": [],
+  "profils": [
+   "yan_animation0",
+   "eliotlehanneur",
+   "same_same53",
+   "charly.bse",
+   "kodanimation",
+   "motiontoonz",
+   "vignianimation",
+   "vincedessine",
+   "gebutaw"
+  ],
   "auto": false,
   "jours": [
    "mercredi",

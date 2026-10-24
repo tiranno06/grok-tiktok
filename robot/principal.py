@@ -92,8 +92,9 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
 def video_tiktok(res, R, P, caisse, dossier, lien, idee, portrait):
     """Filière « Sons TikTok » (voir sons_tiktok.py)."""
     vid, now = res["id"], maintenant()
-    deja = {sons_tiktok.id_video(v.get("source", "")) for v in (lire("file.json") or {}).get("videos", [])} - {""}
-    t = sons_tiktok.fabriquer(R, P, caisse, dossier, lien, deja, portrait)
+    file = lire("file.json") or {"videos": []}
+    deja = {sons_tiktok.id_video(v.get("source", "")) for v in file.get("videos", [])} - {""}
+    t = sons_tiktok.fabriquer(R, P, caisse, dossier, lien, deja, portrait, file)
     video = os.path.join(dossier, f"{vid}.mp4")
     os.replace(t["video"], video)
     res["miniature"] = montage.miniature(video, os.path.join(dossier, f"{vid}.jpg"), min(1.5, t["duree"] / 2))

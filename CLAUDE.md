@@ -45,6 +45,9 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   Grok vision (`modeles.vision`) invente personnages FICTIFS / lieux / cadrages ; un portrait par personnage ; `caler` recale
   la parole du clip Grok sur la parole d'origine (vitesse ×0,75 à ×1,35) ; `assembler` remet le son d'origine. Pas de vraie
   synchronisation labiale chez xAI (pas d'entrée audio) : c'est un doublage.
+- **Profils de sketchs** (24/10) : `reglages.tiktok.profils` pré-rempli avec les 9 profils connus de jt-auto
+  (`sons_tiktok.PROFILS_CONNUS`) ; liste vide = `connus(file)` (ceux de jt-auto + comptes des vidéos déjà reprises, jamais
+  @petitsdramas). Bouton du site « Ajouter les profils déjà connus ».
 
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`

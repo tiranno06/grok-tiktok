@@ -43,6 +43,22 @@ def lire_profils(texte):
     return out[:30]
 
 
+# Profils de sketchs déjà connus (repris de jt-auto, du plus utilisé au moins utilisé) : la réserve de départ.
+PROFILS_CONNUS = ["yan_animation0", "eliotlehanneur", "same_same53", "charly.bse", "kodanimation", "motiontoonz",
+                  "vignianimation", "vincedessine", "gebutaw"]
+NOS_COMPTES = {"petitsdramas", "petits.dramas"}
+
+
+def connus(file=None):
+    """Profils déjà connus : ceux de jt-auto, puis les comptes des vidéos TikTok déjà reprises ici (liens collés compris)."""
+    out = list(PROFILS_CONNUS)
+    for v in (file or {}).get("videos", []):
+        m = re.search(r"tiktok\.com/@([\w.\-]+)/video/", str(v.get("source", "")))
+        if m and m.group(1).lower() not in [x.lower() for x in out]:
+            out.append(m.group(1))
+    return [p for p in out if p.lower() not in NOS_COMPTES]
+
+
 def lien_valide(url):
     return bool(re.match(r"^https?://([a-z0-9-]+\.)*tiktok\.com/\S+$", (url or "").strip(), re.I))
 
@@ -392,7 +408,7 @@ def filmer(R, prompt, image, secondes, dest, caisse, quoi, sobre):
             journal(f"  {quoi} refusé par la modération : nouvel essai plus sobre")
 
 
-def fabriquer(R, P, caisse, dossier, lien, deja, portrait_gilbert):
+def fabriquer(R, P, caisse, dossier, lien, deja, portrait_gilbert, file=None):
     """Fabrique la vidéo. Renvoie un dict : titre, legende, hashtags, video, duree, source, auteur, plans."""
     T = R.get("tiktok") or {}
     duree_max = float(T.get("duree_max", 60))
@@ -402,9 +418,7 @@ def fabriquer(R, P, caisse, dossier, lien, deja, portrait_gilbert):
             raise grok.ErreurGrok("il faut un lien de vidéo TikTok (https://www.tiktok.com/@compte/video/… ou https://vm.tiktok.com/…)")
         candidats = [lien]
     else:
-        profils = lire_profils(T.get("profils") or [])
-        if not profils:
-            raise grok.ErreurGrok("aucun profil TikTok réglé : ajoute des profils dans l'onglet TikTok du site")
+        profils = lire_profils(T.get("profils") or []) or connus(file)      # liste vide : les profils déjà connus
         candidats = ["https://www.tiktok.com/@test/video/1"] if simulation() else choisir(profils, deja, duree_max)
         if not candidats:
             raise grok.ErreurGrok("aucune vidéo utilisable dans les profils cette fois (déjà toutes prises, trop longues, "

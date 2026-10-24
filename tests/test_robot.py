@@ -261,9 +261,14 @@ class SonsTikTok(Base):
         mp4 = v["url"].replace("file://", "")
         self.assertAlmostEqual(montage.duree(mp4), 24, delta=0.5)
 
-    def test_sans_profil_ni_lien(self):
-        self.assertEqual(principal.main(["--format", "tiktok"]), 1)
-        self.assertIn("aucun profil", lire("journal.json")["evenements"][0]["texte"])
+    def test_liste_vide_profils_connus(self):
+        self.assertEqual(principal.main(["--format", "tiktok"]), 0)          # liste vide : profils déjà connus
+        self.assertIn("yan_animation0", sons_tiktok.connus())
+        f = {"videos": [{"source": "https://www.tiktok.com/@nouveau.compte/video/9"},
+                        {"source": "https://www.tiktok.com/@petitsdramas/video/8"}]}
+        self.assertEqual(sons_tiktok.connus(f)[-1], "nouveau.compte")       # un lien collé fait connaître son compte
+        self.assertNotIn("petitsdramas", sons_tiktok.connus(f))             # jamais notre propre chaîne
+        self.assertEqual(len(lire("reglages.json")["tiktok"]["profils"]), 0)
 
     def test_mauvais_lien(self):
         self.assertEqual(principal.main(["--format", "tiktok", "--lien", "https://youtube.com/x"]), 1)

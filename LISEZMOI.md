@@ -45,6 +45,9 @@ son son**, puis tourne une nouvelle vidéo réaliste autour :
 
 Coût : environ 1 $ pour un son de 15 s, 1,80 $ pour 30 s, 2,60 $ pour 45 s. Durée maximale réglable (45 s par défaut).
 Le compte d'origine est cité dans la légende (🎧 Son : @compte).
+La liste de profils part des 9 profils de sketchs déjà connus de jt-auto (yan_animation0, eliotlehanneur, same_same53,
+charly.bse, kodanimation, motiontoonz, vignianimation, vincedessine, gebutaw). Ajoute ou retire ceux que tu veux ;
+liste vide = le robot pioche dans les profils déjà connus.
 
 ---
 

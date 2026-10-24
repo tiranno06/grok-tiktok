@@ -205,8 +205,9 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
     </form>
     <form class="panel" id="f-tkp">
       <h2>Tes profils TikTok</h2>
-      <label class="f" for="tk_profils">Profils <span class="sub">Un par ligne : @pseudo ou lien du profil. Le robot n'utilise jamais deux fois la même vidéo.</span>
-        <textarea id="tk_profils" placeholder="@compte_drole&#10;https://www.tiktok.com/@autre_compte"></textarea></label>
+      <label class="f" for="tk_profils">Profils de sketchs <span class="sub">Un par ligne : @pseudo ou lien du profil. Le robot pioche au hasard dans leurs vidéos et n'utilise jamais deux fois la même. Liste vide = les profils déjà connus.</span>
+        <textarea id="tk_profils" rows="8" placeholder="@compte_drole&#10;https://www.tiktok.com/@autre_compte"></textarea></label>
+      <div class="actions"><button class="btn" type="button" id="tk_connus">Ajouter les profils déjà connus</button></div>
       <div class="f">Création automatique
         <div class="seg"><label for="tk_auto"><input type="checkbox" id="tk_auto"> Oui, les jours cochés (vers 6 h)</label></div>
         <div class="seg" id="tk_jours"></div></div>
@@ -351,7 +352,7 @@ const DEMO_DATA = {
     formats:{ courte:{clips:2, secondes_par_clip:10}, longue:{clips:6, secondes_par_clip:14} },
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
     montage:{ sous_titres:true },
-    tiktok:{ profils:["compte_drole"], auto:false, jours:["mercredi","dimanche"], duree_max:45, gilbert:true } },
+    tiktok:{ profils:["yan_animation0","eliotlehanneur","same_same53","charly.bse"], auto:false, jours:["mercredi","dimanche"], duree_max:45, gilbert:true } },
   "personnage.json": { nom:"Gilbert Mouchon", age:54, ville:"Saint-Glinglin-sur-Loire (village imaginaire)",
     apparence:"French man in his mid fifties, round friendly face, thick grey walrus moustache, small rectangular glasses, short grey hair, beige fishing vest over a faded blue checked shirt",
     voix:"deep, calm, slightly hoarse voice of a French man in his fifties, deadpan delivery",
@@ -638,9 +639,19 @@ $("#f-creer").addEventListener("submit", e => { e.preventDefault();
 $("#f-tk").addEventListener("submit", e => { e.preventDefault();
   const lien = $("#tk_lien").value.trim();
   if (lien && !/^https?:\/\/([a-z0-9-]+\.)*tiktok\.com\/\S+$/i.test(lien)) return toast("Ce n'est pas un lien TikTok. Exemple : https://www.tiktok.com/@compte/video/123…");
-  if (!lien && !(R().tiktok?.profils || []).length && !$("#tk_simu").checked) return toast("Colle un lien, ou ajoute d'abord des profils plus bas.");
   ordre("robot.yml", { format: "tiktok", lien, idee: "", remplace: "", simulation: $("#tk_simu").checked ? "1" : "0" },
     "Vidéo TikTok commandée : elle arrive dans « À publier » d'ici 10 à 25 min.").then(ok => { if (ok) $("#tk_lien").value = ""; }); });
+const PROFILS_CONNUS = ["yan_animation0","eliotlehanneur","same_same53","charly.bse","kodanimation","motiontoonz",
+  "vignianimation","vincedessine","gebutaw"];                 // repris de jt-auto (même liste que robot/sons_tiktok.py)
+$("#tk_connus").onclick = () => {
+  const deja = $("#tk_profils").value.split(/[\n,;]+/).map(x => (x.match(/@?([\w.\-]{2,40})\/?$/) || x.match(/tiktok\.com\/@([\w.\-]+)/) || [])[1] || "")
+    .filter(Boolean).map(x => x.toLowerCase());
+  const sources = (D["file.json"].videos || []).map(v => (String(v.source || "").match(/tiktok\.com\/@([\w.\-]+)\/video\//) || [])[1]).filter(Boolean);
+  const ajout = [...new Set([...PROFILS_CONNUS, ...sources])].filter(p => !deja.includes(p.toLowerCase()));
+  if (!ajout.length) return toast("Tous les profils déjà connus sont dans la liste.");
+  $("#tk_profils").value = ($("#tk_profils").value.trim() + "\n" + ajout.map(p => "@" + p).join("\n")).trim();
+  toast(`${ajout.length} profil(s) ajouté(s). Appuie sur Enregistrer.`);
+};
 $("#f-tkp").addEventListener("submit", e => { e.preventDefault();
   const tiktok = { profils: $("#tk_profils").value, auto: $("#tk_auto").checked, duree_max: +$("#tk_max").value || 45,
     jours: [...document.querySelectorAll("#tk_jours input:checked")].map(i => i.value), gilbert: $("#tk_gilbert").checked };

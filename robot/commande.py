@@ -101,8 +101,11 @@ def appliquer_reglages(d):
     if isinstance(d.get("tiktok"), dict):                    # onglet TikTok du site
         t, T = d["tiktok"], R.setdefault("tiktok", {})
         if "profils" in t:
-            from .sons_tiktok import lire_profils
+            from .sons_tiktok import connus, lire_profils
             T["profils"] = lire_profils(t["profils"])
+            nouveaux = [p for p in connus(lire("file.json")) if p.lower() not in [x.lower() for x in T["profils"]]]
+            if not T["profils"]:
+                noter(f"🎵 Liste de profils vide : le robot piochera dans les profils déjà connus ({len(nouveaux)}).")
         if "auto" in t:
             T["auto"] = bool(t["auto"])
         if "jours" in t:
