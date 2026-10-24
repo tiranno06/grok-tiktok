@@ -65,6 +65,9 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   apparence, voix, `gestuelle` (gestes et mimiques, aussi pour Gilbert), personnalité, répliques. Plan = UNE personne
   (`plan.personnage`, `scenario.qui`), portrait de chacun dans `docs/donnees/portraits/<id>.jpg` (fait à la 1re apparition,
   refait si son apparence change). 0 à 2 secondaires par épisode, environ un épisode sur deux en solo.
+  Monique et Napoléon n'existent plus (choix du propriétaire) : seule la bande du film, plus Newton le chien (= Einstein),
+  à l'image ou hors champ selon le gag. Publication : compte Buffer « petitsdramas » (même compte que jt-auto), mode manuel.
+  Budget volontairement à 5 $ et rien d'automatique tant que le propriétaire teste (24/10).
 
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`

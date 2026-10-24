@@ -4,13 +4,15 @@
  "ville": "Saint-Glinglin-sur-Loire (village imaginaire)",
  "apparence": "French man in his early sixties, round friendly face, wild untamed shock of white hair sticking up in all directions as if electrified, thick grey walrus moustache, bushy eyebrows, wide wild excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly scorched white lab coat over a faded blue checked shirt, a wristwatch on each wrist, a pocket full of screwdrivers",
  "voix": "excited, slightly hoarse voice of a French man in his sixties, theatrical and breathless, speeds up and goes high-pitched when he gets carried away, then whispers dramatically",
- "personnalite": "Hommage assumé à Doc, le savant fou de Retour vers le futur, transposé dans un village français. Génie incompris, persuadé d'avoir 30 ans d'avance sur son époque, que tout le village prend pour un doux dingue. Il vit dans son garage transformé en laboratoire : des dizaines d'horloges qui sonnent toutes en même temps, une machine à petit-déjeuner automatique qui rate tout (elle verse le café à côté et nourrit Napoléon), des câbles partout, un tableau noir couvert d'équations, une maquette du village en carton pour « reconstituer ses expériences ». Il invente des machines et des technologies complètement ubuesques : voyager dans le temps (au moins de cinq minutes), lire dans les pensées de Monique avec un casque à électrodes, une 2CV qui doit atteindre 88 km/h pour… quelque chose, une tondeuse à réaction, un grille-pain qui prédit l'avenir. Il présente chaque invention avec une exaltation et un sérieux scientifique absolus, grands gestes, yeux écarquillés, explications pseudo-techniques à toute vitesse… et presque à chaque fois ça foire : court-circuit, fumée, coupure de courant dans tout le village, effet inverse, Napoléon qui disparaît (puis réapparaît trois secondes plus tard, très calme). Mais il a énormément d'humour : il rebondit toujours, transforme chaque catastrophe en « découverte majeure » et note tout dans son carnet. De temps en temps, une expérience marche… pour de mauvaises raisons.",
+ "personnalite": "Hommage assumé à Doc, le savant fou de Retour vers le futur, transposé dans un village français. Génie incompris, persuadé d'avoir 30 ans d'avance sur son époque, que tout le village prend pour un doux dingue. Il vit dans son garage transformé en laboratoire : des dizaines d'horloges qui sonnent toutes en même temps, une machine à petit-déjeuner automatique qui rate tout (elle verse le café à côté et remplit la gamelle de Newton jusqu'à déborder), des câbles partout, un tableau noir couvert d'équations, une maquette du village en carton pour « reconstituer ses expériences ». Il invente des machines et des technologies complètement ubuesques : voyager dans le temps (au moins de cinq minutes), lire dans les pensées avec un casque à électrodes, une 2CV qui doit atteindre 88 km/h pour… quelque chose, une tondeuse à réaction, un grille-pain qui prédit l'avenir. Il présente chaque invention avec une exaltation et un sérieux scientifique absolus, grands gestes, yeux écarquillés, explications pseudo-techniques à toute vitesse… et presque à chaque fois ça foire : court-circuit, fumée, coupure de courant dans tout le village, effet inverse, Newton qui disparaît (puis réapparaît trois secondes plus tard, très calme). Mat, son jeune acolyte, est son seul vrai ami. Gilbert a énormément d'humour : il rebondit toujours, transforme chaque catastrophe en « découverte majeure » et note tout dans son carnet. De temps en temps, une expérience marche… pour de mauvaises raisons.",
  "phrase_fetiche": "Nom d'une pile atomique !",
  "gags_recurrents": [
   "Presque toutes ses expériences foirent de façon spectaculaire : court-circuit, nuage de fumée, cheveux encore plus électrisés",
   "Compte à rebours très théâtral avant chaque essai, montre en main, et note de la date et de l'heure exactes dans son carnet",
-  "Napoléon, son pigeon, est le cobaye officiel de chaque expérience : il disparaît, réapparaît, ou se retrouve avec des lunettes de soudeur",
-  "Monique, la voisine qu'on ne voit jamais, crie à travers la haie à cause du bruit, des éclairs et des coupures de courant",
+  "Newton, son chien, est le cobaye officiel de chaque expérience : il disparaît, réapparaît, ou se retrouve avec des lunettes de soudeur",
+  "Mat arrive en skate au pire moment et se retrouve embarqué dans l'expérience",
+  "Le Bouc vient « emprunter » une invention et finit dans le tas de fumier",
+  "Le maire débarque avec un nouvel arrêté municipal juste avant l'explosion",
   "Les horloges du garage sonnent toutes en même temps au mauvais moment",
   "Il enfile une combinaison de protection jaune et des gants de cuisine pour des expériences qui n'en ont pas besoin",
   "Quand une expérience marche par miracle, il est encore plus surpris que tout le monde"
@@ -23,9 +25,9 @@
   "Quand cette machine atteindra 88 km/h, tu vas voir quelque chose de vraiment… bon, tu vas voir.",
   "Ce n'est pas un échec, c'est un résultat inattendu de toute première importance !",
   "Note bien la date et l'heure : ceci est un moment historique.",
-  "Napoléon, tu es le premier pigeon de l'histoire à… où est passé Napoléon ?",
-  "Tu ne réfléchis pas en quatre dimensions, Monique !",
-  "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main."
+  "Les routes ? Là où on va, on n'a pas besoin… attends, j'ai oublié le frein à main.",
+  "Newton, tu es le premier chien de l'histoire à… où est passé Newton ?",
+  "Tu ne réfléchis pas en quatre dimensions, Mat !"
  ],
  "secondaires": [
   {
@@ -44,6 +46,17 @@
     "C'est la dernière fois. Bon. Vas-y, montre."
    ],
    "id": "mat"
+  },
+  {
+   "id": "newton",
+   "nom": "Newton, le chien de Gilbert",
+   "age": 6,
+   "role": "Le chien et cobaye officiel de Gilbert (adaptation d'Einstein) : il ne parle pas, mais il réagit à tout",
+   "apparence": "large shaggy sheepdog-mix dog with grey and white fur, floppy ears, calm wise eyes, wearing a small red collar with a homemade gadget clipped to it",
+   "voix": "does not speak; occasional bark or sigh",
+   "gestuelle": "tilts his head at the camera, sighs and lies down unimpressed, sits perfectly still inside the experiment, wags his tail slowly, covers his eyes with his paws during explosions",
+   "personnalite": "Le plus calme de toute la bande. Premier voyageur de chaque expérience, il réapparaît toujours imperturbable (parfois avec un accessoire en plus). Il ne parle jamais : on le voit réagir.",
+   "repliques": []
   },
   {
    "nom": "Brice « Le Bouc » Tanguy",

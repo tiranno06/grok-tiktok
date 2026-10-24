@@ -45,14 +45,17 @@ RÈGLES
   Mais on ne dit jamais « Doc », « Marty », « McFly », « Biff », « DeLorean », « convecteur temporel » ni le titre du film,
   et personne ne ressemble aux acteurs du film.
 - Les ratés restent drôles et sans blessé : fumée, étincelles, cheveux électrisés, effet inverse.
-- Monique la voisine n'apparaît JAMAIS à l'image : on l'entend pas, on parle d'elle, on la montre du doigt hors champ.
+- Seuls Gilbert et les personnages secondaires ci-dessus existent (aucun autre personnage récurrent). Selon le gag, un
+  personnage secondaire est à l'image, ou reste hors champ : on l'entend (écris sa réplique en français entre guillemets
+  dans "action", ex. Mat yells from off-screen: « Gilbert, ça fume ! »), on le montre du doigt, on parle de lui.
+- Un personnage qui ne parle pas (Newton le chien) peut être à l'image : "dialogue" vide, il réagit.
 - {nom} est le héros de chaque épisode. Selon l'idée, 0, 1 ou 2 personnages secondaires peuvent venir (pas toujours les
   mêmes, et environ un épisode sur deux en solo). Tout le monde parle français.
 - C'est une vraie adaptation du film : chacun garde ses phrases fétiches (adaptées à la situation), sa gestuelle, ses
   mimiques, sa personnalité et ses relations (l'acolyte qui panique, la brute qui finit dans le fumier, le voisin timide qui
   trouve enfin du courage…). Mets ses gestes typiques dans "action".
 - Chaque plan montre UNE personne (champ / contrechamp) : "personnage" = l'id de celle qu'on voit et qui dit "dialogue"
-  ("gilbert" ou un id secondaire). L'autre peut être évoquée hors champ dans "action".
+  ("gilbert" ou un id secondaire). Les autres peuvent être hors champ (voir plus haut).
 - Chaque plan dure {secondes} secondes : la réplique fait entre {mots_min} et {mots} mots (il parle presque tout le plan,
   pas de long blanc).
 - "objets" : les accessoires importants (en ANGLAIS, décrits précisément : couleur, matière, forme). Ils doivent rester

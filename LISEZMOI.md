@@ -3,9 +3,9 @@
 Chaque matin, le robot :
 1. **écrit un épisode** avec Grok (titre, légende, hashtags, découpage en plans) autour du personnage récurrent
    **Gilbert Mouchon**, inventeur fou d'un village imaginaire dont les inventions ubuesques merdouillent à chaque fois,
-   sa voisine invisible Monique et son pigeon Napoléon (assistant de laboratoire) ;
-   autour de lui, une bande inspirée de Retour vers le futur : Mat le jeune acolyte, Le Bouc la brute du village,
-   Gérard le voisin timide, Lola, Laurence et le maire (onglet Personnage : tout est modifiable) ;
+   entouré d'une bande adaptée de Retour vers le futur : Mat le jeune acolyte, Newton le chien cobaye, Le Bouc la brute
+   du village, Gérard le voisin timide, Lola, Laurence et le maire, à l'image ou seulement entendus selon le gag
+   (onglet Personnage : tout est modifiable) ;
 2. **fait filmer chaque plan** par **Grok Imagine** (modèle *Video 1.5 Lite*, avec le son et la voix). Chaque plan part
    d'une image de Gilbert tirée de son **portrait de référence** : il garde le même visage d'une vidéo à l'autre ;
 3. **monte la vidéo** : format vertical 720×1280, son égalisé, sous-titres incrustés ;
