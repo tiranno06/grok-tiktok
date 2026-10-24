@@ -5,6 +5,7 @@ La clé est lue dans la variable XAI_API_KEY (secret GitHub), jamais écrite ail
 En mode simulation (SIMULATION=1), rien n'est envoyé : de fausses images et vidéos sont fabriquées avec ffmpeg.
 """
 import base64
+import http.client
 import json
 import os
 import subprocess
@@ -60,8 +61,51 @@ def _appel(methode, chemin, corps=None, essais=4, delai=600):
             if _refus_de_cle(e.code, texte):
                 raise ErreurGrok(CLE_REFUSEE)
             raise ErreurGrok(f"xAI a répondu {e.code} : {texte}")
-        except (urllib.error.URLError, TimeoutError) as e:
+        except (urllib.error.URLError, TimeoutError, http.client.HTTPException, ConnectionError) as e:
+            if n < essais - 1:                               # coupure réseau : on réessaie
+                time.sleep(10 * (n + 1))
+                continue
+            raise ErreurGrok(f"xAI injoignable : {e}")
+
+
+def _appel_flux(corps, essais=3, delai=300):
+    """Appel de texte en flux (stream) : xAI envoie la réponse morceau par morceau, la connexion ne reste jamais muette
+    (une réponse d'un bloc après plusieurs minutes de silence était coupée : « Remote end closed connection »).
+    Renvoie {"texte", "usage"}."""
+    donnees = json.dumps(dict(corps, stream=True, stream_options={"include_usage": True})).encode()
+    for n in range(essais):
+        req = urllib.request.Request(API + "/chat/completions", data=donnees, method="POST",
+                                     headers={"Authorization": f"Bearer {_cle()}", "Content-Type": "application/json",
+                                              "Accept": "text/event-stream", "User-Agent": "grok-tiktok-robot"})
+        morceaux, usage = [], {}
+        try:
+            with urllib.request.urlopen(req, timeout=delai) as r:
+                for ligne in r:
+                    ligne = ligne.decode(errors="replace").strip()
+                    if not ligne.startswith("data:"):
+                        continue
+                    ligne = ligne[5:].strip()
+                    if ligne == "[DONE]":
+                        break
+                    try:
+                        bout = json.loads(ligne)
+                    except ValueError:
+                        continue
+                    usage = bout.get("usage") or usage
+                    for c in bout.get("choices") or []:
+                        morceaux.append((c.get("delta") or {}).get("content") or "")
+            return {"texte": "".join(morceaux), "usage": usage}
+        except urllib.error.HTTPError as e:
+            texte = e.read().decode(errors="replace")[:500]
+            if e.code in (429, 500, 502, 503, 504) and n < essais - 1:
+                time.sleep(10 * (n + 1))
+                continue
+            if _refus_de_cle(e.code, texte):
+                raise ErreurGrok(CLE_REFUSEE)
+            raise ErreurGrok(f"xAI a répondu {e.code} : {texte}")
+        except (urllib.error.URLError, TimeoutError, http.client.HTTPException, ConnectionError) as e:
             if n < essais - 1:
+                print(f"  connexion à xAI coupée ({type(e).__name__}) : nouvel essai", flush=True)
                 time.sleep(10 * (n + 1))
                 continue
             raise ErreurGrok(f"xAI injoignable : {e}")
@@ -92,13 +136,13 @@ def ecrire_json(modele, consignes, demande, prix, images=()):
     if images:
         contenu = [{"type": "image_url", "image_url": {"url": image_en_data_url(i), "detail": "low"}} for i in images]
         contenu.append({"type": "text", "text": demande})
-    rep = _appel("POST", "/chat/completions", {
+    rep = _appel_flux({
         "model": modele,
         "messages": [{"role": "system", "content": consignes}, {"role": "user", "content": contenu}],
         "response_format": {"type": "json_object"},
         "temperature": 1.0,
     })
-    texte = rep["choices"][0]["message"]["content"]
+    texte = rep["texte"]
     debut, fin = texte.find("{"), texte.rfind("}")
     try:
         return json.loads(texte[debut:fin + 1]), _cout(rep, prix)

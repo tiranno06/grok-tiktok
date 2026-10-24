@@ -4,6 +4,7 @@ Chaque épisode a une « bible » (lieu, lumière, objets avec leur état) et de
 pour chaque plan, l'état de départ, ce qui se passe seconde par seconde, l'état de fin (qui est le départ du plan suivant)
 et la réplique en français. La durée totale dépend de l'idée (assez longue pour tout montrer, jamais de trou).
 """
+import json
 import os
 import random
 
@@ -81,15 +82,26 @@ RÈGLES
   leur NOM et leur position (« Gilbert au centre, Mat à gauche »). Leur apparence vient toujours de leur fiche.
 - Positions stables : chacun garde sa place d'un plan à l'autre, sauf si on le voit se déplacer.
 {memoire}
-SALLE DES AUTEURS : propose 5 idées, puis écris 3 VERSIONS COMPLÈTES et différentes (les 3 meilleures idées), classées de
-la meilleure à la moins bonne. Pour chaque version, écris D'ABORD la chute et son "image_cle" (l'image finale drôle même
-SANS le son), puis l'effet spectaculaire (pris dans la liste des effets qui marchent), puis remonte jusqu'à l'accroche.
-Le producteur gardera la plus drôle ET la plus facile à filmer.
+{fin}"""
+
+# Salle des auteurs, en deux temps (un seul gros appel pour 3 scénarios complets dépassait 6 minutes : xAI coupait) :
+# 1) 3 pitchs courts, la chute d'abord ; 2) le producteur choisit ; 3) le découpage complet du pitch choisi.
+PITCHS = """SALLE DES AUTEURS : propose 5 idées, puis développe les 3 meilleures en PITCHS courts et différents, classés du
+meilleur au moins bon. Pour chaque pitch, écris D'ABORD la chute et son "image_cle" (l'image finale drôle même SANS le son),
+puis l'effet spectaculaire (pris dans la liste des effets qui marchent), puis remonte jusqu'à l'accroche.
+Le producteur gardera le plus drôle ET le plus facile à filmer. Pas encore de découpage en plans.
 Réponds uniquement en JSON :
-{{"idees": ["5 idées d'expérience en une phrase chacune"], "versions": [VERSION, VERSION, VERSION]}}
-où chaque VERSION est :
-{{"choix": "l'idée de cette version et pourquoi elle est drôle", "chute": "la chute en une phrase",
- "image_cle": "l'image finale drôle sans le son", "effet": "l'effet spectaculaire montré", "titre": "...", "legende": "légende TikTok drôle, 1 ou 2 phrases, sans hashtag", "hashtags": ["#...", "..."],
+{{"idees": ["5 idées d'expérience en une phrase chacune"], "pitchs": [{{"titre": "...", "choix": "l'idée et pourquoi elle
+est drôle", "chute": "la chute en une phrase", "image_cle": "l'image finale drôle sans le son", "effet": "l'effet
+spectaculaire montré", "secondaire": "id du personnage secondaire ou vide", "histoire": ["accroche", "lancement", "effet",
+"ce qui foire", "chute"], "repliques_cles": ["2 ou 3 répliques drôles"]}}]}}"""
+
+ECRITURE = """Écris maintenant le découpage complet de l'épisode à partir du PITCH CHOISI donné dans la demande (garde sa
+chute, son image clé et son effet).
+Réponds uniquement en JSON :
+{{"choix": "l'idée et pourquoi elle est drôle", "chute": "la chute en une phrase", "image_cle": "l'image finale drôle sans
+le son", "effet": "l'effet spectaculaire montré", "titre": "...", "legende": "légende TikTok drôle, 1 ou 2 phrases, sans
+hashtag", "hashtags": ["#...", "..."],
  "bible": {{"lieu": "...", "lumiere": "...", "objets": [{{"nom": "...", "description": "...", "etat_initial": "..."}}]}},
  "plans": [{{"personnage": "gilbert", "duree": 8, "enchaine": false, "cadrage": "...", "emotion": "...",
             "visibles": ["gilbert"], "debut": "...", "deroule": ["0-3s: ...", "3-8s: ..."], "fin": "...",
@@ -130,8 +142,8 @@ STYLES = {
 }
 
 
-def fiche(p, f, memoire="", style="vlog"):
-    return CONSIGNES.format(nom=p["nom"], age=p["age"], ville=p["ville"], apparence=p["apparence"],
+def fiche(p, f, memoire="", style="vlog", fin=ECRITURE):
+    return CONSIGNES.format(fin=fin.replace("{{", "{").replace("}}", "}"), nom=p["nom"], age=p["age"], ville=p["ville"], apparence=p["apparence"],
                             voix=p.get("voix", ""), personnalite=p["personnalite"], phrase=p["phrase_fetiche"],
                             gags="; ".join(p.get("gags_recurrents", [])), ton=p["ton"],
                             repliques=" / ".join(f"« {r} »" for r in p.get("repliques", [])) or "aucune",
@@ -145,30 +157,46 @@ def fiche(p, f, memoire="", style="vlog"):
                             duree_max=f["duree_max"], memoire=memoire, style=STYLES.get(style, ""), effets=EFFETS)
 
 
-def ecrire(format_, perso, reglages, idee="", deja=(), memoire=""):
-    """Salle des auteurs : 3 versions complètes. Renvoie (meilleure version, coût) ; les deux autres sont dans
-    episode["autres"] pour que le producteur puisse choisir."""
-    f = reglages["formats"][format_]
+def _demande(format_, idee, deja):
     genre = ("COURT (une grande expérience, montrée en entier, et sa chute)" if format_ == "courte"
              else "LONG (une vraie petite histoire avec une grande expérience, des rebondissements et une chute)")
-    demande = DEMANDE.format(genre=genre, idee=f"Idée imposée : {idee}" if idee else "Invente une idée originale.",
-                             deja="; ".join(list(deja)[-30:]) or "aucun")
+    return DEMANDE.format(genre=genre, idee=f"Idée imposée : {idee}" if idee else "Invente une idée originale.",
+                          deja="; ".join(list(deja)[-30:]) or "aucun")
+
+
+def _style(reglages):
+    return (reglages.get("video") or {}).get("style", "vlog")
+
+
+def proposer(format_, perso, reglages, idee="", deja=(), memoire=""):
+    """Salle des auteurs, 1er temps : 3 pitchs courts, la chute d'abord. Renvoie (pitchs, coût)."""
+    f = reglages["formats"][format_]
+    if os.environ.get("SIMULATION") == "1":
+        return [{"titre": f"[Test] pitch {k + 1}", "chute": "farine partout", "image_cle": "Gilbert blanc de farine",
+                 "effet": "explosion de farine", "histoire": [], "repliques_cles": []} for k in range(3)], 0.0
+    rep, cout = grok.ecrire_json(reglages["modeles"]["texte"], fiche(perso, f, memoire, _style(reglages), PITCHS),
+                                 _demande(format_, idee, deja), reglages["prix"]["scenario"])
+    pitchs = [p for p in (rep.get("pitchs") or []) if isinstance(p, dict) and _texte(p.get("titre") or p.get("chute"))][:3]
+    return pitchs, cout
+
+
+def ecrire(format_, perso, reglages, idee="", deja=(), memoire="", pitch=None):
+    """Salle des auteurs, dernier temps : le découpage complet (du pitch choisi s'il y en a un). Renvoie (épisode, coût)."""
+    f = reglages["formats"][format_]
+    demande = _demande(format_, idee, deja)
+    if pitch:
+        demande += "\nPITCH CHOISI PAR LE PRODUCTEUR : " + json.dumps(pitch, ensure_ascii=False)
     if os.environ.get("SIMULATION") == "1":
         ep, cout = _episode_simulation(perso, f, idee), 0.0
     else:
-        ep, cout = grok.ecrire_json(reglages["modeles"]["texte"], fiche(perso, f, memoire, (reglages.get("video") or {}).get("style", "vlog")), demande,
+        ep, cout = grok.ecrire_json(reglages["modeles"]["texte"], fiche(perso, f, memoire, _style(reglages)), demande,
                                     reglages["prix"]["scenario"])
-    versions = [v for v in (ep.get("versions") or []) if isinstance(v, dict) and v.get("plans")] or [ep]
-    propres = []
-    for v in versions[:3]:
-        try:
-            propres.append(nettoyer(v, f, perso))
-        except grok.ErreurGrok:
-            pass
-    if not propres:
-        raise grok.ErreurGrok("scénario sans aucun plan")
-    propres[0]["autres"] = propres[1:]
-    return propres[0], cout
+    if isinstance(ep.get("versions"), list) and ep["versions"]:          # ancien format à plusieurs versions
+        ep = next((v for v in ep["versions"] if isinstance(v, dict) and v.get("plans")), ep)
+    ep = nettoyer(ep, f, perso)
+    for cle in ("chute", "image_cle", "effet"):
+        ep[cle] = ep[cle] or _texte((pitch or {}).get(cle))[:300]
+    return ep, cout
 
 
 def voix_du_plan(plan, perso):
@@ -280,8 +308,7 @@ def _episode_simulation(perso, f, idee):
     sujet = idee or random.choice(sujets)
     sec = perso["secondaires"][0]["id"] if perso.get("secondaires") else "gilbert"
     n = f["plans_min"]
-    return {"versions": [dict(_version_simulation(perso, sujet, sec, n), titre=f"[Test] {sujet[:60]}" + (f" ({k})" if k else ""))
-                         for k in range(3)]}
+    return _version_simulation(perso, sujet, sec, n)
 
 
 def _version_simulation(perso, sujet, sec, n):

@@ -59,23 +59,35 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
         # 2. le scénariste écrit, le producteur relit et fait corriger AVANT de payer le tournage
         deja = [v.get("titre", "") for v in (lire("file.json") or {}).get("videos", [])]
         Q = R.get("qualite") or {}
-        caisse.autoriser(R["prix"]["scenario"], "scénario")
-        avancement.etape("Les auteurs écrivent 3 versions", 4, "la chute d'abord, puis toute l'histoire")
+        caisse.autoriser(R["prix"]["scenario"], "idées des auteurs")
+        avancement.etape("Les auteurs proposent 3 idées", 3, "la chute d'abord")
         t0 = time.time()
-        ep, cout = scenario.ecrire(format_, P, R, idee, deja, production.memoire_texte())
+        memoire = production.memoire_texte()
+        pitchs, cout = scenario.proposer(format_, P, R, idee, deja, memoire)
+        caisse.payer(cout, "idées des auteurs")
+        choix_k, pourquoi = 1, ""
+        if len(pitchs) > 1 and Q.get("producteur", True):
+            avancement.etape("Le producteur choisit la meilleure idée", 5, "la plus drôle et la plus facile à filmer")
+            caisse.autoriser(R["prix"]["scenario"], "choix du producteur")
+            choix_k, pourquoi, cout = production.choisir(R, pitchs)
+            caisse.payer(cout, "choix du producteur")
+        print(f"  {len(pitchs)} idée(s) en {time.time() - t0:.0f} s, n° {choix_k} gardée", flush=True)
+        avancement.etape("Les auteurs écrivent l'épisode", 6, "plan par plan, réplique par réplique")
+        caisse.autoriser(R["prix"]["scenario"], "scénario")
+        t0 = time.time()
+        ep, cout = scenario.ecrire(format_, P, R, idee, deja, memoire, pitchs[choix_k - 1] if pitchs else None)
         caisse.payer(cout, "scénario")
         print(f"  scénario écrit en {time.time() - t0:.0f} s", flush=True)
         avis_prod = None
         if Q.get("producteur", True):
-            avancement.etape("Le producteur choisit et relit", 9, "la plus drôle et la plus facile à filmer",
-                             titre=ep["titre"])
+            avancement.etape("Le producteur relit le scénario", 9, "continuité, logique, drôlerie", titre=ep["titre"])
             caisse.autoriser(R["prix"]["scenario"], "relecture du producteur")
             t0 = time.time()
             ep, avis_prod, cout = production.relire(R, ep, format_, P, scenario.nettoyer)
             caisse.payer(cout, "relecture du producteur")
             print(f"  relecture faite en {time.time() - t0:.0f} s", flush=True)
-            print(f"  producteur : version {avis_prod.get('version', 1)} sur {avis_prod.get('versions', 1)} gardée, "
-                  f"{avis_prod.get('note')}/100, {len(avis_prod['problemes'])} correction(s)", flush=True)
+            avis_prod.update(version=choix_k, versions=len(pitchs) or 1, pourquoi=pourquoi)
+            print(f"  producteur : {avis_prod.get('note')}/100, {len(avis_prod['problemes'])} correction(s)", flush=True)
         ep.pop("autres", None)
         print(f"Épisode : {ep['titre']} ({len(ep['plans'])} plans, {sum(p['duree'] for p in ep['plans'])} s)", flush=True)
         # 3. le tournage, plan par plan. Un plan qui prolonge le précédent démarre sur SA dernière image (scène continue) ;

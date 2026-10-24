@@ -15,7 +15,7 @@ def estimation(format_, R):
     f, p = R["formats"][format_], R["prix"]
     plans = f["plans_max"]
     images = plans if (R.get("qualite") or {}).get("storyboard", True) else (plans + 1) // 2   # storyboard : une par plan
-    return round(f["duree_max"] * video(R)[1] + images * p["image"] + 2 * p["scenario"]
+    return round(f["duree_max"] * video(R)[1] + images * p["image"] + 4 * p["scenario"]
                  + (plans + 3) * p.get("verification", 0.01), 2)
 
 

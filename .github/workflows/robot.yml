@@ -46,13 +46,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Retrouver ffmpeg déjà téléchargé
+        id: cache-ffmpeg
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/paquets-ffmpeg
+          key: ffmpeg-ubuntu-24.04-v1
       - name: Installer ffmpeg
-        timeout-minutes: 12
-        run: |
-          # d'abord sans tout remettre à jour (le 24/10, « apt-get update » a mis 10 minutes) ; mise à jour seulement si besoin
-          which ffmpeg || sudo apt-get install -y -q --no-install-recommends ffmpeg \
-            || (sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ffmpeg)
-          ffmpeg -version | head -1
+        timeout-minutes: 25
+        run: bash outils/installer_ffmpeg.sh
+      - name: Garder ffmpeg pour les prochaines fois
+        if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/paquets-ffmpeg
+          key: ffmpeg-ubuntu-24.04-v1
       - name: Installer yt-dlp (vidéos TikTok)
         run: pip install -q "yt-dlp[default,curl-cffi]" || pip install -q yt-dlp
       - name: Fabriquer

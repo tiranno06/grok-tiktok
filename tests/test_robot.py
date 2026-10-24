@@ -91,7 +91,7 @@ class Simulation(Base):
         with mock.patch.object(avancement, "_envoyer", lambda force=False: (vus.append(dict(avancement.contenu())), vrai(force))):
             self.assertEqual(principal.main(["--format", "courte"]), 0)
         etapes = [v["etape"] for v in vus]
-        self.assertIn("Les auteurs écrivent 3 versions", etapes)
+        self.assertIn("Les auteurs proposent 3 idées", etapes)
         self.assertTrue(any(e.startswith("Tournage du plan 1") for e in etapes))
         pourcents = [v["pourcent"] for v in vus]
         self.assertEqual(pourcents, sorted(pourcents))                      # la barre n'avance que dans un sens
@@ -125,6 +125,15 @@ class AvecFauxGrok(Base):
         self.scenar, self.version_prod, self.notes_jury, self.plans_jury = None, 1, [], []
 
         def texte(modele, consignes, demande, prix, images=()):
+            if "te proposent 3 pitchs" in consignes:
+                self.appels.append("choix")
+                return {"pitch": self.version_prod, "pourquoi": "la plus drôle"}, 0.01
+            if "SALLE DES AUTEURS" in consignes:
+                self.appels.append("pitchs")
+                self.demandes_ecriture = []
+                return {"pitchs": [{"titre": t, "chute": f"chute {t}"} for t in "ABC"]}, 0.01
+            if "PITCH CHOISI" in demande:
+                self.demandes_ecriture = getattr(self, "demandes_ecriture", []) + [demande]
             if "producteur exigeant" in consignes:
                 self.appels.append("producteur")
                 return {"note": 70, "problemes": ["La fin du plan 1 ne colle pas au début du plan 2."], "scenario": None,
@@ -182,10 +191,10 @@ class AvecFauxGrok(Base):
 
 
 class FauxGrok(AvecFauxGrok):
-    # courte : 7 plans de 10 s proposés → 5 plans ramenés à 40 s au plus. Coût : portrait 0,04 + scénario 0,01
+    # courte : 7 plans de 10 s proposés → 5 plans ramenés à 40 s au plus. Coût : portrait 0,04 + idées 0,01 + choix 0,01 + scénario 0,01
     # + producteur 0,01 + 1 image de départ 0,04 (les autres plans s'enchaînent) + 40 s × 0,02 + scripte 5 × 0,01 + jury 0,02
     # + storyboard : 5 images × 0,04 et sa vérification 0,02 (le plan 1 démarre sur l'image du storyboard)
-    COURTE = 0.04 + 0.01 + 0.01 + 0.2 + 0.02 + 0.8 + 0.05 + 0.02
+    COURTE = 0.04 + 0.01 + 0.01 + 0.01 + 0.01 + 0.2 + 0.02 + 0.8 + 0.05 + 0.02
 
     def test_couts_continuite_et_portrait(self):
         self.assertEqual(principal.main(["--format", "courte"]), 0)
@@ -237,11 +246,13 @@ class FauxGrok(AvecFauxGrok):
                 {"qui": "mat", "t": "3-5s", "texte": "Pourquoi trois ?"},
                 {"qui": "gilbert", "t": "5-8s", "texte": "Parce que quatre, c'est trop loin !"},
                 {"qui": "gilbert", "t": "8s", "texte": "une de trop"}]
-        self.scenar = {"versions": [version("A", reps[:1]), version("B", reps), version("C", reps[:1])]}
+        self.scenar = version("B", reps)
         self.version_prod = 2
         self.assertEqual(principal.main(["--format", "courte"]), 0)
         v = self.file()[0]
         self.assertEqual(v["titre"], "B")
+        self.assertIn('"chute B"', self.demandes_ecriture[0])                    # le pitch n° 2 est écrit en entier
+        self.assertEqual(self.appels[:3], ["image", "pitchs", "choix"])
         self.assertEqual((v["qualite"]["producteur"]["version"], v["qualite"]["producteur"]["versions"]), (2, 3))
         self.assertEqual([r["qui"] for r in v["plans"][0]["repliques"]], ["gilbert", "mat", "gilbert"])
         self.assertEqual(v["plans"][0]["personnage"], "gilbert")
@@ -504,11 +515,36 @@ class SonsTikTok(Base):
 
 
 class Divers(Base):
+    def test_texte_en_flux_et_coupure(self):
+        import http.client
+        lignes = [b'data: {"choices": [{"delta": {"content": "{\\"a\\": "}}]}\n', b"\n",
+                  b'data: {"choices": [{"delta": {"content": "1}"}}], "usage": {"cost_in_usd_ticks": 200000000}}\n',
+                  b"data: [DONE]\n"]
+
+        class Rep:
+            def __enter__(self):
+                return iter(lignes)
+
+            def __exit__(self, *a):
+                return False
+        n = {"essais": 0}
+
+        def urlopen(req, timeout=0):
+            n["essais"] += 1
+            if n["essais"] == 1:
+                raise http.client.RemoteDisconnected("Remote end closed connection without response")
+            self.assertIn(b'"stream": true', req.data)
+            return Rep()
+        os.environ["XAI_API_KEY"] = "test"
+        with mock.patch.object(grok.urllib.request, "urlopen", urlopen), mock.patch.object(grok.time, "sleep", lambda s: None):
+            self.assertEqual(grok.ecrire_json("m", "c", "d", 0.05), ({"a": 1}, 0.02))
+        self.assertEqual(n["essais"], 2)                                  # la coupure est réessayée
+
     def test_estimations(self):
         R = lire("reglages.json")
         # courte : 40 s × 0,02 + 5 images du storyboard × 0,04 + scénario et producteur 2 × 0,01 + 8 contrôles × 0,01
-        self.assertAlmostEqual(budget.estimation("courte", R), 1.10, places=2)
-        self.assertAlmostEqual(budget.estimation("longue", R), 2.45, places=2)
+        self.assertAlmostEqual(budget.estimation("courte", R), 1.12, places=2)
+        self.assertAlmostEqual(budget.estimation("longue", R), 2.47, places=2)
 
     def test_creneaux(self):
         R = lire("reglages.json")

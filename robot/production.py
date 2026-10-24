@@ -107,6 +107,29 @@ def relire(R, ep, format_, perso, nettoyer):
     return choisie, avis, cout
 
 
+CHOIX = """Tu es le producteur exigeant d'une mini-série TikTok réaliste. Les auteurs te proposent 3 pitchs. Choisis celui qui
+est le plus drôle ET le plus facile à filmer par une caméra IA : chute qui fait rire même sans le son, effet spectaculaire
+que la caméra sait filmer (liste ci-dessous), histoire claire en 5 temps.
+{effets}
+{memoire}
+Réponds uniquement en JSON : {{"pitch": numéro du pitch gardé (1 = premier), "pourquoi": "en une phrase"}}"""
+
+
+def choisir(R, pitchs):
+    """Le producteur choisit le meilleur pitch : (numéro à partir de 1, pourquoi, coût)."""
+    if simulation() or len(pitchs) < 2:
+        return 1, "", 0.0
+    demande = "\n\n".join(f"PITCH {k + 1} :\n" + json.dumps(p, ensure_ascii=False) for k, p in enumerate(pitchs))
+    rep, cout = grok.ecrire_json(R["modeles"].get("producteur", R["modeles"]["texte"]),
+                                 CHOIX.format(effets=scenario.EFFETS, memoire=memoire_texte()), demande,
+                                 R["prix"]["scenario"])
+    try:
+        k = max(1, min(len(pitchs), int(rep.get("pitch") or 1)))
+    except (TypeError, ValueError):
+        k = 1
+    return k, str(rep.get("pourquoi") or "")[:300], cout
+
+
 # ---------------------------------------------------------------- 2. le scripte
 SCRIPTE = """Tu es le scripte d'un tournage. Tu reçois 3 images d'un plan qui vient d'être filmé (première, milieu, dernière),
 la fiche des personnes qui doivent être à l'image (leur apparence officielle fait foi) et ce que le plan devait montrer.
