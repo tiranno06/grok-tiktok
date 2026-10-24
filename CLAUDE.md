@@ -6,7 +6,11 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
 
 ## Choix du propriétaire (23/10/2026)
 - Images réalistes, personnage récurrent **Gilbert Mouchon** (fiche modifiable depuis le site, `docs/donnees/personnage.json`).
-- **Publication toujours à la main** depuis le site (bouton Publier → Télécharger, Copier la légende, C'est publié) : pas d'API TikTok, pas de Buffer.
+- **Publication manuelle ou automatique** (24/10, comme jt-auto, `robot/publier.py`, `reglages.publication` : mode, compte) :
+  manuelle = bouton Publier (Télécharger, Copier la légende, C'est publié) ; automatique = `principal.programmer` programme
+  chaque vidéo sur Buffer (GraphQL `createPost`, `isAiGenerated`, `dueAt` = heure conseillée) → statut `programmee`
+  (`buffer.id`), `annuler_programmation` / écarter = `deletePost`. Secret `BUFFER_API_KEY`. Les appels Buffer sont faits
+  une seule fois AVANT `depot.enregistrer` (qui peut se répéter). Heure passée → `publiee` (`publier.mettre_a_jour`).
 - **Création automatique ou manuelle** (24/10, Réglages → Création des vidéos) : manuel = `planning.pause` vrai (actions `pause` /
   `reprise`), les réveils programmés ne créent plus rien ; seul le bouton Créer (`--format courte|longue`) fabrique.
 - **Son intégré de Grok Imagine** (voix comprise), pas d'ElevenLabs.

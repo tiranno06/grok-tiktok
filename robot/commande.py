@@ -1,14 +1,15 @@
 """Ordres envoyés depuis le site (boutons) : appliqués aux données puis enregistrés dans le dépôt.
 
     ACTION=publiee ID=… TEXTE=lien  python -m robot.commande
-Actions : publiee, a_publier, ecarter, supprimer, legende, personnage, reglages, portrait, pause, reprise.
+Actions : publiee, a_publier, ecarter, supprimer, legende, personnage, reglages, portrait, pause, reprise,
+buffer_test, tiktok_maintenant, tiktok_programmer, annuler_programmation (publication par Buffer, voir publier.py).
 """
 import json
 import os
 import shutil
 import sys
 
-from . import budget, depot, principal
+from . import budget, depot, planning, principal, publier
 from .commun import DONNEES, JOURS, MINIATURES, SORTIE, ecrire, iso, lire, noter, personnage, reglages
 
 CHAMPS_PERSO = {"nom": 60, "age": 3, "ville": 120, "apparence": 600, "voix": 300, "personnalite": 600,
@@ -23,9 +24,11 @@ def _video(file, vid):
 
 
 def appliquer(action, vid, texte):
-    file = lire("file.json") or {"videos": []}
+    file = publier.mettre_a_jour(lire("file.json") or {"videos": []})
     if action in ("publiee", "a_publier", "ecarter", "legende", "supprimer"):
         v = _video(file, vid)
+        if v.get("statut") == "programmee" and action in ("a_publier", "ecarter", "supprimer"):
+            v.pop("buffer", None)                             # (la programmation Buffer a été annulée juste avant)
         if action == "publiee":
             v.update(statut="publiee", publiee_le=iso())
             if texte.startswith("https://"):
@@ -89,6 +92,12 @@ def appliquer_reglages(d):
         pl["heures_publication"] = h or pl["heures_publication"]
     if "sous_titres" in d:
         R["montage"]["sous_titres"] = bool(d["sous_titres"])
+    if isinstance(d.get("publication"), dict):              # Réglages → Publication sur TikTok
+        P_, pub = d["publication"], R.setdefault("publication", {"mode": "manuel", "compte": ""})
+        if P_.get("mode") in ("manuel", "auto"):
+            pub["mode"] = P_["mode"]
+        if "compte" in P_:
+            pub["compte"] = str(P_["compte"]).strip().lstrip("@")[:60]
     if isinstance(d.get("tiktok"), dict):                    # onglet TikTok du site
         t, T = d["tiktok"], R.setdefault("tiktok", {})
         if "profils" in t:
@@ -127,10 +136,66 @@ def portrait():
     return 0
 
 
+def buffer(action, vid):
+    """Ordres qui passent par Buffer. L'appel à Buffer est fait UNE fois, avant l'enregistrement (qui peut se répéter)."""
+    R = reglages()
+    try:
+        if action == "buffer_test":
+            comptes = publier.comptes_tiktok()
+            choisi = publier.compte(R)["nom"] if comptes else None
+
+            def ok():
+                R2 = reglages()
+                R2.setdefault("publication", {"mode": "manuel", "compte": ""})["buffer_ok"] = bool(comptes)
+                ecrire("reglages.json", R2)
+                noter(f"🔗 Buffer répond. Comptes TikTok reliés : {', '.join(c['nom'] for c in comptes) or 'aucun'}"
+                      + (f". Compte utilisé : {choisi}." if choisi else "."))
+            depot.enregistrer(ok, "Site : vérification de Buffer")
+            return 0
+        v = _video(publier.mettre_a_jour(lire("file.json") or {"videos": []}), vid)
+        if action in ("tiktok_maintenant", "tiktok_programmer"):
+            quand = None
+            if action == "tiktok_programmer":
+                quand = v.get("publier_le") or planning.creneau(R, lire("file.json") or {"videos": []}, v["format"])
+            b = publier.envoyer(v, R, quand)
+
+            def ranger():
+                f = lire("file.json") or {"videos": []}
+                w = _video(f, vid)
+                w["buffer"] = b
+                if b["quand"]:
+                    w.update(statut="programmee", publier_le=quand)
+                    noter(f"📅 « {w['titre']} » programmée sur TikTok ({b['compte']}) pour le {quand[8:10]}/{quand[5:7]} à {quand[11:16]}.")
+                else:
+                    w.update(statut="publiee", publiee_le=iso())
+                    noter(f"🚀 « {w['titre']} » envoyée sur TikTok ({b['compte']}) : en ligne d'ici quelques minutes.")
+                if not b["etiquette_ia"]:
+                    noter("⚠️ Buffer a refusé l'étiquette IA : coche « Contenu généré par l'IA » dans l'appli TikTok.", "alerte")
+                ecrire("file.json", f)
+            depot.enregistrer(ranger, f"Site : {action} {vid}")
+            return 0
+        if v.get("statut") == "programmee" and (v.get("buffer") or {}).get("id"):   # annuler, écarter, supprimer
+            publier.annuler(v["buffer"]["id"])
+        suite = {"annuler_programmation": "a_publier"}.get(action, action)
+        depot.enregistrer(lambda: appliquer(suite, vid, ""), f"Site : {action} {vid}")
+        return 0
+    except publier.ErreurBuffer as e:
+        depot.enregistrer(lambda: noter(f"❌ Publication TikTok : {e}", "erreur"), "Site : erreur Buffer")
+        return 1
+
+
 def main():
     action, vid, texte = os.environ.get("ACTION", ""), os.environ.get("ID", ""), os.environ.get("TEXTE", "")
     if action == "portrait":
         return portrait()
+    programmee = False
+    if vid and action in ("ecarter", "supprimer"):
+        try:
+            programmee = _video(lire("file.json") or {"videos": []}, vid).get("statut") == "programmee"
+        except ValueError:
+            pass
+    if action in ("buffer_test", "tiktok_maintenant", "tiktok_programmer", "annuler_programmation") or programmee:
+        return buffer(action, vid)
     depot.enregistrer(lambda: appliquer(action, vid, texte), f"Site : {action} {vid}".strip())
     return 0
 

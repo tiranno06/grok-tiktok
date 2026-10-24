@@ -8,7 +8,16 @@ Chaque matin, le robot :
 3. **monte la vidéo** : format vertical 720×1280, son égalisé, sous-titres incrustés ;
 4. la range dans les **Releases** du dépôt et l'affiche sur le **site**, avec l'heure conseillée pour la publier.
 
-Tu publies toi-même sur TikTok depuis le site : bouton **Publier** → Télécharger → Copier la légende → C'est publié.
+**Publication sur TikTok**, au choix dans **Réglages → Publication sur TikTok** (comme jt-auto) :
+- *Manuelle* : bouton **Publier** → Télécharger → Copier la légende → C'est publié.
+- *Automatique* : chaque nouvelle vidéo est programmée sur **Buffer** à l'heure conseillée, avec l'étiquette « Contenu généré
+  par l'IA ». Jusqu'à l'heure prévue, **Annuler la programmation** la retire de Buffer.
+- Dans les deux cas, **Envoyer par Buffer** sur une vidéo l'envoie tout de suite ou à l'heure conseillée.
+
+Pour Buffer : ta clé API Buffer (la même que jt-auto) dans le secret GitHub `BUFFER_API_KEY`, et le compte TikTok de
+Gilbert relié à Buffer (publish.buffer.com → Channels → Connect → TikTok ; le plan gratuit accepte 3 comptes). Si plusieurs
+comptes TikTok sont reliés, écris le nom de celui de Gilbert dans Réglages, puis **Vérifier Buffer** : le Journal affiche
+les comptes trouvés.
 
 **Automatique ou manuel**, au choix dans **Réglages → Création des vidéos** :
 - *Automatique* : le robot crée chaque matin les vidéos du planning (courte chaque jour, longue le samedi ; les deux se règlent).

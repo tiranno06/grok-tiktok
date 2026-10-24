@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "publiee, a_publier, ecarter, supprimer, legende, personnage, reglages, portrait, pause, reprise"
+        description: "publiee, a_publier, ecarter, supprimer, legende, personnage, reglages, portrait, pause, reprise, buffer_test, tiktok_maintenant, tiktok_programmer, annuler_programmation"
         required: true
       id:
         description: "Identifiant de la vidéo"
@@ -25,6 +25,7 @@ jobs:
       ID: ${{ inputs.id }}
       TEXTE: ${{ inputs.texte }}
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4

@@ -10,7 +10,7 @@ import shutil
 import sys
 import traceback
 
-from . import budget, depot, grok, montage, planning, scenario, sons_tiktok
+from . import budget, depot, grok, montage, planning, publier, scenario, sons_tiktok
 from .commun import MINIATURES, SORTIE, DONNEES, ecrire, iso, lire, maintenant, noter, personnage, reglages, simulation
 
 
@@ -170,10 +170,10 @@ def ranger(res):
     budget.ajouter(R, res["caisse"].lignes)
     if res.get("portrait"):
         shutil.copy(res["portrait"], os.path.join(DONNEES, "portrait.jpg"))
-    file = lire("file.json") or {"videos": []}
+    file = publier.mettre_a_jour(lire("file.json") or {"videos": []})
     if res["entree"]:
         e = res["entree"]
-        e["publier_le"] = planning.creneau(R, file, e["format"])
+        e["publier_le"] = e.get("publier_le") or planning.creneau(R, file, e["format"])
         os.makedirs(MINIATURES, exist_ok=True)
         shutil.copy(res["miniature"], os.path.join(MINIATURES, f"{e['id']}.jpg"))
         for v in file["videos"]:
@@ -189,6 +189,26 @@ def ranger(res):
         ecrire("etat.json", et)
     for niveau, texte in res["evenements"]:
         noter(texte, niveau)
+
+
+def programmer(res, R):
+    """Publication automatique (Réglages) : la vidéo est programmée sur Buffer à l'heure conseillée."""
+    e = res["entree"]
+    if not e or simulation() or (R.get("publication") or {}).get("mode") != "auto":
+        return
+    quand = planning.creneau(R, lire("file.json") or {"videos": []}, e["format"])
+    try:
+        b = publier.envoyer(e, R, quand)
+    except publier.ErreurBuffer as err:
+        res["evenements"].append(("alerte", f"⚠️ « {e['titre']} » pas programmée sur TikTok : {err}. Elle t'attend dans « À publier »."))
+        return
+    e.update(buffer=b, publier_le=quand, statut="programmee" if b["quand"] else "publiee")
+    if not b["quand"]:
+        e["publiee_le"] = iso()
+    res["evenements"].append(("info", f"📅 « {e['titre']} » programmée sur TikTok ({b['compte']}) pour le "
+                                      f"{quand[8:10]}/{quand[5:7]} à {quand[11:16]}. Tu peux encore l'annuler sur le site."))
+    if not b["etiquette_ia"]:
+        res["evenements"].append(("alerte", "⚠️ Buffer a refusé l'étiquette IA : coche « Contenu généré par l'IA » dans TikTok."))
 
 
 def main(argv=None):
@@ -212,6 +232,7 @@ def main(argv=None):
     echecs = 0
     for f in formats:
         res = fabriquer(f, args.idee, args.remplace, auto=args.format == "auto", lien=args.lien)
+        programmer(res, R)
         depot.enregistrer(lambda: ranger(res), f"Robot : {res['entree']['titre'] if res['entree'] else 'essai ' + f}")
         echecs += res["entree"] is None
     return 1 if echecs else 0

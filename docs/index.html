@@ -72,7 +72,7 @@ details.aide[open] summary { margin-bottom: 8px; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
 .pill { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; }
 .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.s-a_publier { color: var(--accent); } .s-publiee { color: var(--ok); } .s-ecartee, .s-remplacee { color: var(--off); }
+.s-a_publier { color: var(--accent); } .s-programmee { color: var(--warn); } .s-publiee { color: var(--ok); } .s-ecartee, .s-remplacee { color: var(--off); }
 .fmt { font: 500 11.5px var(--f-mono); color: var(--muted); }
 .reel h3 { font: 700 16px/1.25 var(--f-display); margin: 0; text-wrap: balance; }
 .caption { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
@@ -275,7 +275,19 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
         <label><input type="radio" name="mode" id="m_auto" value="auto"><b>Automatique</b><span>Le robot crée les vidéos du planning chaque matin</span></label>
         <label><input type="radio" name="mode" id="m_manuel" value="manuel"><b>Manuelle</b><span>Rien ne se crée tout seul : tu appuies sur Créer</span></label>
       </div>
-      <p class="hint">La publication sur TikTok, elle, se fait toujours à la main : bouton <b>Publier</b> sur chaque vidéo.</p>
+    </div>
+    <div class="panel">
+      <h2>Publication sur TikTok</h2>
+      <div class="choice" role="radiogroup" aria-label="Mode de publication">
+        <label><input type="radio" name="pub" id="pub_auto" value="auto"><b>Automatique</b><span>Buffer publie chaque vidéo à l'heure conseillée</span></label>
+        <label><input type="radio" name="pub" id="pub_manuel" value="manuel"><b>Manuelle</b><span>Tu publies toi-même : bouton Publier sur chaque vidéo</span></label>
+      </div>
+      <p class="hint">En automatique, tu peux encore annuler jusqu'à l'heure prévue (bouton « Annuler la programmation »).
+        Il faut une clé Buffer (la même que pour jt-auto) rangée dans le secret GitHub <b>BUFFER_API_KEY</b>, et ton compte TikTok relié à Buffer.</p>
+      <label class="f" for="pub_compte">Compte TikTok dans Buffer <span class="sub">Seulement si plusieurs comptes TikTok sont reliés à Buffer (ex. celui de jt-auto et celui de Gilbert).</span>
+        <input type="text" id="pub_compte" placeholder="nom du compte" autocomplete="off"></label>
+      <div class="actions"><button class="btn primary" type="button" id="pub_ok">Enregistrer</button>
+        <button class="btn" type="button" id="pub_test">Vérifier Buffer</button></div>
     </div>
     <form class="panel" id="f-conn">
       <h2>Clé GitHub de ce téléphone</h2>
@@ -400,7 +412,12 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&l
 const tc = s => { s = Math.round(s || 0); return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`; };
 const usd = n => (n ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
 const quand = iso => new Date(iso).toLocaleString("fr-FR", { timeZone:"Europe/Paris", weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
-const LIB = { a_publier:"À publier", publiee:"Publiée", ecartee:"Écartée", remplacee:"Remplacée" };
+const LIB = { a_publier:"À publier", programmee:"Programmée", publiee:"Publiée", ecartee:"Écartée", remplacee:"Remplacée" };
+const avecBuffer = () => !!(R().publication && (R().publication.buffer_ok || R().publication.mode === "auto"));
+function partira(v) {
+  const ms = new Date(v.publier_le) - Date.now(), m = Math.max(0, Math.round(ms / 60e3)), hh = Math.floor(m / 60);
+  return `<div class="slot">Part sur TikTok ${quand(v.publier_le)} · dans ${hh ? hh + " h " : ""}${String(m % 60).padStart(hh ? 2 : 1, "0")} min</div>`;
+}
 const legendeComplete = v => `${v.legende} ${(v.hashtags || []).join(" ")}`.trim();
 
 function creneau(v) {
@@ -416,8 +433,12 @@ function carte(v) {
   let act = "";
   if (v.statut === "a_publier") act = `
       <button class="btn primary" type="button" data-a="publier" data-id="${v.id}">Publier</button>
+      ${avecBuffer() ? `<button class="btn" type="button" data-a="buffer" data-id="${v.id}">Envoyer par Buffer</button>` : ""}
       <button class="btn" type="button" data-a="legende" data-id="${v.id}">Modifier la légende</button>
       <button class="btn" type="button" data-a="refaire" data-id="${v.id}">Refaire</button>
+      <button class="btn danger" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>`;
+  else if (v.statut === "programmee") act = `
+      <button class="btn" type="button" data-a="annuler_programmation" data-id="${v.id}">Annuler la programmation</button>
       <button class="btn danger" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>`;
   else if (v.statut === "ecartee" || v.statut === "remplacee") act = `
       <button class="btn" type="button" data-a="a_publier" data-id="${v.id}">Remettre dans la file</button>
@@ -433,6 +454,7 @@ function carte(v) {
       <div class="tags">${esc((v.hashtags || []).join(" "))}</div>
       ${v.source ? `<div class="tags"><a href="${esc(v.source)}" target="_blank" rel="noopener">Vidéo d'origine${v.auteur ? " (@" + esc(v.auteur) + ")" : ""}</a></div>` : ""}
       ${v.statut === "a_publier" ? creneau(v) : ""}
+      ${v.statut === "programmee" ? partira(v) : ""}
       ${v.statut === "publiee" ? `<div class="slot">publiée ${quand(v.publiee_le || v.publier_le)}</div>` : ""}
       <div class="inline" id="zone-${v.id}"></div>
       ${act ? `<div class="actions">${act}</div>` : ""}
@@ -445,8 +467,11 @@ function cout(f) { const x = R().formats[f], p = R().prix, s = x.clips * x.secon
 
 function rendre() {
   const vids = D["file.json"].videos || [];
-  const avenir = vids.filter(v => ["a_publier","ecartee","remplacee"].includes(v.statut))
-    .sort((a, b) => (a.statut !== "a_publier") - (b.statut !== "a_publier") || new Date(a.publier_le) - new Date(b.publier_le));
+  for (const v of vids)                                          // heure passée : Buffer l'a mise en ligne
+    if (v.statut === "programmee" && new Date(v.publier_le) <= Date.now()) { v.statut = "publiee"; v.publiee_le = v.publier_le; }
+  const enFile = v => ["a_publier","programmee"].includes(v.statut);
+  const avenir = vids.filter(v => ["a_publier","programmee","ecartee","remplacee"].includes(v.statut))
+    .sort((a, b) => !enFile(a) - !enFile(b) || new Date(a.publier_le) - new Date(b.publier_le));
   const pub = vids.filter(v => v.statut === "publiee").sort((a, b) => new Date(b.publiee_le || 0) - new Date(a.publiee_le || 0));
   $("#list-file").innerHTML = avenir.length ? avenir.map(carte).join("")
     : `<div class="empty">Rien à publier. Le robot passe chaque matin, ou commande une vidéo dans « Créer ».</div>`;
@@ -481,6 +506,9 @@ function rendre() {
 
   const manuel = !!pl.pause;                                   // « pause » = mode manuel : aucune création automatique
   $("#m_auto").checked = !manuel; $("#m_manuel").checked = manuel;
+  const reglPub = R().publication || { mode: "manuel", compte: "" };
+  $("#pub_auto").checked = reglPub.mode === "auto"; $("#pub_manuel").checked = reglPub.mode !== "auto";
+  if (document.activeElement !== $("#pub_compte")) $("#pub_compte").value = reglPub.compte || "";
   $("#b-manuel").hidden = !manuel; $("#planning-manuel").hidden = !manuel;
 }
 
@@ -552,6 +580,17 @@ document.addEventListener("click", async e => {
     if (await commande("legende", id, t, "Légende envoyée.")) { v.legende = t; rendre(); }
     return;
   }
+  if (a === "buffer") {
+    zone.innerHTML = `<span class="actions">
+        <button class="btn primary" type="button" data-a="tiktok_maintenant" data-id="${id}">Maintenant</button>
+        <button class="btn" type="button" data-a="tiktok_programmer" data-id="${id}">À l'heure conseillée (${quand(v.publier_le)})</button></span>`;
+    return;
+  }
+  if (a === "tiktok_maintenant" || a === "tiktok_programmer") {
+    if (await commande(a, id, "", a === "tiktok_maintenant" ? "Envoi à TikTok par Buffer (1 à 2 min). Le Journal confirmera."
+        : "Programmation sur Buffer (1 à 2 min). Le Journal confirmera.")) { zone.innerHTML = ""; }
+    return;
+  }
   if (a === "publier") {
     const tele = v.url ? `<a class="btn primary" href="${esc(v.url)}" target="_blank" rel="noopener">Télécharger la vidéo</a>`
       : `<button class="btn primary" type="button" data-a="demo">Télécharger la vidéo</button>`;
@@ -569,7 +608,11 @@ document.addEventListener("click", async e => {
     if (await commande("publiee", id, lien, "Bravo ! Vidéo rangée dans « Publiées ».")) { v.statut = "publiee"; v.publiee_le = new Date().toISOString(); if (lien) v.lien_tiktok = lien; rendre(); }
     return;
   }
-  if (["ecarter","supprimer","refaire"].includes(a) && !arme(b, a + id)) return;
+  if (["ecarter","supprimer","refaire","annuler_programmation"].includes(a) && !arme(b, a + id)) return;
+  if (a === "annuler_programmation") {
+    if (await commande(a, id, "", "Programmation annulée sur Buffer (1 à 2 min).")) { v.statut = "a_publier"; rendre(); }
+    return;
+  }
   if (a === "refaire") {
     await ordre("robot.yml", { format: v.format, idee: v.format === "tiktok" ? "" : (v.idee || ""), lien: v.format === "tiktok" ? (v.source || "") : "",
       remplace: id, simulation: v.simulation ? "1" : "0" },
@@ -621,6 +664,13 @@ document.querySelectorAll('input[name="mode"]').forEach(i => i.addEventListener(
       : "Mode automatique : le robot crée les vidéos du planning chaque matin.")) R().planning.pause = manuel;
   rendre();                                                    // en cas d'échec, remet le choix tel qu'il était
 }));
+$("#pub_ok").onclick = async () => {
+  const mode = $("#pub_auto").checked ? "auto" : "manuel";
+  if (await commande("reglages", "", JSON.stringify({ publication: { mode, compte: $("#pub_compte").value.trim() } }),
+      mode === "auto" ? "Publication automatique : chaque nouvelle vidéo sera programmée sur Buffer." : "Publication manuelle enregistrée."))
+    { R().publication = Object.assign(R().publication || {}, { mode, compte: $("#pub_compte").value.trim() }); rendre(); }
+};
+$("#pub_test").onclick = () => commande("buffer_test", "", "", "Vérification de Buffer (1 à 2 min) : le résultat arrive dans le Journal.");
 $("#f-conn").addEventListener("submit", e => { e.preventDefault();
   const repo = $("#c_repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
   if (repo && !/^[\w.-]+\/[\w.-]+$/.test(repo)) return toast("Le dépôt doit ressembler à pseudo/grok-tiktok.");

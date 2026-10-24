@@ -39,6 +39,7 @@ jobs:
       LIEN: ${{ inputs.lien }}
       SIMULATION: ${{ inputs.simulation || '0' }}
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4

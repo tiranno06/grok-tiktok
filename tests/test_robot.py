@@ -15,7 +15,7 @@ os.environ.update(ROBOT_DOCS=os.path.join(TMP, "docs"), ROBOT_SORTIE=os.path.joi
                   GITHUB_ACTIONS="false", XAI_API_KEY="")
 sys.path.insert(0, RACINE)
 
-from robot import budget, commande, grok, montage, planning, principal, scenario, sons_tiktok  # noqa: E402
+from robot import budget, commande, depot, grok, montage, planning, principal, publier, scenario, sons_tiktok  # noqa: E402
 from robot.commun import lire, ecrire  # noqa: E402
 
 
@@ -89,7 +89,7 @@ class Simulation(Base):
         self.assertEqual(len(self.file()), 1)
 
 
-class FauxGrok(Base):
+class AvecFauxGrok(Base):
     """Le vrai chemin payant, avec Grok remplacé par de faux appels qui « coûtent » le prix réel."""
 
     def setUp(self):
@@ -122,6 +122,9 @@ class FauxGrok(Base):
         for p in self.p:
             p.stop()
 
+
+
+class FauxGrok(AvecFauxGrok):
     def test_couts_comptes_et_portrait_garde(self):
         self.assertEqual(principal.main(["--format", "courte"]), 0)
         v = self.file()[0]
@@ -171,6 +174,55 @@ class FauxGrok(Base):
             self.assertEqual(principal.main(["--format", "auto"]), 0)     # 2 essais par format, puis on arrête
         self.assertEqual(lire("etat.json")["essais"]["2026-10-24"], {"courte": 2, "longue": 2})
         self.assertGreater(lire("budget.json")["depense_usd"], 0)        # les images payées restent comptées
+
+
+class Buffer(AvecFauxGrok):
+    """Publication par Buffer, avec Buffer remplacé par de faux appels."""
+
+    def setUp(self):
+        super().setUp()
+        self.envois = []
+
+        def gql(requete):
+            self.envois.append(requete)
+            if "createPost" in requete:
+                return {"createPost": {"post": {"id": f"p{len(self.envois)}"}}}
+            if "deletePost" in requete:
+                return {"deletePost": {"__typename": "DeletePostSuccess"}}
+            raise AssertionError(requete)
+        for p in (mock.patch.object(publier, "_gql", gql),
+                  mock.patch.object(publier, "comptes_tiktok", lambda: [{"id": "c1", "nom": "gilbert"}]),
+                  mock.patch.object(depot, "publier_release", lambda tag, t, f: f"https://exemple.org/{tag}.mp4"),
+                  mock.patch.dict(os.environ, {"BUFFER_API_KEY": "faux"})):
+            p.start()
+            self.p.append(p)
+
+    def test_publication_automatique_puis_annulation(self):
+        commande.appliquer("reglages", "", json.dumps({"publication": {"mode": "auto"}}))
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        v = self.file()[0]
+        self.assertEqual((v["statut"], v["buffer"]["id"]), ("programmee", "p1"))
+        self.assertIn("isAiGenerated: true", self.envois[0])              # étiquette IA demandée
+        self.assertIn("customScheduled", self.envois[0])
+        with mock.patch.dict(os.environ, {"ACTION": "annuler_programmation", "ID": v["id"], "TEXTE": ""}):
+            self.assertEqual(commande.main(), 0)
+        self.assertIn("deletePost", self.envois[-1])
+        v = self.file()[0]
+        self.assertEqual(v["statut"], "a_publier")
+        self.assertNotIn("buffer", v)
+
+    def test_manuel_rien_n_est_envoye(self):
+        self.assertEqual(principal.main(["--format", "courte"]), 0)
+        self.assertEqual(self.file()[0]["statut"], "a_publier")
+        self.assertFalse(any("createPost" in e for e in self.envois))
+        with mock.patch.dict(os.environ, {"ACTION": "tiktok_maintenant", "ID": self.file()[0]["id"], "TEXTE": ""}):
+            self.assertEqual(commande.main(), 0)                            # bouton « Envoyer par Buffer → Maintenant »
+        self.assertIn("shareNow", self.envois[-1])
+        self.assertEqual(self.file()[0]["statut"], "publiee")
+
+    def test_programmee_passee_devient_publiee(self):
+        f = {"videos": [{"id": "x", "statut": "programmee", "publier_le": "2026-10-24T05:00:00+02:00"}]}
+        self.assertEqual(publier.mettre_a_jour(f)["videos"][0]["statut"], "publiee")
 
 
 class Commandes(Base):
