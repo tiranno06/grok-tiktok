@@ -60,10 +60,7 @@
    "gebutaw"
   ],
   "auto": false,
-  "jours": [
-   "mercredi",
-   "dimanche"
-  ],
+  "jours": [],
   "duree_max": 45,
   "langue": "fr"
  },
