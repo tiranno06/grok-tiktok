@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T12:04:32+02:00",
+   "niveau": "erreur",
+   "texte": "❌ Vidéo tiktok ratée : transcription refusée par xAI (400) : {\"code\":\"Client specified an invalid argument\",\"error\":\"Incorrect API key provided. You can obtain an API key from https://console.x.ai.\"}"
+  },
+  {
    "date": "2026-10-24T11:35:37+02:00",
    "niveau": "info",
    "texte": "✅ « La baguette du futur » prête (courte, 17 s, 0.83 $)"
