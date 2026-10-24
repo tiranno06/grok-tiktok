@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T09:21:00+02:00",
+   "niveau": "info",
+   "texte": "⚙️ Réglages modifiés (plafond 5 $/mois)."
+  },
+  {
    "date": "2026-10-24T08:58:58+02:00",
    "niveau": "info",
    "texte": "✅ « [Test] un concours de soupe » prête (courte, 20 s, 0.00 $) — test gratuit"

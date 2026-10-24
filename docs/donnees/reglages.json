@@ -1,6 +1,6 @@
 {
  "budget": {
-  "plafond_mensuel_usd": 30
+  "plafond_mensuel_usd": 5.0
  },
  "modeles": {
   "texte": "grok-4.3",
