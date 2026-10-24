@@ -184,9 +184,12 @@ def modifier_image(modele, prompt, image, dest, prix):
 
 
 # ---------------------------------------------------------------- vidéos
-def creer_video(modele, prompt, image, duree, dest, prix_seconde, resolution="720p", attente_max=1200):
-    """Clip vidéo (avec son) qui démarre sur l'image donnée. Renvoie (chemin, coût)."""
+def creer_video(modele, prompt, image, duree, dest, prix_seconde, resolution="720p", attente_max=1200, suivi=None):
+    """Clip vidéo (avec son) qui démarre sur l'image donnée. Renvoie (chemin, coût).
+    suivi(pourcent) est appelé pendant que Grok filme (barre d'avancement du site)."""
     if os.environ.get("SIMULATION") == "1":
+        if suivi:
+            suivi(50)
         return _faux_clip(dest, duree, prompt), 0.0
     corps = {"model": modele, "prompt": prompt, "duration": int(duree), "aspect_ratio": "9:16", "resolution": resolution}
     if image:
@@ -201,6 +204,8 @@ def creer_video(modele, prompt, image, duree, dest, prix_seconde, resolution="72
         time.sleep(8)
         etat = _appel("GET", f"/videos/{rid}")
         statut = etat.get("status")
+        if suivi and isinstance(etat.get("progress"), (int, float)):
+            suivi(etat["progress"])
         if statut == "done":
             v = etat.get("video") or {}
             cout = _cout(etat, estimation)

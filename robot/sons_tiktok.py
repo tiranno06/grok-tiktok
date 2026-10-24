@@ -19,7 +19,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-from . import grok, montage
+from . import avancement, grok, montage
 from .commun import simulation
 
 DUREE_MIN, DUREE_PLAN_MAX = 5, 14            # secondes ; Grok Imagine filme au plus 15 s par plan
@@ -382,14 +382,14 @@ def estimation(duree_son, R, nb_voix=2):
 
 
 # ---------------------------------------------------------------- tout le tournage
-def filmer(R, prompt, image, secondes, dest, caisse, quoi, sobre):
+def filmer(R, prompt, image, secondes, dest, caisse, quoi, sobre, suivi=None):
     """Un clip Grok Imagine ; refus de la modération : un seul nouvel essai avec un prompt plus sobre."""
     m, prix = R["modeles"], R["prix"]
     for essai in (1, 2):
         caisse.autoriser(secondes * prix["video_seconde"], quoi)
         try:
             _, cout = grok.creer_video(m["video"], prompt if essai == 1 else sobre, image, secondes, dest,
-                                       prix["video_seconde"], R["montage"].get("resolution", "720p"))
+                                       prix["video_seconde"], R["montage"].get("resolution", "720p"), suivi=suivi)
             caisse.payer(cout, f"{quoi} ({secondes} s)")
             return dest
         except grok.RefusModeration as e:
@@ -404,6 +404,7 @@ def fabriquer(R, caisse, dossier, lien, deja, file=None):
     T = R.get("tiktok") or {}
     duree_max = float(T.get("duree_max", 60))
     au_hasard = not lien or lien == "hasard"
+    avancement.etape("Recherche de la vidéo TikTok", 2, "au hasard de tes profils" if au_hasard else "lien collé")
     if not au_hasard:
         if not lien_valide(lien):
             raise grok.ErreurGrok("il faut un lien de vidéo TikTok (https://www.tiktok.com/@compte/video/… ou https://vm.tiktok.com/…)")
@@ -437,6 +438,7 @@ def fabriquer(R, caisse, dossier, lien, deja, file=None):
     son = extraire_son(source, os.path.join(dossier, "son.wav"))
     duree = montage.duree(son)
     journal(f"Son TikTok : {duree:.1f} s")
+    avancement.etape("Transcription du son", 6, f"son de {duree:.0f} s, voix séparées")
     caisse.autoriser(estimation(duree, R), "vidéo depuis TikTok")            # on ne commence pas ce qu'on ne pourra pas finir
     # qui dit quoi
     mots, cout = grok.transcrire(son, R["prix"].get("transcription_heure", 0.10), langue=T.get("langue", "fr"), voix_separees=True)
@@ -446,6 +448,7 @@ def fabriquer(R, caisse, dossier, lien, deja, file=None):
     plans = decouper(reps, duree, len(voix) > 1)
     journal(f"  {len(reps)} répliques, {len(voix)} voix, {len(plans)} plans")
     # la mise en scène
+    avancement.etape("Grok imagine la mise en scène", 10, f"{len(plans)} plans, {len(voix)} voix")
     cles = images_cles(source, duree, dossier)
     caisse.autoriser(R["prix"]["scenario"] * 2, "mise en scène")
     ms, cout = mettre_en_scene(R, plans, voix, cles, info)
@@ -475,6 +478,8 @@ def fabriquer(R, caisse, dossier, lien, deja, file=None):
     # chaque plan
     sorties = []
     for k, p in enumerate(plans):
+        base, part = 15 + 75 * p["debut"] / duree, 75 * (p["fin"] - p["debut"]) / duree    # le tournage = 15 à 90 %
+        avancement.etape(f"Tournage du plan {k + 1} sur {len(plans)}", base, f"{p['fin'] - p['debut']:.0f} s")
         d = dplans.get(k, {})
         v, parle = qui_voit_on(p, plans, persos)
         v = v if v in portraits else next(iter(portraits))
@@ -485,7 +490,8 @@ def fabriquer(R, caisse, dossier, lien, deja, file=None):
         caisse.payer(cout, f"image du plan {k + 1}")
         secondes = int(min(15, math.ceil(p["fin"] - p["debut"] + 1.5)))
         clip = filmer(R, prompt_video(c, lieu, d, parle, p["texte"]), depart, secondes, os.path.join(dossier, f"clip_{k}.mp4"),
-                      caisse, f"plan {k + 1}", prompt_video(c, lieu, {"cadrage": "medium shot"}, parle, p["texte"]))
+                      caisse, f"plan {k + 1}", prompt_video(c, lieu, {"cadrage": "medium shot"}, parle, p["texte"]),
+                      suivi=lambda pc, b=base, q=part: avancement.progres(b + q * 0.85 * pc / 100, f"Grok filme : {int(pc)} %"))
         mots_clip = []
         if parle and p["texte"]:
             try:
@@ -498,6 +504,7 @@ def fabriquer(R, caisse, dossier, lien, deja, file=None):
         journal(f"  plan {k + 1}/{len(plans)} : {c['nom']} {'parle' if parle else 'écoute'} ({p['fin'] - p['debut']:.1f} s, "
                 f"vitesse ×{facteur}) — {caisse.depense:.2f} $ jusqu'ici")
     video = os.path.join(dossier, "video.mp4")
+    avancement.etape("Montage sur le son d'origine", 92)
     duree_v = assembler(sorties, son, video, mots, R["montage"].get("sous_titres", True))
     credit = f"🎧 Son : @{auteur}" if auteur else "🎧 Son d'origine sur TikTok"
     legende = (str(ms.get("legende") or "").strip() + " " + credit).strip()[:300]

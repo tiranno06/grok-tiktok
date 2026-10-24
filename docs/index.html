@@ -142,6 +142,19 @@ dialog video { display: block; width: 100%; max-height: 82vh; }
 dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background: rgba(0,0,0,.6); color: #fff; border: 0; border-radius: 99px; width: 34px; height: 34px; font-size: 18px; cursor: pointer; }
 
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 700; font-size: 14px; z-index: 20; max-width: calc(100vw - 32px); text-align: center; }
+/* barre d'avancement de la vidéo en cours */
+.prog { display: grid; gap: 6px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); }
+.prog-haut { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; justify-content: space-between; font-size: 13.5px; }
+.prog-haut b { font-family: var(--f-display); font-size: 14.5px; min-width: 0; overflow-wrap: anywhere; }
+.prog-chiffres { font: 500 12.5px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.prog-barre { height: 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.prog-barre i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .8s ease; }
+.prog.fini .prog-barre i { background: var(--ok); } .prog.erreur .prog-barre i { background: var(--off); }
+.prog-detail { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: no-preference) {
+  .prog.vivant .prog-barre i { background-image: linear-gradient(90deg, transparent 0 40%, rgba(255,255,255,.35) 50%, transparent 60% 100%);
+    background-size: 200% 100%; animation: glisse 1.6s linear infinite; }
+  @keyframes glisse { from { background-position: 100% 0; } to { background-position: -100% 0; } } }
 @media (prefers-reduced-motion: no-preference) { .toast { animation: up .2s ease-out; } @keyframes up { from { transform: translate(-50%, 10px); opacity: 0; } } }
 </style>
 </head>
@@ -154,6 +167,11 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <small id="sub">Chargement…</small>
     </div>
     <button class="btn primary" type="button" id="installer" hidden>📲 Installer l'application</button>
+    <div class="prog" id="prog" hidden role="status" aria-live="polite">
+      <div class="prog-haut"><b id="prog-titre">Création en cours</b><span class="prog-chiffres" id="prog-chiffres"></span></div>
+      <div class="prog-barre" role="progressbar" aria-label="Avancement de la vidéo" aria-valuemin="0" aria-valuemax="100" id="prog-barre"><i></i></div>
+      <div class="prog-detail" id="prog-detail"></div>
+    </div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" data-v="file" aria-selected="true">À publier<span class="count" id="c-file">0</span></button>
       <button role="tab" data-v="publiees">Publiées<span class="count" id="c-pub">0</span></button>
@@ -445,7 +463,7 @@ async function ordre(workflow, inputs, msg) {
     const r = await fetch(`https://api.github.com/repos/${c.repo}/actions/workflows/${workflow}/dispatches`, {
       method: "POST", headers: { Authorization: `Bearer ${c.token}`, Accept: "application/vnd.github+json" },
       body: JSON.stringify({ ref: c.branch, inputs }) });
-    if (r.status === 204) { toast(msg); setTimeout(charger, 60e3); return true; }
+    if (r.status === 204) { toast(msg); setTimeout(charger, 60e3); if (workflow === "robot.yml") attendreCreation(); return true; }
     toast(r.status === 401 || r.status === 403 ? "Clé refusée : vérifie qu'elle a le droit Actions en « Read and write »."
       : r.status === 404 ? "Dépôt introuvable : vérifie son nom dans Réglages." : `GitHub a répondu ${r.status}. Réessaie dans un moment.`);
   } catch { toast("Pas de connexion à GitHub. Réessaie quand le réseau revient."); }
@@ -876,7 +894,69 @@ window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); invite
 $("#installer").onclick = async () => { if (!invite) return; invite.prompt(); await invite.userChoice.catch(() => {}); invite = null; $("#installer").hidden = true; };
 window.addEventListener("appinstalled", () => { $("#installer").hidden = true; toast("Application installée ✓"); });
 
+// ---------------- barre d'avancement en temps réel (fichier avancement.json de la branche « avancement », écrit par le robot)
+let AV = null, AV_recu = 0, commandeLe = 0, avTimer = null;
+const dureeTxt = s => { s = Math.max(0, Math.round(s)); const m = Math.floor(s / 60), r = s % 60;
+  return m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}` : m ? `${m} min ${String(r).padStart(2, "0")} s` : `${r} s`; };
+async function lireAvancement() {
+  const c = conn(); if (!c.repo || DEMO) return null;
+  const h = c.token ? { Authorization: `Bearer ${c.token}`, Accept: "application/vnd.github.raw+json" } : { Accept: "application/vnd.github.raw+json" };
+  try {
+    const r = await fetch(`https://api.github.com/repos/${c.repo}/contents/avancement.json?ref=avancement&t=${Date.now()}`, { headers: h, cache: "no-store" });
+    return r.ok ? r.json() : null;
+  } catch { return null; }
+}
+function afficherAvancement() {
+  const el = $("#prog"), now = Date.now();
+  if (commandeLe && (!AV || new Date(AV.debut).getTime() < commandeLe - 60e3)) {     // commandée, le robot n'a pas encore démarré
+    if (now - commandeLe > 6 * 60e3) { commandeLe = 0; el.hidden = true; return; }
+    el.hidden = false; el.className = "prog vivant";
+    $("#prog-titre").textContent = "⏳ Commande envoyée : le robot démarre";
+    $("#prog-chiffres").textContent = `depuis ${dureeTxt((now - commandeLe) / 1000)}`;
+    $("#prog-detail").textContent = "GitHub prépare la machine du robot (1 à 2 min en général).";
+    $("#prog-barre i").style.width = "1%"; return;
+  }
+  if (!AV) { el.hidden = true; return; }
+  const depuisMaj = (now - AV_recu) / 1000, fini = AV.etat !== "en_cours";
+  const age = (now - new Date(AV.maj).getTime()) / 1000;
+  if (fini && age > (AV.etat === "fini" ? 180 : 900)) { el.hidden = true; return; }    // terminée depuis un moment : on range la barre
+  el.hidden = false;
+  el.className = "prog" + (AV.etat === "fini" ? " fini" : AV.etat === "erreur" ? " erreur" : " vivant");
+  const p = AV.pourcent || 0;
+  $("#prog-barre i").style.width = Math.max(1, p) + "%";
+  $("#prog-barre").setAttribute("aria-valuenow", Math.round(p));
+  const titre = AV.titre ? ` « ${AV.titre} »` : "";
+  if (AV.etat === "fini") { $("#prog-titre").textContent = `✅ Vidéo prête${titre}`; $("#prog-chiffres").textContent = `en ${dureeTxt(AV.ecoule_s)}`;
+    $("#prog-detail").textContent = "Elle est dans « À publier »."; return; }
+  if (AV.etat === "erreur") { $("#prog-titre").textContent = `❌ ${AV.etape}`; $("#prog-chiffres").textContent = "";
+    $("#prog-detail").textContent = "Le détail est dans l'onglet Journal."; return; }
+  const reste = Math.max(0, (AV.reste_s || 0) - depuisMaj), ecoule = (AV.ecoule_s || 0) + depuisMaj;
+  $("#prog-titre").textContent = `🎬 ${AV.format === "tiktok" ? "Son TikTok" : "Création"}${titre}`;
+  $("#prog-chiffres").textContent = `${Math.round(p)} % · reste ≈ ${dureeTxt(reste)}`;
+  $("#prog-detail").textContent = `${AV.etape}${AV.detail ? " — " + AV.detail : ""} · commencée il y a ${dureeTxt(ecoule)}`
+    + (age > 240 ? ` · pas de nouvelles du robot depuis ${dureeTxt(age)}` : "");
+}
+async function suivreAvancement() {
+  clearTimeout(avTimer);
+  if (!document.hidden) {
+    const a = await lireAvancement();
+    if (a && a.maj) {
+      const avant = AV;
+      if (!AV || a.maj !== AV.maj) { AV = a; AV_recu = Date.now(); }
+      if (avant && avant.etat === "en_cours" && a.etat !== "en_cours") charger();   // vidéo terminée : la liste se met à jour
+      if (commandeLe && new Date(a.debut).getTime() >= commandeLe - 60e3) commandeLe = 0;
+    }
+    afficherAvancement();
+  }
+  const actif = commandeLe || (AV && AV.etat === "en_cours");
+  avTimer = setTimeout(suivreAvancement, actif ? (conn().token ? 8000 : 60000) : 60000);   // sans clé, GitHub limite les lectures
+}
+function attendreCreation() { commandeLe = Date.now(); afficherAvancement(); setTimeout(suivreAvancement, 3000); }
+setInterval(() => { if (!$("#prog").hidden) afficherAvancement(); }, 1000);     // le temps restant défile chaque seconde
+document.addEventListener("visibilitychange", () => { if (!document.hidden) suivreAvancement(); });
+
 charger();
+suivreAvancement();
 setInterval(() => { if (D && !document.querySelector(".inline:not(:empty)")) rendre(); }, 60e3);                     // met à jour les heures « dans … min »
 document.addEventListener("visibilitychange", () => { if (!document.hidden && D && !DEMO) charger(); });
 </script>

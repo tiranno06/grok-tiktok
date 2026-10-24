@@ -80,6 +80,13 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   image du plan précédent (scène continue) ; sinon image de départ depuis le portrait ou la dernière image de la personne.
   Plus de coupe dans les blancs (`montage.couper_blancs` faux : l'action continue pendant les silences).
 
+- **Barre d'avancement en temps réel** (24/10, `robot/avancement.py`) : `demarrer` / `etape` / `progres` / `finir` écrivent
+  `avancement.json` (étape, détail, pourcentage, temps écoulé et restant) sur la branche `avancement`, remplacée à chaque envoi
+  par un commit sans parent (git hash-object / mktree / commit-tree + push --force ; main jamais touchée), au plus toutes les
+  10 s (pourcentage de Grok relayé par `creer_video(suivi=…)`). Site : bandeau en haut de toutes les pages, relu toutes les
+  8 s avec la clé GitHub (60 s sans clé), temps restant décompté chaque seconde, « commande envoyée » tant que le robot
+  n'a pas démarré. Gilbert : scénario 4 %, producteur 9 %, tournage 15-88 % au prorata des secondes, montage, jury, rangement.
+
 ## Avant d'envoyer
 `python -m unittest discover -s tests` (aucun appel payant ; workflow `tests.yml`). Pour tester le site : servir `docs/`
 et l'ouvrir à 400 px de large.

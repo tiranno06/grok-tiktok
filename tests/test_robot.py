@@ -83,6 +83,22 @@ class Simulation(Base):
         self.assertIn({"codec_type": "video", "width": 720, "height": 1280}, flux)
         self.assertTrue(any(s["codec_type"] == "audio" for s in flux))
 
+    def test_avancement(self):
+        from robot import avancement
+        vus = []
+        vrai = avancement._envoyer
+        with mock.patch.object(avancement, "_envoyer", lambda force=False: (vus.append(dict(avancement.contenu())), vrai(force))):
+            self.assertEqual(principal.main(["--format", "courte"]), 0)
+        etapes = [v["etape"] for v in vus]
+        self.assertIn("Le scénariste écrit l'épisode", etapes)
+        self.assertTrue(any(e.startswith("Tournage du plan 1") for e in etapes))
+        pourcents = [v["pourcent"] for v in vus]
+        self.assertEqual(pourcents, sorted(pourcents))                      # la barre n'avance que dans un sens
+        self.assertEqual((vus[-1]["etat"], vus[-1]["pourcent"], vus[-1]["reste_s"]), ("fini", 100, 0))
+        self.assertTrue(vus[-1]["titre"].startswith("[Test]"))
+        fichier = json.load(open(os.path.join(TMP, "sortie", "avancement.json"), encoding="utf-8"))
+        self.assertEqual(fichier["etat"], "fini")
+
     def test_jour_sans_longue(self):
         with env(ROBOT_MAINTENANT="2026-10-26T06:17:00"):                # lundi
             self.assertEqual(planning.a_faire(lire("reglages.json"), {"videos": []}, {}), ["courte"])
@@ -131,7 +147,9 @@ class AvecFauxGrok(Base):
             dest = a[-2]
             return grok._fausse_image(dest, "img"), 0.04
 
-        def video(modele, prompt, image, duree, dest, prix, resolution="720p"):
+        def video(modele, prompt, image, duree, dest, prix, resolution="720p", suivi=None):
+            if suivi:
+                suivi(40)
             self.appels.append("video")
             self.departs.append(image)
             self.prompts.append(prompt)
