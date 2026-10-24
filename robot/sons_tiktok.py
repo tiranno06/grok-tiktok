@@ -2,8 +2,9 @@
 
 1. on prend une vidéo (lien collé sur le site, ou au hasard d'un des profils choisis, jamais deux fois la même) ;
 2. on garde seulement son audio, transcrit par xAI avec qui parle et quand (voix séparées) ;
-3. Grok regarde quelques images de la vidéo d'origine et le texte, puis invente la mise en scène : personnages FICTIFS
-   (jamais les vraies personnes de la vidéo), lieux, émotions, cadrages. Gilbert peut jouer le rôle principal ;
+3. Grok regarde quelques images de la vidéo d'origine et le texte, puis invente toute la mise en scène pour CE son :
+   personnages créés de toutes pièces (jamais Gilbert, jamais les vraies personnes de la vidéo), lieux, décors,
+   accessoires, émotions, cadrages ;
 4. chaque réplique devient un plan filmé par Grok Imagine (la personne qui parle dit la même phrase) ;
 5. au montage, chaque plan est recalé et légèrement accéléré ou ralenti pour que la bouche tombe sur la parole
    d'origine, puis on remet le son d'origine tel quel sur toute la vidéo.
@@ -239,49 +240,49 @@ qui parle) et quelques images de la vidéo d'origine pour comprendre la situatio
 RÈGLES
 - Les personnages sont FICTIFS : ils ne doivent pas ressembler aux personnes de la vidéo d'origine (autre visage, autre
   coiffure, autres habits). Tous adultes. Jamais de marque, de célébrité ni de logo.
-- Âge, genre et allure de chaque personnage collent à sa voix et à ce qu'il dit.
-- {gilbert}
+- Crée les personnages de toutes pièces pour CE son : âge, genre, physique, coiffure et tenue collent à sa voix, à son
+  ton et à ce qu'il dit (un ado grognon, une mamie autoritaire, un patron stressé…). Décris-les avec beaucoup de détails.
+- Crée aussi le lieu et le décor autour de ce que raconte le son (où se passe vraiment la scène ? quelle heure ? quels
+  objets ?) : décor riche et précis, cohérent d'un plan à l'autre. Les images d'origine aident à comprendre, ne les copie pas.
 - Une personne qu'on entend au téléphone ou hors champ peut être « hors_champ » : on ne la montre pas.
 - Lieux, accessoires, émotions et gestes servent la blague. Jeu naturel et expressif, jamais figé.
 - "description", "lieu", "action", "ecoute" et "cadrage" sont en ANGLAIS, précis et visuels.
 
 Réponds uniquement en JSON :
-{{"contexte": "ce qui se passe, en une phrase", "titre": "...", "legende": "légende TikTok drôle, sans hashtag",
+{"contexte": "ce qui se passe, en une phrase", "titre": "...", "legende": "légende TikTok drôle, sans hashtag",
  "hashtags": ["#..."],
- "personnages": [{{"voix": 0, "nom": "prénom", "gilbert": false, "hors_champ": false,
-                  "description": "age, gender, face, hair, clothes", "voix_desc": "voice in English"}}],
- "lieux": [{{"id": "A", "description": "..."}}],
- "plans": [{{"plan": 0, "lieu": "A", "cadrage": "close-up | medium shot | over-the-shoulder | selfie ...",
+ "personnages": [{"voix": 0, "nom": "prénom", "hors_champ": false,
+                  "description": "age, gender, face, hair, clothes", "voix_desc": "voice in English"}],
+ "lieux": [{"id": "A", "description": "..."}],
+ "plans": [{"plan": 0, "lieu": "A", "cadrage": "close-up | medium shot | over-the-shoulder | selfie ...",
             "action": "gestures and facial expression while speaking", "ecoute": "how the listener reacts (for listening shots)",
-            "emotion": "..."}}]}}"""
+            "emotion": "..."}]}"""
 
 
-def mettre_en_scene(R, P, plans, voix, cles, info, gilbert):
+def mettre_en_scene(R, plans, voix, cles, info):
     """Décisions de Grok (personnages, lieux, cadrages). Renvoie (mise_en_scene, coût)."""
     lignes = "\n".join(f"plan {k} ({p['debut']:.1f}–{p['fin']:.1f} s) voix {p['voix']} "
                        f"{'[on voit la personne qui écoute]' if p['role'] == 'ecoute' else ''} : {p['texte'] or '(pas de parole)'}"
                        for k, p in enumerate(plans))
-    g = (f"Le personnage récurrent de la chaîne, {P['nom']} ({P['apparence']}), joue la voix principale si c'est un homme "
-         f"adulte (mets alors \"gilbert\": true pour cette voix)." if gilbert else "Aucun personnage récurrent imposé.")
     demande = (f"Voix entendues : {', '.join(str(v) for v in voix)}.\nCompte d'origine : @{info.get('uploader', '?')}.\n"
                f"Transcription découpée en plans :\n{lignes}")
     if simulation():
         return _scene_simulation(plans, voix), 0.0
-    ms, cout = grok.ecrire_json(R["modeles"].get("vision", R["modeles"]["texte"]), CONSIGNES.format(gilbert=g), demande,
+    ms, cout = grok.ecrire_json(R["modeles"].get("vision", R["modeles"]["texte"]), CONSIGNES, demande,
                                 R["prix"]["scenario"] * 2, images=cles)
     return ms, cout
 
 
 def _scene_simulation(plans, voix):
     return {"contexte": "test", "titre": "[Test] Son TikTok", "legende": "Vidéo de test.", "hashtags": ["#test"],
-            "personnages": [{"voix": v, "nom": f"Perso {v}", "gilbert": v == 0, "hors_champ": False,
+            "personnages": [{"voix": v, "nom": f"Perso {v}", "hors_champ": False,
                              "description": "adult person, casual clothes", "voix_desc": "neutral"} for v in voix],
             "lieux": [{"id": "A", "description": "kitchen"}],
             "plans": [{"plan": k, "lieu": "A", "cadrage": "medium shot", "action": "talks", "ecoute": "listens",
                        "emotion": "neutral"} for k in range(len(plans))]}
 
 
-def distribution(ms, voix, P, gilbert):
+def distribution(ms, voix):
     """Personnage de chaque voix (toujours quelqu'un, même si Grok en a oublié)."""
     persos = {}
     for c in ms.get("personnages") or []:
@@ -293,16 +294,6 @@ def distribution(ms, voix, P, gilbert):
             persos[v] = c
     for v in voix:
         persos.setdefault(v, {"voix": v, "nom": f"Personne {v + 1}", "description": "adult person, casual clothes"})
-    if not gilbert:
-        for c in persos.values():
-            c["gilbert"] = False
-    elif sum(bool(c.get("gilbert")) for c in persos.values()) > 1:     # un seul Gilbert
-        premier = next(v for v, c in persos.items() if c.get("gilbert"))
-        for v, c in persos.items():
-            c["gilbert"] = v == premier
-    for c in persos.values():
-        if c.get("gilbert"):
-            c.update(nom=P["nom"], description=P["apparence"], voix_desc=P.get("voix", ""))
     return persos
 
 
@@ -408,7 +399,7 @@ def filmer(R, prompt, image, secondes, dest, caisse, quoi, sobre):
             journal(f"  {quoi} refusé par la modération : nouvel essai plus sobre")
 
 
-def fabriquer(R, P, caisse, dossier, lien, deja, portrait_gilbert, file=None):
+def fabriquer(R, caisse, dossier, lien, deja, file=None):
     """Fabrique la vidéo. Renvoie un dict : titre, legende, hashtags, video, duree, source, auteur, plans."""
     T = R.get("tiktok") or {}
     duree_max = float(T.get("duree_max", 60))
@@ -456,11 +447,10 @@ def fabriquer(R, P, caisse, dossier, lien, deja, portrait_gilbert, file=None):
     journal(f"  {len(reps)} répliques, {len(voix)} voix, {len(plans)} plans")
     # la mise en scène
     cles = images_cles(source, duree, dossier)
-    gilbert = bool(T.get("gilbert", True)) and bool(portrait_gilbert)
     caisse.autoriser(R["prix"]["scenario"] * 2, "mise en scène")
-    ms, cout = mettre_en_scene(R, P, plans, voix, cles, info, gilbert)
+    ms, cout = mettre_en_scene(R, plans, voix, cles, info)
     caisse.payer(cout, "mise en scène (Grok regarde la vidéo)")
-    persos = distribution(ms, voix, P, gilbert)
+    persos = distribution(ms, voix)
     lieux = {str(l.get("id")): str(l.get("description") or "") for l in ms.get("lieux") or [] if isinstance(l, dict)}
     lieu_defaut = next(iter(lieux.values()), "") or "an ordinary French apartment"
     dplans = {}
@@ -474,9 +464,6 @@ def fabriquer(R, P, caisse, dossier, lien, deja, portrait_gilbert, file=None):
     portraits = {}
     for v, c in persos.items():
         if c.get("hors_champ") and len(persos) > 1:
-            continue
-        if c.get("gilbert"):
-            portraits[v] = portrait_gilbert
             continue
         caisse.autoriser(R["prix"]["image"], f"portrait de {c['nom']}")
         dest = os.path.join(dossier, f"portrait_{v}.jpg")

@@ -1,15 +1,18 @@
 {
  "nom": "Gilbert Mouchon",
- "age": 54,
+ "age": 58,
  "ville": "Saint-Glinglin-sur-Loire (village imaginaire)",
- "apparence": "French man in his mid fifties, round friendly face, thick grey walrus moustache, small rectangular glasses, short grey hair, beige fishing vest over a faded blue checked shirt",
- "voix": "deep, calm, slightly hoarse voice of a French man in his fifties, deadpan delivery",
- "personnalite": "Vlogueur amateur persuadé d'être une star d'Internet. Pince-sans-rire, très sérieux face aux situations les plus absurdes.",
- "phrase_fetiche": "Bon. On va pas se mentir.",
+ "apparence": "French man in his late fifties, wild untamed white-grey hair sticking up in all directions, thick grey walrus moustache, bushy eyebrows, wide excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly stained white lab coat over a faded blue checked shirt",
+ "voix": "excited, slightly hoarse voice of a French man in his late fifties, theatrical, speaks fast when he gets carried away",
+ "personnalite": "Inventeur fou autoproclamé génie, exalté, yeux écarquillés, inspiré du savant excentrique des comédies de science-fiction des années 80. Dans son garage transformé en laboratoire, il invente des objets et des technologies complètement ubuesques pour régler de vrais petits problèmes du quotidien (grille-pain à téléportation, parapluie anti-Monique, détecteur de lundi, robot qui plie les chaussettes). Il présente chaque invention avec un sérieux scientifique total et des explications pseudo-techniques… et à chaque fois ça merdouille de façon spectaculaire et drôle : fumée, étincelles, effet inverse, Napoléon s'en mêle. Il ne s'avoue jamais vaincu et trouve toujours une excuse scientifique.",
+ "phrase_fetiche": "C'est scientifiquement imparable !",
  "gags_recurrents": [
-  "Sa voisine Monique, qu'on ne voit jamais mais qui a toujours un avis",
-  "Son pigeon apprivoisé Napoléon",
-  "Ses inventions inutiles bricolées au garage"
+  "Chaque invention merdouille : fumée, étincelles, petite explosion, ou elle fait exactement l'inverse de ce qui était prévu",
+  "Après chaque raté, ses cheveux sont encore plus ébouriffés et il annonce que « c'était prévu »",
+  "Compte à rebours théâtral avant chaque essai : « Dans 3… 2… 1… »",
+  "Napoléon, son pigeon, sert d'assistant de laboratoire (ou de cobaye) et sabote souvent l'expérience",
+  "Monique, la voisine qu'on ne voit jamais, se plaint du bruit et des explosions à travers la haie",
+  "Un tableau noir couvert d'équations absurdes et de schémas griffonnés"
  ],
- "ton": "humour absurde, faux sérieux, chute surprenante"
+ "ton": "comédie de savant fou : exaltation, démonstration très sérieuse, catastrophe qui merdouille, chute absurde"
 }

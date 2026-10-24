@@ -43,11 +43,11 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
             caisse.autoriser(budget.estimation(format_, R), f"vidéo {format_}")   # on ne commence pas ce qu'on ne finira pas
         # 1. le portrait de référence
         portrait = os.path.join(DONNEES, "portrait.jpg")
-        if not portrait_present() and (format_ != "tiktok" or (R.get("tiktok") or {}).get("gilbert", True)):
+        if not portrait_present() and format_ != "tiktok":       # (vidéos TikTok : personnages inventés, pas Gilbert)
             portrait = fabriquer_portrait(R, P, caisse, os.path.join(dossier, "portrait.jpg"))
             res["portrait"] = None if simulation() else portrait    # un faux portrait de test n'est jamais gardé
         if format_ == "tiktok":
-            return video_tiktok(res, R, P, caisse, dossier, lien, idee, portrait if os.path.exists(portrait) else None)
+            return video_tiktok(res, R, caisse, dossier, lien)
         # 2. le scénario
         deja = [v.get("titre", "") for v in (lire("file.json") or {}).get("videos", [])]
         caisse.autoriser(R["prix"]["scenario"], "scénario")
@@ -89,12 +89,12 @@ def fabriquer(format_, idee="", remplace="", auto=False, lien=""):
     return res
 
 
-def video_tiktok(res, R, P, caisse, dossier, lien, idee, portrait):
+def video_tiktok(res, R, caisse, dossier, lien):
     """Filière « Sons TikTok » (voir sons_tiktok.py)."""
     vid, now = res["id"], maintenant()
     file = lire("file.json") or {"videos": []}
     deja = {sons_tiktok.id_video(v.get("source", "")) for v in file.get("videos", [])} - {""}
-    t = sons_tiktok.fabriquer(R, P, caisse, dossier, lien, deja, portrait, file)
+    t = sons_tiktok.fabriquer(R, caisse, dossier, lien, deja, file)
     video = os.path.join(dossier, f"{vid}.mp4")
     os.replace(t["video"], video)
     res["miniature"] = montage.miniature(video, os.path.join(dossier, f"{vid}.jpg"), min(1.5, t["duree"] / 2))

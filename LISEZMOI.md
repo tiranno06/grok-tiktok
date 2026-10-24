@@ -2,7 +2,8 @@
 
 Chaque matin, le robot :
 1. **écrit un épisode** avec Grok (titre, légende, hashtags, découpage en plans) autour du personnage récurrent
-   **Gilbert Mouchon**, vlogueur pince-sans-rire d'un village imaginaire, sa voisine invisible Monique et son pigeon Napoléon ;
+   **Gilbert Mouchon**, inventeur fou d'un village imaginaire dont les inventions ubuesques merdouillent à chaque fois,
+   sa voisine invisible Monique et son pigeon Napoléon (assistant de laboratoire) ;
 2. **fait filmer chaque plan** par **Grok Imagine** (modèle *Video 1.5 Lite*, avec le son et la voix). Chaque plan part
    d'une image de Gilbert tirée de son **portrait de référence** : il garde le même visage d'une vidéo à l'autre ;
 3. **monte la vidéo** : format vertical 720×1280, son égalisé, sous-titres incrustés ;
@@ -37,8 +38,8 @@ renvoyé par Grok est celui qui est compté.
 Le robot prend une vidéo TikTok drôle (lien collé, ou au hasard de tes profils, jamais deux fois la même), **garde seulement
 son son**, puis tourne une nouvelle vidéo réaliste autour :
 1. xAI transcrit le son et sépare les voix (qui dit quoi, et quand) ;
-2. Grok regarde quelques images de la vidéo d'origine pour comprendre la situation, puis invente les personnages
-   (fictifs, jamais les vraies personnes de la vidéo ; Gilbert peut jouer le rôle principal), les lieux et les gestes ;
+2. Grok regarde quelques images de la vidéo d'origine pour comprendre la situation, puis crée de toutes pièces, pour
+   ce son, les personnages (jamais Gilbert, jamais les vraies personnes de la vidéo), le lieu, le décor et les gestes ;
 3. chaque réplique est filmée par Grok Imagine ; on voit aussi celui qui écoute réagir pendant les longues répliques ;
 4. au montage, chaque plan est recalé (et un peu accéléré ou ralenti) pour que la bouche tombe sur la parole d'origine,
    puis le son d'origine est remis tel quel. C'est un doublage : la synchronisation des lèvres est bonne mais pas parfaite.

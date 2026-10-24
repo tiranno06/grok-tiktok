@@ -6,6 +6,9 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
 
 ## Choix du propriétaire (23/10/2026)
 - Images réalistes, personnage récurrent **Gilbert Mouchon** (fiche modifiable depuis le site, `docs/donnees/personnage.json`).
+  Depuis le 24/10 : **inventeur fou** inspiré du savant excentrique de Retour vers le futur (sans jamais citer le film ni ses
+  éléments) : inventions ubuesques qui merdouillent à chaque fois, de façon drôle. Cheveux blancs en bataille, blouse, lunettes
+  de soudeur. Portrait à refaire après tout changement d'apparence (supprimé le 24/10 : recréé à la vidéo suivante).
 - **Publication manuelle ou automatique** (24/10, comme jt-auto, `robot/publier.py`, `reglages.publication` : mode, compte) :
   manuelle = bouton Publier (Télécharger, Copier la légende, C'est publié) ; automatique = `principal.programmer` programme
   chaque vidéo sur Buffer (GraphQL `createPost`, `isAiGenerated`, `dueAt` = heure conseillée) → statut `programmee`
@@ -40,9 +43,10 @@ explications simples. Ne jamais écrire une clé en clair (secret GitHub `XAI_AP
   chaque clip est transcrit (`grok.transcrire`, POST /v1/stt) : sous-titres mot à mot calés sur la vraie voix, blancs coupés
   avec un léger zoom un morceau sur deux (`principal.rythmer`, une longue reste ≥ 62 s).
 - **Sons TikTok** (24/10, `robot/sons_tiktok.py`, `--format tiktok --lien …`, onglet « Sons TikTok » du site, réglages
-  `reglages.tiktok` : profils, auto + jours, duree_max, gilbert) : yt-dlp (imitation navigateur) puis tikwm ; transcription
+  `reglages.tiktok` : profils, auto + jours, duree_max) : yt-dlp (imitation navigateur) puis tikwm ; transcription
   avec voix séparées (`diarize`) ; `decouper` (un plan par réplique, plan « écoute » au milieu des longues répliques, ≤ 14 s) ;
-  Grok vision (`modeles.vision`) invente personnages FICTIFS / lieux / cadrages ; un portrait par personnage ; `caler` recale
+  Grok vision (`modeles.vision`) crée de toutes pièces, pour chaque son, personnages (jamais Gilbert, jamais les vraies
+  personnes), lieu, décor et cadrages ; un portrait par personnage ; `caler` recale
   la parole du clip Grok sur la parole d'origine (vitesse ×0,75 à ×1,35) ; `assembler` remet le son d'origine. Pas de vraie
   synchronisation labiale chez xAI (pas d'entrée audio) : c'est un doublage.
 - **Profils de sketchs** (24/10) : `reglages.tiktok.profils` pré-rempli avec les 9 profils connus de jt-auto

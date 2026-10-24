@@ -112,8 +112,6 @@ def appliquer_reglages(d):
             T["jours"] = [j for j in JOURS if j in t["jours"]]
         if "duree_max" in t:
             T["duree_max"] = max(10, min(90, int(t["duree_max"])))
-        if "gilbert" in t:
-            T["gilbert"] = bool(t["gilbert"])
     ecrire("reglages.json", R)
     noter(f"⚙️ Réglages modifiés (plafond {R['budget']['plafond_mensuel_usd']:.0f} $/mois).")
 

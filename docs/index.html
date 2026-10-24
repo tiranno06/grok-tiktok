@@ -196,7 +196,7 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
     <form class="panel" id="f-tk">
       <h2>Vidéo sur le son d'une vidéo TikTok</h2>
       <p class="hint">Le robot garde seulement le son d'une vidéo TikTok drôle et tourne une nouvelle vidéo réaliste autour :
-        personnages inventés (Gilbert peut jouer le rôle principal), décors, gestes. Les bouches sont recalées sur le son, comme un doublage.</p>
+        personnages, lieu et décors créés de toutes pièces pour chaque son, gestes. Les bouches sont recalées sur le son, comme un doublage.</p>
       <label class="f" for="tk_lien">Lien d'une vidéo TikTok <span class="sub">Laisse vide pour piocher au hasard dans tes profils.</span>
         <input type="url" id="tk_lien" placeholder="https://www.tiktok.com/@compte/video/…" autocomplete="off"></label>
       <div class="seg"><label for="tk_simu"><input type="checkbox" id="tk_simu"> Test gratuit (fausse vidéo, sans appeler Grok)</label></div>
@@ -211,11 +211,7 @@ dialog .close { position: absolute; top: 8px; right: 8px; z-index: 2; background
       <div class="f">Création automatique
         <div class="seg"><label for="tk_auto"><input type="checkbox" id="tk_auto"> Oui, les jours cochés (vers 6 h)</label></div>
         <div class="seg" id="tk_jours"></div></div>
-      <div class="row">
-        <label class="f" for="tk_max">Durée maximale du son (secondes)<input type="number" id="tk_max" min="10" max="90" step="5"></label>
-        <div class="f">Personnage récurrent
-          <div class="seg"><label for="tk_gilbert"><input type="checkbox" id="tk_gilbert"> Gilbert joue le rôle principal</label></div></div>
-      </div>
+      <label class="f" for="tk_max">Durée maximale du son (secondes)<input type="number" id="tk_max" min="10" max="90" step="5"></label>
       <p class="hint">La création automatique suit aussi le mode choisi dans Réglages : en mode manuel, rien ne se crée tout seul.</p>
       <div class="actions"><button class="btn primary" type="submit">Enregistrer</button></div>
     </form>
@@ -352,14 +348,8 @@ const DEMO_DATA = {
     formats:{ courte:{clips:2, secondes_par_clip:10}, longue:{clips:6, secondes_par_clip:14} },
     planning:{ courte_chaque_jour:true, jours_longue:["samedi"], heures_publication:[12,19], pause:false },
     montage:{ sous_titres:true },
-    tiktok:{ profils:["yan_animation0","eliotlehanneur","same_same53","charly.bse"], auto:false, jours:["mercredi","dimanche"], duree_max:45, gilbert:true } },
-  "personnage.json": { nom:"Gilbert Mouchon", age:54, ville:"Saint-Glinglin-sur-Loire (village imaginaire)",
-    apparence:"French man in his mid fifties, round friendly face, thick grey walrus moustache, small rectangular glasses, short grey hair, beige fishing vest over a faded blue checked shirt",
-    voix:"deep, calm, slightly hoarse voice of a French man in his fifties, deadpan delivery",
-    personnalite:"Vlogueur amateur persuadé d'être une star d'Internet. Pince-sans-rire, très sérieux face aux situations les plus absurdes.",
-    phrase_fetiche:"Bon. On va pas se mentir.",
-    gags_recurrents:["Sa voisine Monique, qu'on ne voit jamais mais qui a toujours un avis","Son pigeon apprivoisé Napoléon","Ses inventions inutiles bricolées au garage"],
-    ton:"humour absurde, faux sérieux, chute surprenante" }
+    tiktok:{ profils:["yan_animation0","eliotlehanneur","same_same53","charly.bse"], auto:false, jours:["mercredi","dimanche"], duree_max:45 } },
+  "personnage.json": {"nom": "Gilbert Mouchon", "age": 58, "ville": "Saint-Glinglin-sur-Loire (village imaginaire)", "apparence": "French man in his late fifties, wild untamed white-grey hair sticking up in all directions, thick grey walrus moustache, bushy eyebrows, wide excited eyes, small rectangular glasses, brass welding goggles pushed up on his forehead, slightly stained white lab coat over a faded blue checked shirt", "voix": "excited, slightly hoarse voice of a French man in his late fifties, theatrical, speaks fast when he gets carried away", "personnalite": "Inventeur fou autoproclamé génie, exalté, yeux écarquillés, inspiré du savant excentrique des comédies de science-fiction des années 80. Dans son garage transformé en laboratoire, il invente des objets et des technologies complètement ubuesques pour régler de vrais petits problèmes du quotidien (grille-pain à téléportation, parapluie anti-Monique, détecteur de lundi, robot qui plie les chaussettes). Il présente chaque invention avec un sérieux scientifique total et des explications pseudo-techniques… et à chaque fois ça merdouille de façon spectaculaire et drôle : fumée, étincelles, effet inverse, Napoléon s'en mêle. Il ne s'avoue jamais vaincu et trouve toujours une excuse scientifique.", "phrase_fetiche": "C'est scientifiquement imparable !", "gags_recurrents": ["Chaque invention merdouille : fumée, étincelles, petite explosion, ou elle fait exactement l'inverse de ce qui était prévu", "Après chaque raté, ses cheveux sont encore plus ébouriffés et il annonce que « c'était prévu »", "Compte à rebours théâtral avant chaque essai : « Dans 3… 2… 1… »", "Napoléon, son pigeon, sert d'assistant de laboratoire (ou de cobaye) et sabote souvent l'expérience", "Monique, la voisine qu'on ne voit jamais, se plaint du bruit et des explosions à travers la haie", "Un tableau noir couvert d'équations absurdes et de schémas griffonnés"], "ton": "comédie de savant fou : exaltation, démonstration très sérieuse, catastrophe qui merdouille, chute absurde"}
 };
 const NOMS = Object.keys(DEMO_DATA);
 
@@ -526,9 +516,9 @@ function remplirFormulaires() {
   $("#r_cap").value = R().budget.plafond_mensuel_usd; $("#r_daily").checked = !!pl.courte_chaque_jour;
   $("#r_days").innerHTML = JOURS.map(j => `<label for="j_${j}"><input type="checkbox" id="j_${j}" value="${j}" ${pl.jours_longue.includes(j) ? "checked" : ""}> ${j}</label>`).join("");
   $("#r_hours").value = pl.heures_publication.join(", "); $("#r_subs").checked = R().montage.sous_titres !== false;
-  const T = R().tiktok || { profils: [], auto: false, jours: [], duree_max: 45, gilbert: true };
+  const T = R().tiktok || { profils: [], auto: false, jours: [], duree_max: 45 };
   if (document.activeElement !== $("#tk_profils")) $("#tk_profils").value = (T.profils || []).map(p => "@" + p).join("\n");
-  $("#tk_auto").checked = !!T.auto; $("#tk_max").value = T.duree_max || 45; $("#tk_gilbert").checked = T.gilbert !== false;
+  $("#tk_auto").checked = !!T.auto; $("#tk_max").value = T.duree_max || 45;
   $("#tk_jours").innerHTML = JOURS.map(j => `<label for="tk_${j}"><input type="checkbox" id="tk_${j}" value="${j}" ${(T.jours || []).includes(j) ? "checked" : ""}> ${j}</label>`).join("");
   const c = conn(); $("#c_repo").value = c.repo; $("#c_token").placeholder = c.token ? "•••••••• enregistrée" : "github_pat_…";
 }
@@ -654,7 +644,7 @@ $("#tk_connus").onclick = () => {
 };
 $("#f-tkp").addEventListener("submit", e => { e.preventDefault();
   const tiktok = { profils: $("#tk_profils").value, auto: $("#tk_auto").checked, duree_max: +$("#tk_max").value || 45,
-    jours: [...document.querySelectorAll("#tk_jours input:checked")].map(i => i.value), gilbert: $("#tk_gilbert").checked };
+    jours: [...document.querySelectorAll("#tk_jours input:checked")].map(i => i.value) };
   commande("reglages", "", JSON.stringify({ tiktok }), "Profils TikTok envoyés au robot."); });
 $("#b-portrait").addEventListener("click", e => { if (arme(e.currentTarget, "portrait")) commande("portrait", "", "", "Nouveau portrait commandé (1 à 2 min)."); });
 $("#f-perso").addEventListener("submit", e => { e.preventDefault();

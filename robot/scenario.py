@@ -22,7 +22,8 @@ FICHE DU PERSONNAGE
 
 CE QUI REND UN SKETCH TIKTOK DRÔLE
 - Accroche dans les 2 premières secondes : la première phrase pose une situation absurde avec un sérieux total
-  (« Aujourd'hui j'ai appris à mon pigeon à faire ma déclaration d'impôts. »). Jamais de « Bonjour tout le monde ».
+  (« Aujourd'hui, j'ai inventé le grille-pain qui répond au téléphone. »). Jamais de « Bonjour tout le monde ».
+- La personnalité du personnage guide chaque épisode : respecte-la à la lettre (ses inventions, ses ratés, ses gags).
 - Partir d'un vrai petit problème du quotidien français (voisins, bricolage, supermarché, météo, administration,
   vacances, technologie) et le pousser jusqu'à l'absurde.
 - Escalade : chaque plan est pire que le précédent. La règle de trois marche bien (deux choses normales, la troisième folle).
@@ -33,6 +34,8 @@ CE QUI REND UN SKETCH TIKTOK DRÔLE
 
 RÈGLES
 - Personnage fictif. Jamais de vraie personne, de marque, de politique, de violence, d'enfant ni de sujet choquant.
+- Jamais de référence directe à un film, une série ou un personnage existant (ni titre, ni voiture célèbre, ni réplique
+  connue) : on s'inspire seulement de l'énergie du savant fou de comédie. Les ratés restent drôles et sans blessé.
 - Monique la voisine n'apparaît JAMAIS à l'image : on l'entend pas, on parle d'elle, on la montre du doigt hors champ.
 - Seul {nom} parle, en français, face caméra ou presque, comme un vlogueur.
 - Chaque plan dure {secondes} secondes : la réplique fait entre {mots_min} et {mots} mots (il parle presque tout le plan,
@@ -107,7 +110,7 @@ def nettoyer(ep, nb, secondes, perso):
 
 
 def _episode_simulation(perso, nb, idee):
-    sujets = ["la tondeuse qui a peur du noir", "Napoléon refuse de quitter la voiture", "un concours de soupe"]
+    sujets = ["le grille-pain à téléportation", "le détecteur de lundi", "le robot qui plie les chaussettes"]
     sujet = idee or random.choice(sujets)
     return {"titre": f"[Test] {sujet[:60]}", "legende": "Vidéo de test : aucune IA n'a été appelée.",
             "hashtags": ["#test", "#humour"],
