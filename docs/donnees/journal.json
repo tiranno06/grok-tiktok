@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T19:46:05+02:00",
+   "niveau": "alerte",
+   "texte": "⏸️ Vidéo tiktok pas fabriquée : plafond du mois atteint : il resterait 0.00 $, il faudrait 0.07 $ pour « image du plan 14 ». Reprise le 1er du mois (ou monte le plafond dans Réglages)."
+  },
+  {
    "date": "2026-10-24T19:34:00+02:00",
    "niveau": "info",
    "texte": "⚙️ Réglages modifiés (plafond 10 $/mois)."
