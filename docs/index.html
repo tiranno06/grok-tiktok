@@ -544,14 +544,16 @@ function carte(v) {
       ${avecBuffer() ? `<button class="btn" type="button" data-a="buffer" data-id="${v.id}">Envoyer par Buffer</button>` : ""}
       <button class="btn" type="button" data-a="legende" data-id="${v.id}">Modifier la légende</button>
       <button class="btn" type="button" data-a="refaire" data-id="${v.id}">Refaire</button>
-      <button class="btn danger" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>`;
+      <button class="btn" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>
+      <button class="btn danger" type="button" data-a="supprimer" data-id="${v.id}">Supprimer</button>`;
   else if (v.statut === "programmee") act = `
       <button class="btn" type="button" data-a="annuler_programmation" data-id="${v.id}">Annuler la programmation</button>
-      <button class="btn danger" type="button" data-a="ecarter" data-id="${v.id}">Écarter</button>`;
+      <button class="btn danger" type="button" data-a="supprimer" data-id="${v.id}">Supprimer</button>`;
   else if (v.statut === "ecartee" || v.statut === "remplacee") act = `
       <button class="btn" type="button" data-a="a_publier" data-id="${v.id}">Remettre dans la file</button>
       <button class="btn danger" type="button" data-a="supprimer" data-id="${v.id}">Supprimer</button>`;
-  else if (v.statut === "publiee") act = v.lien_tiktok ? `<a class="btn" href="${esc(v.lien_tiktok)}" target="_blank" rel="noopener">Voir sur TikTok</a>` : "";
+  else if (v.statut === "publiee") act = (v.lien_tiktok ? `<a class="btn" href="${esc(v.lien_tiktok)}" target="_blank" rel="noopener">Voir sur TikTok</a>` : "") + `
+      <button class="btn danger" type="button" data-a="supprimer" data-id="${v.id}" title="Retire la vidéo du site (pas de TikTok)">Supprimer</button>`;
   return `<article class="reel">
     <button class="thumb" type="button" style="${mini}" data-play="${esc(v.url || "")}" aria-label="Lire « ${esc(v.titre)} »">
       <span class="play" aria-hidden="true">▶</span><span class="tc">${tc(v.duree)}</span></button>
@@ -589,8 +591,9 @@ function rendre() {
     if (v.statut === "programmee" && new Date(v.publier_le) <= Date.now()) { v.statut = "publiee"; v.publiee_le = v.publier_le; }
   const enFile = v => ["a_publier","programmee"].includes(v.statut);
   const avenir = vids.filter(v => ["a_publier","programmee","ecartee","remplacee"].includes(v.statut))
-    .sort((a, b) => !enFile(a) - !enFile(b) || new Date(a.publier_le) - new Date(b.publier_le));
-  const pub = vids.filter(v => v.statut === "publiee").sort((a, b) => new Date(b.publiee_le || 0) - new Date(a.publiee_le || 0));
+    .sort((a, b) => !enFile(a) - !enFile(b) || new Date(b.cree_le || 0) - new Date(a.cree_le || 0));   // la plus récente en haut
+  const pub = vids.filter(v => v.statut === "publiee")
+    .sort((a, b) => new Date(b.publiee_le || b.cree_le || 0) - new Date(a.publiee_le || a.cree_le || 0));
   $("#list-file").innerHTML = avenir.length ? avenir.map(carte).join("")
     : `<div class="empty">Rien à publier. Le robot passe chaque matin, ou commande une vidéo dans « Créer ».</div>`;
   $("#list-pub").innerHTML = pub.length ? pub.map(carte).join("") : `<div class="empty">Aucune vidéo publiée pour l'instant.</div>`;
@@ -788,7 +791,7 @@ document.addEventListener("click", async e => {
     return;
   }
   if (a === "ecarter" || a === "a_publier" || a === "supprimer") {
-    if (await commande(a, id)) {
+    if (await commande(a, id, "", a === "supprimer" ? "Vidéo supprimée (le robot finit le rangement en 1 à 2 min)." : undefined)) {
       if (a === "supprimer") D["file.json"].videos = D["file.json"].videos.filter(x => x.id !== id);
       else v.statut = a === "ecarter" ? "ecartee" : "a_publier";
       rendre();
