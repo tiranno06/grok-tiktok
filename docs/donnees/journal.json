@@ -1,6 +1,11 @@
 {
  "evenements": [
   {
+   "date": "2026-10-24T09:23:57+02:00",
+   "niveau": "info",
+   "texte": "⚙️ Réglages modifiés (plafond 5 $/mois)."
+  },
+  {
    "date": "2026-10-24T09:21:00+02:00",
    "niveau": "info",
    "texte": "⚙️ Réglages modifiés (plafond 5 $/mois)."

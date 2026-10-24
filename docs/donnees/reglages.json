@@ -24,10 +24,8 @@
   }
  },
  "planning": {
-  "courte_chaque_jour": true,
-  "jours_longue": [
-   "samedi"
-  ],
+  "courte_chaque_jour": false,
+  "jours_longue": [],
   "heures_publication": [
    12,
    19
